@@ -1,0 +1,11 @@
+#ifndef _ACCRQA_DEFINITIONS_DEF
+#define _ACCRQA_DEFINITIONS_DEF
+
+#include <stdio.h>
+
+//#define MONITOR_PERFORMANCE
+
+#define RQA_METRIC_EUCLIDEAN 1
+#define RQA_METRIC_MAXIMAL 2
+
+#endif
