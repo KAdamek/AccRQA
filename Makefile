@@ -1,7 +1,6 @@
-#export LD_LIBRARY_PATH=/home/kadamek/RQA/mk9:$LD_LIBRARY_PATH
 INC := -I${CUDA_HOME}/include -I/usr/share/R/include
 LIB := -L${CUDA_HOME}/lib64 -L/usr/lib/R/lib -lcudart -lcuda -lR
-LIBRQA := -L/home/kadamek/RQA/mk9 -lAccRQA
+LIBRQA := -L. -lAccRQA
 
 # use this compilers
 # g++ just because the file write
