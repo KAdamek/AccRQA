@@ -40,11 +40,10 @@ public:
 
 template<class const_params, typename IOtype>
 __global__ void GPU_RQA_RR_kernel(
-		unsigned long long int *d_RR_metric_integers, 
+		unsigned long long int d_RR_metric_integer, 
 		IOtype const* __restrict__ d_input, 
 		unsigned long long int size, 
-		IOtype *threshold_list, 
-		int nThresholds, 
+		IOtype threshold, 
 		int tau, 
 		int emb
 	){
@@ -63,7 +62,6 @@ __global__ void GPU_RQA_RR_kernel(
 	
 	s_sums[threadIdx.x] = 0;
 	if( threadIdx.x < NSEEDS ) s_seeds[threadIdx.x] = 0;
-	if( threadIdx.x < nThresholds ) s_local_RR[threadIdx.x] = 0;
 	pos_x = blockIdx.x*NTHREADS + threadIdx.x;
 	pos_y = blockIdx.y*NSEEDS + threadIdx.x;
 	
@@ -72,27 +70,24 @@ __global__ void GPU_RQA_RR_kernel(
 		s_seeds[threadIdx.x] = pos_y;
 	}
 	
-	for(int t=0; t<nThresholds; t++) {
-		// for given threshold each thread processes part of the column from R matrix (going through s_seeds)
-		IOtype threshold = threshold_list[t];
-		int sum = 0;
-		if(pos_x<size){
-			for(int f=0; f<NSEEDS; f++){
-				pos_y = blockIdx.y*NSEEDS + f;
-				// We process only upper triangle of the R matrix which the block may cover partially; 
-				// this contribution is added twice since lower triangle is the same
-				if( pos_y<pos_x && pos_y<size ) {
-					//int result = R_element_cartesian(s_seeds[f], elements, threshold); 
-					int result = R_element_max(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
-					//int result = R_element_equ(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
-					sum = sum + 2*result;
-				}
-				else if( pos_y == pos_x ){ // diagonal
-					//int result = R_element_cartesian(d_input[pos_y], d_input[pos_x], threshold);
-					int result = R_element_max(d_input, pos_y, pos_x, threshold, tau, emb, size);
-					//int result = R_element_equ(d_input, pos_y, pos_x, threshold, tau, emb, size);
-					sum = sum + result;
-				}
+	int sum = 0;
+	if(pos_x<size){
+		for(int f=0; f<NSEEDS; f++){
+			pos_y = blockIdx.y*NSEEDS + f;
+			// We process only upper triangle of the R matrix which the block may cover partially; 
+			// this contribution is added twice since lower triangle is the same
+			if( pos_y<pos_x && pos_y<size ) {
+				//int result = R_element_cartesian(s_seeds[f], elements, threshold); 
+				int result = R_element_max(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
+				//int result = R_element_equ(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
+				sum = sum + 2*result;
+			}
+			else if( pos_y == pos_x ){ // diagonal
+				//int result = R_element_cartesian(d_input[pos_y], d_input[pos_x], threshold);
+				int result = R_element_max(d_input, pos_y, pos_x, threshold, tau, emb, size);
+				//int result = R_element_equ(d_input, pos_y, pos_x, threshold, tau, emb, size);
+				sum = sum + result;
+				
 			}
 		}
 		
@@ -106,9 +101,7 @@ __global__ void GPU_RQA_RR_kernel(
 	
 	__syncthreads();
 	
-	if(threadIdx.x<nThresholds) {
-		atomicAdd(&d_RR_metric_integers[threadIdx.x], s_local_RR[threadIdx.x] );
-	}
+
 }
 // ***********************************************************************************
 // ***********************************************************************************
@@ -116,11 +109,10 @@ __global__ void GPU_RQA_RR_kernel(
 
 template<class const_params, typename IOtype>
 int RQA_RR_GPU_sharedmemory_metric(
-		unsigned long long int *d_RR_metric_integers, 
+		unsigned long long int d_RR_metric_integer, 
 		IOtype *d_input, 
 		unsigned long long int corrected_size, 
-		IOtype *threshold_list, 
-		int nThresholds,
+		IOtype threshold, 
 		int tau, 
 		int emb, 
 		double *exec_time
@@ -141,16 +133,16 @@ int RQA_RR_GPU_sharedmemory_metric(
 	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	// ----------------------------------------------->
-	// --------> Measured part (Pulse detection FIR)
+	// --------> Measured part
 	timer.Start();
 	
-	//---------> Pulse detection FIR
+	//---------> Kernel execution
 	RQA_R_init();
-	GPU_RQA_RR_kernel<const_params><<< gridSize , blockSize, nThresholds*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, threshold_list, nThresholds, tau, emb);
+	GPU_RQA_RR_kernel<const_params><<< gridSize , blockSize, 1*sizeof(int)>>>(d_RR_metric_integer, d_input, corrected_size, threshold, tau, emb);
 	
 	timer.Stop();
 	*exec_time += timer.Elapsed();
-	// --------> Measured part (Pulse detection FIR)
+	// --------> Measured part
 	// ----------------------------------------------->
 	return(0);
 }
@@ -185,7 +177,7 @@ int GPU_RQA_RR_metric_tp(
 	else { printf("Wrong device!\n"); exit(1); }
 	
 	//---------> Checking memory
-	size_t total_size = nThresholds*sizeof(float) + nThresholds*sizeof(unsigned long long int) + input_size*sizeof(float);
+	size_t total_size = input_size*sizeof(IOtype);
 	if(check_memory(total_size, 1.0)!=0) return(1);
 	
 	//---------> Measurements
@@ -196,29 +188,20 @@ int GPU_RQA_RR_metric_tp(
 	if (DEBUG) printf("Device memory allocation...: \t\t");
 	long int corrected_size = input_size - (emb - 1)*tau;
 	size_t input_size_bytes = input_size*sizeof(IOtype);
-	size_t output_size_bytes = nThresholds*sizeof(IOtype);
 	IOtype *d_input;
-	IOtype *d_threshold_list;
-	unsigned long long int *d_RR_metric_integers;
+	IOtype d_threshold;
+	unsigned long long int d_RR_metric_integer;
 	timer.Start();
 	checkCudaErrors(cudaMalloc((void **) &d_input, input_size_bytes) );
-	checkCudaErrors(cudaMalloc((void **) &d_threshold_list, output_size_bytes) );
-	checkCudaErrors(cudaMalloc((void **) &d_RR_metric_integers, nThresholds*sizeof(unsigned long long int)) );
-	checkCudaErrors(cudaMemset(d_RR_metric_integers, 0, nThresholds*sizeof(unsigned long long int)) );
 	timer.Stop();
 	if (DEBUG) printf("done in %g ms.\n", timer.Elapsed());
 
 	//---------> RR calculation
 		//-----> Copy chunk of input data to a device
 		checkCudaErrors(cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice));
-		checkCudaErrors(cudaMemcpy(d_threshold_list, h_threshold_list, output_size_bytes, cudaMemcpyHostToDevice));
-		
 		//-----> Compute RR
-		// for more thresholds d_RR_metric_integers should be batched
-		// d_threshold_list should be batched but remember that 0 th gives bad results.
-		// nThreasholds 
 		
-		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integers, d_input, corrected_size, d_threshold_list, nThresholds, tau, emb, &exec_time);
+		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integer, d_input, corrected_size, threshold, tau, emb, &exec_time);
 		
 		*execution_time = exec_time;
 		if(DEBUG) printf("RQA recurrent rate: %f;\n", exec_time);
@@ -226,7 +209,7 @@ int GPU_RQA_RR_metric_tp(
 		checkCudaErrors(cudaGetLastError());
 		
 		//-----> Copy chunk of output data to host
-		checkCudaErrors(cudaMemcpy(h_RR_metric_integer, d_RR_metric_integers, nThresholds*sizeof(unsigned long long int), cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(h_RR_metric_integer, d_RR_metric_integer, 1*sizeof(unsigned long long int), cudaMemcpyDeviceToHost));
 	//------------------------------------<
 		
 	//---------> error check -----
@@ -234,8 +217,6 @@ int GPU_RQA_RR_metric_tp(
 	
 	//---------> Feeing allocated resources
 	checkCudaErrors(cudaFree(d_input));
-	checkCudaErrors(cudaFree(d_threshold_list));
-	checkCudaErrors(cudaFree(d_RR_metric_integers));
 	
 	return(0);
 }
@@ -279,21 +260,21 @@ void RQA_GPU_RR_metric_batch_runner(
 	
 	// copy results to global results
 	memcpy(&h_RR_metric_integer[th_shift], &temp_rr_count[1], th_chunks[f]*sizeof(unsigned long long int));
-	
-	th_shift = th_shift + th_chunks[f];
+
+
 }
 
 //-------------------------------------------------->
 //------------ Wrappers for templating 
 
 
-int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time){
-	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, double>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, device, execution_time);
+int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double threshold, int tau, int emb, int distance_type, int device, double *execution_time){
+	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, double>(h_RR_metric_integer, h_input, input_size, threshold, tau, emb, device, execution_time);
 	return(0);
 }
 
-int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time){
-	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, float>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, device, execution_time);
+int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float threshold, int tau, int emb, int distance_type, int device, double *execution_time){
+	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, float>(h_RR_metric_integer, h_input, input_size, threshold, tau, emb, device, execution_time);
 	return(0);
 }
 
