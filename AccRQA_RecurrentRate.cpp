@@ -135,6 +135,41 @@ void accrqaRecurrentRateGPU(double *RR, double *thresholds, int nThresholds, dou
 	template_accrqaRecurrentRateGPU<double>(RR, thresholds, nThresholds, input, input_size, tau, emb, distance_type, device);
 }
 //--------------------------------------------<
+//-------------------------------------------->
+// This must have some tests of correctness of input variables
+template<typename input_type>
+void template_accrqaRecurrentRateERGPU(
+		input_type *RR, 
+		input_type *threshold, 
+		input_type *input, 
+		size_t input_size, 
+		int tau, 
+		int emb, 
+		int distance_type, 
+		int device
+	){
+
+	std::vector<unsigned long long int> rr_count;
+	rr_count.resize(nThresholds, 0);
+	double execution_time = 0;
+	
+	GPU_RQA_RR_ER_metric(rr_count.data(), input, input_size, threshold, tau, emb, distance_type, device, &execution_time);
+	
+	for(int k = 0; idx < (int) rr_count.size(); idx++){
+	size_t corrected_size = input_size - (k - 1)*tau;
+	RR[k] = ((double) (2.0 * rr_count[k]) + input_size - (k - 1)*tau)/((double) (corrected_size*corrected_size)); // times the count by 2 and add the diagonal, then normalise
+	}
+	
+	rr_count.clear();
+}
+
+void accrqaRecurrentRateERGPU(float *RR, float *threshold, float *input, size_t input_size, int tau, int emb, int distance_type, int device) {
+	template_accrqaRecurrentRateERGPU<float>(RR, threshold, input, input_size, tau, emb, distance_type, device);
+}
+void accrqaRecurrentRateERGPU(double *RR, double *threshold, double *input, size_t input_size, int tau, int emb, int distance_type, int device) {
+	template_accrqaRecurrentRateERGPU<double>(RR, threshold, input, input_size, tau, emb, distance_type, device);
+}
+//--------------------------------------------<
 
 //-------------------------------------------->
 template<typename input_type>
