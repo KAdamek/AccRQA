@@ -214,17 +214,22 @@ int main(int argc, char* argv[]) {
 		//---------------------> RR
 		if(GPU_RQA_RR){
 			printf("--> GPU recurrent rate\n");
-			int nThresholds = (int) threshold_list.size();
-			RQAdp *RR;
-			RR = new RQAdp[nThresholds];
-			
-			accrqaRecurrentRateCPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+			vector<double> result_l2_RR;
+			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
+				RQAdp threshold = threshold_list[th_idx];
+				RQAdp *RR;
+				
+				accrqaRecurrentRateERGPU(RR, threshold, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+				
+				result_l2_RR.push_back(RR[emb]);
+			}
 			
 			//writing results to disk
 			std::ofstream FILEOUT;
 			sprintf(str, "test_GPU_RR_t%d_e%d_l%d.dat", tau, emb, lmin);
 			FILEOUT.open(str);
 			for(int i = 0; i<nThresholds; i++){
+				RR = result_l2_RR[i];
 				FILEOUT << threshold_list[i] << " " << RR[i] << std::endl;
 			}
 			FILEOUT.close();
