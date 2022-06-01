@@ -115,7 +115,7 @@ int RQA_RR_GPU_sharedmemory_metric(
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x;
 	
-	dim3 gridSize(corrected_size / NTHREADS); // May be better to split this more, in case of inputs which exceed
+	dim3 gridSize(corrected_size / NTHREADS); // WIP: The optimal number of grids for the input length should be used
 	dim3 blockSize(NTHREADS);
 	if(DEBUG) printf("Data dimensions: %llu;\n",corrected_size);
 	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
