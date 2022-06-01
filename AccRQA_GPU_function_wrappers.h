@@ -12,6 +12,8 @@ int GPU_RQA_diagonal_R_matrix(int *h_diagonal_R_matrix, double *h_input, double 
 int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time);
 int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time);
 
+int GPU_RQA_RR_ER_metric(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time);
+int GPU_RQA_RR_ER_metric(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time);
 
 int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, int *h_input, long int input_size, int device, int nRuns, double *execution_time);
 

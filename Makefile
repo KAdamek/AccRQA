@@ -24,14 +24,17 @@ endif
 
 all: clean sharedlibrary analyze 
 
-sharedlibrary: AccRQA-GPU-RR.o AccRQA-GPU-LAM.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o Makefile
-	$(NVCC) $(NVCCFLAGS) $(INC) $(LIB) -shared -o libAccRQA.so AccRQA-GPU-RR.o AccRQA-GPU-LAM.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o
+sharedlibrary: AccRQA-GPU-RR.o AccRQA-GPU-RR-ER.o AccRQA-GPU-LAM.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o Makefile
+	$(NVCC) $(NVCCFLAGS) $(INC) $(LIB) -shared -o libAccRQA.so AccRQA-GPU-RR.o AccRQA-GPU-RR-ER.o AccRQA-GPU-LAM.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o
 
 analyze: Makefile
 	$(GCC) $(GCC_OPTS) -o $(ANALYZE) RQA.cpp $(LIBRQA)
 
 AccRQA-GPU-RR.o: timer.h utils_cuda.h
 	$(NVCC) -c AccRQA-GPU-RR.cu $(NVCCFLAGS)
+
+AccRQA-GPU-RR-ER.o: timer.h utils_cuda.h
+	$(NVCC) -c AccRQA-GPU-RR-ER.cu $(NVCCFLAGS)
 
 AccRQA-GPU-LAM.o: timer.h utils_cuda.h
 	$(NVCC) -c AccRQA-GPU-LAM.cu $(NVCCFLAGS)
