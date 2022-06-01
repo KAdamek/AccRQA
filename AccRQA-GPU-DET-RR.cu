@@ -40,65 +40,50 @@ public:
 
 template<class const_params, typename IOtype>
 __global__ void GPU_RQA_RR_kernel(
-		unsigned long long int d_RR_metric_integer, 
+		unsigned long long int *d_RR_metric_integer, 
 		IOtype const* __restrict__ d_input, 
 		unsigned long long int size, 
 		IOtype threshold, 
 		int tau, 
 		int emb
 	){
+	
 	// Input data
-	__shared__ int s_seeds[NSEEDS];
-	__shared__ int s_sums[NTHREADS];
 	extern __shared__ int s_local_RR[]; //local recurrent rate
 	unsigned long long int pos_x, pos_y;
 	
-	//This checks if the threadblock is in the lower half of the R matrix
-	//  (blockIdx.y*NSEEDS) represent beginning of the block within R matrix
-	//  ((blockIdx.x+1)*NTHREADS - 1) represent end of the block within R matrix 
-	//  if beginning of the block at y is greater then end of the block in x then the block
-	//  does not have any points on the diagonal or in the upper half of the R matrix
-	if( (blockIdx.y*NSEEDS) > ((blockIdx.x+1)*NTHREADS - 1) ) return;
-	
 	s_sums[threadIdx.x] = 0;
-	if( threadIdx.x < NSEEDS ) s_seeds[threadIdx.x] = 0;
-	pos_x = blockIdx.x*NTHREADS + threadIdx.x;
-	pos_y = blockIdx.y*NSEEDS + threadIdx.x;
-	
-	// i-th row from the R matrix; each thread iterates through these values
-	if( threadIdx.x<NSEEDS && pos_y<size ) {
-		s_seeds[threadIdx.x] = pos_y;
-	}
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int stride = blockDim.x * gridDim.x; // To loop ove the threads one grid size at a time.
 	
 	int sum = 0;
-	if(pos_x<size){
-		for(int f=0; f<NSEEDS; f++){
-			pos_y = blockIdx.y*NSEEDS + f;
-			// We process only upper triangle of the R matrix which the block may cover partially; 
-			// this contribution is added twice since lower triangle is the same
-			if( pos_y<pos_x && pos_y<size ) {
-				//int result = R_element_cartesian(s_seeds[f], elements, threshold); 
-				int result = R_element_max(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
-				//int result = R_element_equ(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
-				sum = sum + 2*result;
+
+	while (i < size*(size-1)/2) {
+		// Calculate x,y position in the upper triangle of the RQA matrix from the linear index, i
+		pos_x = (unsigned long long int) size - 2 - sqrt(-8 * i + 4 * size * (size - 1) - 7) / 2.0 - 0.5;
+		pos_y = (unsigned long long int) i + pos_x + 1 - size * (size - 1) / 2 + (size - pos_x) * ((size - pos_x) - 1) / 2;
+
+		for (int k = 0; k < emb; ++k)
+		{
+            if (pos_x + k * tau >= size || pos_y + k * tau >= size) {
+				;
 			}
-			else if( pos_y == pos_x ){ // diagonal
-				//int result = R_element_cartesian(d_input[pos_y], d_input[pos_x], threshold);
-				int result = R_element_max(d_input, pos_y, pos_x, threshold, tau, emb, size);
-				//int result = R_element_equ(d_input, pos_y, pos_x, threshold, tau, emb, size);
-				sum = sum + result;
-				
+
+            else if (abs(d_input[pos_x + k * tau] - d_input[pos_y + k * tau]) < threshold) {
+				RR[k] = RR[k] + 1;
 			}
-		}
-		
+            else {
+                break;
+			}
+		}	
 		s_sums[threadIdx.x] = sum;
 		__syncthreads();
 		sum = Reduce_SM(s_sums);
 		Reduce_WARP(&sum);
 		__syncthreads();
 		if(threadIdx.x==0) s_local_RR[t] = sum;
+		i += stride;
 	}
-	
 	__syncthreads();
 	
 
@@ -120,14 +105,11 @@ int RQA_RR_GPU_sharedmemory_metric(
 	GpuTimer timer;
 	
 	//---------> Task specific
-	int nBlocks_x, nBlocks_y;
-
-	nBlocks_x = (corrected_size + NTHREADS - 1)/(NTHREADS);
-	nBlocks_y = (corrected_size + NSEEDS - 1)/(NSEEDS);
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int stride = blockDim.x * gridDim.x;
 	
-	dim3 gridSize(nBlocks_x, nBlocks_y, 1);
-	dim3 blockSize(NTHREADS, 1, 1);
-	
+	dim3 gridSize(corrected_size / 32); // May be better to split this more, in case of inputs which exceed
+	dim3 blockSize(32);
 	if(DEBUG) printf("Data dimensions: %llu;\n",corrected_size);
 	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
 	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
@@ -138,7 +120,7 @@ int RQA_RR_GPU_sharedmemory_metric(
 	
 	//---------> Kernel execution
 	RQA_R_init();
-	GPU_RQA_RR_kernel<const_params><<< gridSize , blockSize, 1*sizeof(int)>>>(d_RR_metric_integer, d_input, corrected_size, threshold, tau, emb);
+	GPU_RQA_RR_kernel<const_params><<<gridSize, blockSize>>>(d_RR_metric_integer, d_input, corrected_size, threshold, tau, emb);
 	
 	timer.Stop();
 	*exec_time += timer.Elapsed();
@@ -190,7 +172,7 @@ int GPU_RQA_RR_metric_tp(
 	size_t input_size_bytes = input_size*sizeof(IOtype);
 	IOtype *d_input;
 	IOtype d_threshold;
-	unsigned long long int d_RR_metric_integer;
+	unsigned long long int *d_RR_metric_integer;
 	timer.Start();
 	checkCudaErrors(cudaMalloc((void **) &d_input, input_size_bytes) );
 	timer.Stop();
