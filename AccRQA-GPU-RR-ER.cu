@@ -52,9 +52,10 @@ __global__ void GPU_RQA_RR_kernel(
 	extern __shared__ int s_local_RR[]; //local recurrent rate
 	unsigned long long int pos_x, pos_y;
 	__shared__ int s_sums[NTHREADS];
-	int local_RR[emb];
+	int local_RR[10]; // WIP: Set this equivalent to emb
 
 	s_sums[threadIdx.x] = 0;
+	int sum = 0;
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int stride = blockDim.x * gridDim.x; // To loop ove the threads one grid size at a time.
 
