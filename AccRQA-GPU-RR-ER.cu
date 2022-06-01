@@ -52,7 +52,6 @@ __global__ void GPU_RQA_RR_kernel(
 	extern __shared__ int s_local_RR[]; //local recurrent rate
 	unsigned long long int pos_x, pos_y;
 	__shared__ int s_sums[NTHREADS];
-	int sum = 0;
 	int local_RR[emb];
 
 	s_sums[threadIdx.x] = 0;
@@ -61,7 +60,7 @@ __global__ void GPU_RQA_RR_kernel(
 
 	while (i < size*(size-1)/2) {
 		// Calculate x,y position in the upper triangle of the RQA matrix from the linear index, i
-		pos_x = (unsigned long long int) size - 2 - sqrt(-8 * i + 4 * size * (size - 1) - 7) / 2.0 - 0.5;
+		pos_x = (unsigned long long int) size - 2 - sqrtf(-8 * i + 4 * size * (size - 1) - 7) / 2.0 - 0.5;
 		pos_y = (unsigned long long int) i + pos_x + 1 - size * (size - 1) / 2 + (size - pos_x) * ((size - pos_x) - 1) / 2;
 
 		for (int k = 0; k < emb; ++k)
@@ -98,6 +97,13 @@ __global__ void GPU_RQA_RR_kernel(
 // ***********************************************************************************
 // ***********************************************************************************
 // ***********************************************************************************
+
+void RQA_R_init(){
+	//---------> Specific nVidia stuff
+	//cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
+	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
+	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
+}
 
 template<class const_params, typename IOtype>
 int RQA_RR_GPU_sharedmemory_metric(
@@ -217,12 +223,12 @@ int GPU_RQA_RR_metric_tp(
 //------------ Wrappers for templating 
 
 
-int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integers, double *h_input, size_t input_size, double threshold, int tau, int emb, int distance_type, int device, double *execution_time){
+int GPU_RQA_RR_ER_metric(unsigned long long int *h_RR_metric_integers, double *h_input, size_t input_size, double threshold, int tau, int emb, int distance_type, int device, double *execution_time){
 	GPU_RQA_RR_metric_tp<RQA_ConstParams, double>(h_RR_metric_integers, h_input, input_size, threshold, tau, emb, device, execution_time);
 	return(0);
 }
 
-int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integers, float *h_input, size_t input_size, float threshold, int tau, int emb, int distance_type, int device, double *execution_time){
+int GPU_RQA_RR_ER_metric(unsigned long long int *h_RR_metric_integers, float *h_input, size_t input_size, float threshold, int tau, int emb, int distance_type, int device, double *execution_time){
 	GPU_RQA_RR_metric_tp<RQA_ConstParams, float>(h_RR_metric_integers, h_input, input_size, threshold, tau, emb, device, execution_time);
 	return(0);
 }
