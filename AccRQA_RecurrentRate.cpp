@@ -150,7 +150,7 @@ void template_accrqaRecurrentRateERGPU(
 	){
 
 	std::vector<unsigned long long int> rr_count;
-	rr_count.resize(nThresholds, 0);
+	rr_count.resize(emb);
 	double execution_time = 0;
 	
 	GPU_RQA_RR_ER_metric(rr_count.data(), input, input_size, threshold, tau, emb, distance_type, device, &execution_time);
