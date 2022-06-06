@@ -155,7 +155,7 @@ void template_accrqaRecurrentRateERGPU(
 	
 	GPU_RQA_RR_ER_metric(rr_count.data(), input, input_size, threshold, tau, emb, distance_type, device, &execution_time);
 	
-	for(int k = 0; idx < (int) rr_count.size(); idx++){
+	for(int k = 0; k < (int) rr_count.size(); k++){
 	size_t corrected_size = input_size - (k - 1)*tau;
 	RR[k] = ((double) (2.0 * rr_count[k]) + input_size - (k - 1)*tau)/((double) (corrected_size*corrected_size)); // times the count by 2 and add the diagonal, then normalise
 	}
