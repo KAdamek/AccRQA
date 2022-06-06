@@ -140,7 +140,7 @@ void accrqaRecurrentRateGPU(double *RR, double *thresholds, int nThresholds, dou
 template<typename input_type>
 void template_accrqaRecurrentRateERGPU(
 		input_type *RR, 
-		input_type *threshold, 
+		input_type threshold, 
 		input_type *input, 
 		size_t input_size, 
 		int tau, 
