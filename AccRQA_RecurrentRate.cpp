@@ -163,10 +163,10 @@ void template_accrqaRecurrentRateERGPU(
 	rr_count.clear();
 }
 
-void accrqaRecurrentRateERGPU(float *RR, float *threshold, float *input, size_t input_size, int tau, int emb, int distance_type, int device) {
+void accrqaRecurrentRateERGPU(float *RR, float threshold, float *input, size_t input_size, int tau, int emb, int distance_type, int device) {
 	template_accrqaRecurrentRateERGPU<float>(RR, threshold, input, input_size, tau, emb, distance_type, device);
 }
-void accrqaRecurrentRateERGPU(double *RR, double *threshold, double *input, size_t input_size, int tau, int emb, int distance_type, int device) {
+void accrqaRecurrentRateERGPU(double *RR, double threshold, double *input, size_t input_size, int tau, int emb, int distance_type, int device) {
 	template_accrqaRecurrentRateERGPU<double>(RR, threshold, input, input_size, tau, emb, distance_type, device);
 }
 //--------------------------------------------<
