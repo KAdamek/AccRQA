@@ -99,7 +99,7 @@ __global__ void GPU_RQA_RR_kernel(
 // ***********************************************************************************
 // ***********************************************************************************
 
-void RQA_R_init(){
+void RQA_R_WIP_init(){
 	//---------> Specific nVidia stuff
 	//cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
@@ -119,8 +119,6 @@ int RQA_RR_GPU_sharedmemory_metric(
 	GpuTimer timer;
 	
 	//---------> Task specific
-	int i = threadIdx.x + blockIdx.x * blockDim.x;
-	int stride = blockDim.x * gridDim.x;
 	
 	dim3 gridSize(corrected_size / NTHREADS); // WIP: The optimal number of grids for the input length should be used
 	dim3 blockSize(NTHREADS);
@@ -133,7 +131,7 @@ int RQA_RR_GPU_sharedmemory_metric(
 	timer.Start();
 	
 	//---------> Kernel execution
-	RQA_R_init();
+	RQA_R_WIP_init();
 	GPU_RQA_RR_kernel<const_params><<<gridSize, blockSize, emb*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, threshold, tau, emb);
 	
 	timer.Stop();
@@ -143,7 +141,7 @@ int RQA_RR_GPU_sharedmemory_metric(
 	return(0);
 }
 
-int check_memory(size_t total_size, float multiple){
+int check_memory_WIP(size_t total_size, float multiple){
 	size_t free_mem, total_mem;
 	cudaMemGetInfo(&free_mem,&total_mem);
 	double free_memory     = ((double) free_mem);
@@ -174,7 +172,7 @@ int GPU_RQA_RR_metric_tp(
 	
 	//---------> Checking memory
 	size_t total_size = input_size*sizeof(IOtype) + emb*sizeof(unsigned long long int);
-	if(check_memory(total_size, 1.0)!=0) return(1);
+	if(check_memory_WIP(total_size, 1.0)!=0) return(1);
 	
 	//---------> Measurements
 	double exec_time = 0;
@@ -184,7 +182,6 @@ int GPU_RQA_RR_metric_tp(
 	if (DEBUG) printf("Device memory allocation...: \t\t");
 	long int corrected_size = input_size - (emb - 1)*tau;
 	size_t input_size_bytes = input_size*sizeof(IOtype);
-	size_t output_size_bytes = emb*sizeof(IOtype);
 	IOtype *d_input;
 	IOtype d_threshold;
 	unsigned long long int *d_RR_metric_integers;
