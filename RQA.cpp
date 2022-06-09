@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
 				accrqaRecurrentRateERGPU(RR, threshold, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 				
 
-				result_l2_RR.push_back(RR[emb-1]); // Shift the index left by one: since dimensions start at 1 but indices is from 0
+				result_l2_RR.push_back(RR[emb-1]); // Save the vale of RR for emb, WIP: RR contain values for embedding dimensions up to emb
 
 
 				delete [] RR;
