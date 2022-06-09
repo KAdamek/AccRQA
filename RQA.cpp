@@ -222,15 +222,13 @@ int main(int argc, char* argv[]) {
 
 				accrqaRecurrentRateERGPU(RR, threshold, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 				
-				printf("RR[emb]: %lf\n", RR[emb-1]);
+
 				result_l2_RR.push_back(RR[emb-1]); // Shift the index left by one: since dimensions start at 1 but indices is from 0
+
 
 				delete [] RR;
 			}
-			for(int i = 0; i < emb; i++) {
-				double cont = result_l2_RR[i];
-				printf("Index %d, RR[k], %lf \n", i, cont);
-			}
+
 
 			//writing results to disk
 			std::ofstream FILEOUT;

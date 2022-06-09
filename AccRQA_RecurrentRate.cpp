@@ -157,13 +157,8 @@ void template_accrqaRecurrentRateERGPU(
 
 	for(int k = 0; k < (int) rr_count.size(); k++){
 	size_t corrected_size = input_size - (k)*tau;
-	printf("corrected size %lu \n", corrected_size);
 	RR[k] = ((input_type) (2.0 * rr_count.data()[k]) + input_size - (k)*tau)/((input_type) (corrected_size*corrected_size)); // times the count by 2 and add the diagonal, then normalise
 	
-	}
-		for(int i = 0; i < emb; i++) {
-			input_type cont = RR[i];
-			printf("Index %d, RR[k], %lf \n", i, cont);
 	}
 	rr_count.clear();
 }

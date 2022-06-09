@@ -64,7 +64,7 @@ __global__ void GPU_RQA_RR_kernel(
 		
 		for (int k = 0; k < emb; ++k)
 		{	
-			double dist = abs(d_input[pos_x + k * tau] - d_input[pos_y + k * tau]);
+
             if (pos_x + k * tau >= size || pos_y + k * tau >= size) { // Check that this element is included
 				;
 			}
@@ -108,7 +108,7 @@ template<class const_params, typename IOtype>
 int RQA_RR_GPU_sharedmemory_metric(
 		unsigned long long int *d_RR_metric_integers, 
 		IOtype *d_input, 
-		unsigned long long int corrected_size, 
+		unsigned long long int input_size, 
 		IOtype threshold, 
 		int tau, 
 		int emb, 
@@ -118,9 +118,9 @@ int RQA_RR_GPU_sharedmemory_metric(
 	
 	//---------> Task specific
 	
-	dim3 gridSize((corrected_size + NTHREADS - 1)/ NTHREADS); // WIP: The optimal number of grids for the input length should be used, cap this
+	dim3 gridSize((input_size + NTHREADS - 1)/ NTHREADS); // WIP: The optimal number of grids for the input length should be used, cap this
 	dim3 blockSize(NTHREADS);
-	if(DEBUG) printf("Data dimensions: %llu;\n",corrected_size);
+	if(DEBUG) printf("Data dimensions: %llu;\n",input_size);
 	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
 	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
@@ -129,7 +129,7 @@ int RQA_RR_GPU_sharedmemory_metric(
 	timer.Start();
 	//---------> Kernel execution
 	RQA_R_WIP_init();
-	GPU_RQA_RR_kernel<const_params><<<gridSize, blockSize, emb*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, threshold, tau, emb);
+	GPU_RQA_RR_kernel<const_params><<<gridSize, blockSize, emb*sizeof(int)>>>(d_RR_metric_integers, d_input, input_size, threshold, tau, emb);
 	
 	timer.Stop();
 	*exec_time += timer.Elapsed();
@@ -177,7 +177,6 @@ int GPU_RQA_RR_metric_tp(
 
 	//---------> Memory allocation
 	if (DEBUG) printf("Device memory allocation...: \t\t");
-	long int corrected_size = input_size - (emb - 1)*tau;
 	size_t input_size_bytes = input_size*sizeof(IOtype);
 	IOtype *d_input;
 	IOtype d_threshold;
@@ -194,7 +193,7 @@ int GPU_RQA_RR_metric_tp(
 		checkCudaErrors(cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice));
 		//-----> Compute RR
 		
-		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integers, d_input, corrected_size, threshold, tau, emb, &exec_time);
+		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integers, d_input, input_size, threshold, tau, emb, &exec_time);
 		
 		*execution_time = exec_time;
 		if(DEBUG) printf("RQA recurrent rate: %f;\n", exec_time);
@@ -203,10 +202,6 @@ int GPU_RQA_RR_metric_tp(
 		
 		//-----> Copy chunk of output data to host
 		checkCudaErrors(cudaMemcpy(h_RR_metric_integers, d_RR_metric_integers, emb*sizeof(unsigned long long int), cudaMemcpyDeviceToHost));
-		for(int i = 0; i < emb; i++) {
-			unsigned long long int cont = h_RR_metric_integers[i];
-			printf("Index %d, h_RR_metric_integer, %llu \n", i, cont);
-		}
 	//------------------------------------<
 		
 	//---------> error check -----
