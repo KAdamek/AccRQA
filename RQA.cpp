@@ -218,23 +218,26 @@ int main(int argc, char* argv[]) {
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
 				RQAdp threshold = threshold_list[th_idx];
 				RQAdp *RR;
-				
-				accrqaRecurrentRateERGPU(RR, threshold, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+				RR = new RQAdp[emb];
+
+				accrqaRecurrentRateERGPU(RR, threshold, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 				
 				result_l2_RR.push_back(RR[emb]);
+
+				delete [] RR;
 			}
 			
 			//writing results to disk
 			std::ofstream FILEOUT;
 			sprintf(str, "test_GPU_RR_t%d_e%d_l%d.dat", tau, emb, lmin);
 			FILEOUT.open(str);
-			for(int i = 0; i<nThresholds; i++){
+			for(int i = 0; i< (int) threshold_list.size(); i++){
+				RQAdp RR;
 				RR = result_l2_RR[i];
-				FILEOUT << threshold_list[i] << " " << RR[i] << std::endl;
+				FILEOUT << threshold_list[i] << " " << RR << std::endl;
 			}
 			FILEOUT.close();
 			
-			delete [] RR;
 		}
 		//------------------------------<
 
