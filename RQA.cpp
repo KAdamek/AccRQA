@@ -24,7 +24,7 @@ bool CPU_RQA_DET = false;
 bool CPU_RQA_LAM = false;
 
 bool GPU_RQA = true;
-bool GPU_RQA_RR = false;
+bool GPU_RQA_RR = true;
 bool GPU_RQA_DET = false;
 bool GPU_RQA_LAM = false;
 bool GPU_RQA_ALL = true;
