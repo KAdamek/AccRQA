@@ -53,6 +53,11 @@ __global__ void GPU_RQA_RR_kernel(
 	__shared__ int s_sums[NTHREADS];
 	int local_RR[10]; // WIP: Set this equivalent to emb
 
+	// Set local_RR array to zero, otherwise the RR count accumulates for different thresholds.
+	for(int i_t = 0; i_t < emb; i_t++) {
+			local_RR[i_t] = 0;
+	}
+
 	s_sums[threadIdx.x] = 0;
 	int sum = 0;
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -209,7 +214,7 @@ int GPU_RQA_RR_metric_tp(
 	
 	//---------> Feeing allocated resources
 	checkCudaErrors(cudaFree(d_input));
-	
+	checkCudaErrors(cudaFree(d_RR_metric_integers));
 	return(0);
 }
 

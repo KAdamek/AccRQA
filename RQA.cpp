@@ -222,6 +222,12 @@ int main(int argc, char* argv[]) {
 
 				accrqaRecurrentRateERGPU(RR, threshold, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 				
+				if(DEBUG) {
+					for(int i = 0; i < emb; i++) {
+					RQAdp cont = RR[i];
+					printf("RQA.cpp after fill Threshold %f Index %d, RR[k], %lf \n", threshold, i, cont);
+					}
+				}
 
 				result_l2_RR.push_back(RR[emb-1]); // Save the vale of RR for emb, WIP: RR contain values for embedding dimensions up to emb
 
