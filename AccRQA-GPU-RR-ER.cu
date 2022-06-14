@@ -52,7 +52,7 @@ __global__ void GPU_RQA_RR_kernel(
 	extern __shared__ int s_local_RR[]; //local recurrent rate
 	unsigned long long int pos_x, pos_y;
 	__shared__ int s_sums[NTHREADS];
-	unsigned long long int local_RR[10]; // WIP: Set this equivalent to emb
+	unsigned long long int local_RR[16]; // WIP: Set this equivalent to emb
 
 	// Set local_RR array to zero, otherwise the RR count accumulates for different thresholds.
 	for(int i_t = 0; i_t < emb; i_t++) {
@@ -62,7 +62,7 @@ __global__ void GPU_RQA_RR_kernel(
 	s_sums[threadIdx.x] = 0;
 	int sum = 0;
 	unsigned long long int i = threadIdx.x + blockIdx.x * blockDim.x;
-	int stride = blockDim.x * gridDim.x; // To loop ove the threads one grid size at a time.
+	unsigned long long int stride = blockDim.x * gridDim.x; // To loop ove the threads one grid size at a time.
 	while (i < size*(size-1)/2) {
 		// Calculate x,y position in the upper triangle of the RQA matrix from the linear index, i
 		pos_x = (unsigned long long int) size - 2 - (unsigned long long int) (isqrtll(-8.0 * i + 4.0 * size * (size - 1) - 7.0) / 2.0 - 0.5);
