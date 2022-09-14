@@ -190,7 +190,7 @@ __inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const
 		}
 		else return(0);
 	}
-	/*
+	
 	if(block_y==0){ // diagonal
 		long int row = gl_index;
 		long int column = gl_index;
@@ -200,8 +200,6 @@ __inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const
 			return(value);
 		}
 	}
-	*/
-	else return(0);
 	
 	return(0);
 }
@@ -423,7 +421,7 @@ __global__ void GPU_RQA_HST_length_histogram_diagonal(
 	int nBlocks = (nSamples/blockDim.x) + 1;
 	
 	GPU_RQA_HST_clean<const_params>(s_start, s_end, &start_count, &end_count);
-	for(int bl=0; bl<nBlocks; bl++){		
+	for(int bl=0; bl<nBlocks; bl++){
 		// Generate data for diagonal LAM metric
 		long int gl_index = (long int)(bl*blockDim.x + threadIdx.x) - 1;
 		first  = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index, nSamples);
@@ -729,7 +727,7 @@ void RQA_length_histogram_diagonal_wrapper(
 	
 	// CUDA grid and block size for length histogram calculation
 	dim3 gridSize(corrected_size + corrected_size - 1, 1, 1);
-	dim3 blockSize(nThreads, 1, 1);	
+	dim3 blockSize(nThreads, 1, 1);
 	// CUDA grid and block size for reverse_array
 	dim3 ra_gridSize( (hst_size + nThreads - 1)/nThreads, 1, 1);
 	dim3 ra_blockSize(nThreads, 1, 1);

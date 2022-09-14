@@ -19,7 +19,7 @@ typedef double RQAdp;
 bool UNIT_TESTS = false;
 
 bool CPU_RQA = false;
-bool CPU_RQA_RR = true;
+bool CPU_RQA_RR = false;
 bool CPU_RQA_DET = false;
 bool CPU_RQA_LAM = false;
 
@@ -46,7 +46,7 @@ int Load_data(std::vector<float> *data, char *filename){
 	FILEIN.open(filename,ios::in);
 	if (!FILEIN.fail()){
 		long int file_size = get_file_size(FILEIN);
-		printf("nSamples:%ld;\n", file_size );
+		if(DEBUG) printf("nSamples:%ld;\n", file_size );
 		
 		// read data
 		FILEIN.clear();
@@ -79,7 +79,7 @@ int Load_data(std::vector<double> *data, char *filename){
 	FILEIN.open(filename,ios::in);
 	if (!FILEIN.fail()){
 		long int file_size = get_file_size(FILEIN);
-		printf("nSamples:%ld;\n", file_size );
+		if(DEBUG) printf("nSamples:%ld;\n", file_size );
 		
 		// read data
 		FILEIN.clear();
@@ -114,7 +114,6 @@ int main(int argc, char* argv[]) {
 	int vmin = 2;
 	char * pEnd;
 	
-	printf("args=%d;", argc);
 	if (argc==7) {
 		if (strlen(argv[1])>1000) {printf("Filename of the data file is too long\n"); exit(2);}
 		sprintf(input_data_file,"%s", argv[1]);
@@ -138,13 +137,15 @@ int main(int argc, char* argv[]) {
 		return(1);
 	}
 	
-	printf("Program parameters:\n");
-	printf("data file: %s;\n", input_data_file);
-	printf("threshold file: %s;\n", input_threshold_file);
-	printf("tau  = %d;\n", tau);
-	printf("emb  = %d;\n", emb);
-	printf("lmin = %d;\n", lmin);
-	printf("vmin = %d;\n", vmin);
+	if(DEBUG) {
+		printf("Program parameters:\n");
+		printf("  data file: %s;\n", input_data_file);
+		printf("  threshold file: %s;\n", input_threshold_file);
+		printf("  tau  = %d;\n", tau);
+		printf("  emb  = %d;\n", emb);
+		printf("  lmin = %d;\n", lmin);
+		printf("  vmin = %d;\n", vmin);
+	}
 	
 	
 	int filein_length = strlen(input_data_file);
@@ -218,7 +219,7 @@ int main(int argc, char* argv[]) {
 			RQAdp *RR;
 			RR = new RQAdp[nThresholds];
 			
-			accrqaRecurrentRateCPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+			accrqaRecurrentRateGPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 			
 			//writing results to disk
 			std::ofstream FILEOUT;
@@ -301,7 +302,7 @@ int main(int argc, char* argv[]) {
 			RQAdp *RR;
 			RR = new RQAdp[nThresholds];
 			
-			accrqaRecurrentRateCPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+			accrqaRecurrentRateGPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 			
 			if(DEBUG) printf("--> GPU DET and LAM\n");
 			vector<double> result_DET;

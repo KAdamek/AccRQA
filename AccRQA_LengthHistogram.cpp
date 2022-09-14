@@ -40,8 +40,9 @@ protected:
 	double primary_metric(size_t minimum_length) {
 		double primary_metric_value;
 		
+		// Addition of (double) corrected_size is to add diagonal which will be always c
 		if(metric[0]>0) primary_metric_value = ((double) metric[minimum_length])/((double) metric[0]);
-		else primary_metric_value = -1.0;
+		else primary_metric_value = NAN;
 		
 		return(primary_metric_value);
 	}
@@ -50,21 +51,20 @@ protected:
 		double secondary_metric_value;
 		
 		if(scan_histogram[minimum_length]>0) secondary_metric_value = ((double) metric[minimum_length])/((double) scan_histogram[minimum_length]);
-		else secondary_metric_value = -1.0;
+		else secondary_metric_value = NAN;
 		
 		return(secondary_metric_value);
 	}
 	
-	double tertiary_metric() {
-		unsigned long long int last_element = 0;
-		//binary search for last update
-		
-		// initial
+	double tertiary_metric(int is_DET) {
+		unsigned long long int last_element;
 		unsigned long long int start, mid, end, length;
 		unsigned long long int mid_value, midm1_value;
 		bool found = false;
-		end = histogram_size - 1; 
-		mid = histogram_size/2; 
+		end = histogram_size - 1;
+		mid = histogram_size/2;
+		if(is_DET == 1) last_element = scan_histogram[end];
+		else last_element = 0;
 		start = 0;
 		length = histogram_size;
 		
@@ -80,7 +80,7 @@ protected:
 				break;
 			}
 			else if(mid_value>last_element){
-				// search higher half
+				// search upper half
 				start = mid;
 				length = end - start;
 				mid = mid + (length + 1)/2;
@@ -93,7 +93,7 @@ protected:
 				mid = start + (length>>1);
 			}
 		}
-		// Then find place where it occurs first that is greatest length
+		
 		return(mid);
 	}
 	
@@ -105,6 +105,22 @@ protected:
 		double execution_time = 0;
 		
 		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, device, &execution_time);
+		
+		#ifdef MONITOR_PERFORMANCE
+		char metric[200]; 
+		if(distance_type == RQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
+		else if(distance_type == RQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
+		std::ofstream FILEOUT;
+		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
+		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "LAM" << " " << execution_time << std::endl;
+		FILEOUT.close();
+		#endif
+	}
+	
+	void calculate_rqa_histogram_vertical_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device) { // Laminarity
+		double execution_time = 0;
+		
+		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, device, &execution_time);
 		
 		#ifdef MONITOR_PERFORMANCE
 		char metric[200]; 
@@ -184,7 +200,7 @@ class accrqaDeterminismResult : public accrqaLengthHistogramResult<input_type> {
 		}
 		
 		double Lmax() {
-			return(this->tertiary_metric());
+			return(this->tertiary_metric(1));
 		}
 };
 
@@ -194,7 +210,7 @@ class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 		accrqaLaminarityResult(size_t input_size, input_type t_threshold, int t_tau, int t_emb) : accrqaLengthHistogramResult<input_type>(input_size, t_threshold, t_tau, t_emb){}
 		
 		void ProcessData_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device){
-			this->calculate_rqa_histogram_horizontal_GPU(time_series, input_size, threshold, distance_type, device);
+			this->calculate_rqa_histogram_vertical_GPU(time_series, input_size, threshold, distance_type, device);
 		}
 		
 		void ProcessData_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type){
@@ -210,7 +226,7 @@ class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 		}
 		
 		double TTmax(){
-			return(this->tertiary_metric());
+			return(this->tertiary_metric(0));
 		}
 };
 
