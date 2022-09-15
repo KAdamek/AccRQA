@@ -98,7 +98,6 @@ protected:
 	
 	double quaternary_metric(size_t minimum_length) { // ENTR
 		double entr = 0;
-		printf("Lmin = %zu;\n", minimum_length);
 		for(long int f = minimum_length; f < histogram_size; f++) {
 			double probability;
 			probability = ((double) length_histogram[f])/((double) scan_histogram[f]);
