@@ -239,14 +239,18 @@ int main(int argc, char* argv[]) {
 			printf("--> GPU determinism\n");
 			vector<double> result_l2_DET;
 			vector<double> result_l2_L;
+			vector<double> result_l2_Lmax;
+			vector<double> result_l2_ENTR;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
 				RQAdp threshold = threshold_list[th_idx];
-				RQAdp DET, L, Lmax;
+				RQAdp DET, L, Lmax, ENTR;
 				
-				accrqaDeterminismGPU(&DET, &L, &Lmax, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
+				accrqaDeterminismGPU(&DET, &L, &Lmax, &ENTR, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
 				
 				result_l2_DET.push_back(DET);
 				result_l2_L.push_back(L);
+				result_l2_Lmax.push_back(Lmax);
+				result_l2_ENTR.push_back(ENTR);
 			}
 			
 			std::ofstream FILEOUT;
@@ -254,11 +258,13 @@ int main(int argc, char* argv[]) {
 			FILEOUT.open(str);
 			size_t size = threshold_list.size();
 			for(size_t i = 0; i<size; i++){
-				RQAdp DET, L, th;
+				RQAdp DET, L, Lmax, ENTR, th;
 				DET = result_l2_DET[i];
 				L = result_l2_L[i];
+				Lmax = result_l2_Lmax[i];
+				ENTR = result_l2_L[i];
 				th = threshold_list[i];
-				FILEOUT << th << " " << DET << " " << L << endl;
+				FILEOUT << th << " " << DET << " " << L << " " << Lmax << " " << ENTR << std::endl;
 			}
 			FILEOUT.close();
 		}
@@ -308,19 +314,21 @@ int main(int argc, char* argv[]) {
 			vector<double> result_DET;
 			vector<double> result_L;
 			vector<double> result_Lmax;
+			vector<double> result_ENTR;
 			vector<double> result_LAM;
 			vector<double> result_TT;
 			vector<double> result_TTmax;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
 				RQAdp threshold = threshold_list[th_idx];
-				RQAdp DET, L, Lmax, LAM, TT, TTmax;
+				RQAdp DET, L, Lmax, ENTR, LAM, TT, TTmax;
 				
-				accrqaDeterminismGPU(&DET, &L, &Lmax, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
+				accrqaDeterminismGPU(&DET, &L, &Lmax, &ENTR, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
 				accrqaLaminarityGPU(&LAM, &TT, &TTmax, input_data.data(), input_data.size(), threshold, tau, emb, vmin, RQA_METRIC_MAXIMAL, device);
 				
 				result_DET.push_back(DET);
 				result_L.push_back(L);
 				result_Lmax.push_back(Lmax);
+				result_ENTR.push_back(ENTR);
 				result_LAM.push_back(LAM);
 				result_TT.push_back(TT);
 				result_TTmax.push_back(TTmax);
@@ -329,18 +337,19 @@ int main(int argc, char* argv[]) {
 			std::ofstream FILEOUT;
 			FILEOUT.open(output_filename);
 			size_t size = threshold_list.size();
-			FILEOUT << "#threshold RR DET LAM Lmean Vmean Lmax Vmax" << endl;
+			FILEOUT << "#threshold RR DET LAM Lmean Vmean Lmax Vmax ENTR" << endl;
 			for(size_t i = 0; i<size; i++){
-				RQAdp th, DET, LAM, L, Lmax, TT, TTmax;
+				RQAdp th, DET, LAM, L, Lmax, TT, TTmax, ENTR;
 				th = threshold_list[i];
 				DET = result_DET[i];
 				L = result_L[i];
 				Lmax = result_Lmax[i];
+				ENTR = result_ENTR[i];
 				LAM = result_LAM[i];
 				TT = result_TT[i];
 				TTmax = result_TTmax[i];
 				
-				FILEOUT << th << " " << RR[i] << " " << DET << " " << LAM << " " << L << " " << TT << " " << Lmax << " " << TTmax << endl;
+				FILEOUT << th << " " << RR[i] << " " << DET << " " << LAM << " " << L << " " << TT << " " << Lmax << " " << TTmax << " " << ENTR << std::endl;
 			}
 			FILEOUT.close();
 			
@@ -409,14 +418,18 @@ int main(int argc, char* argv[]) {
 			printf("--> CPU determinism\n");
 			std::vector<double> result_l2_DET;
 			std::vector<double> result_l2_L;
+			std::vector<double> result_l2_Lmax;
+			std::vector<double> result_l2_ENTR;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
 				RQAdp threshold = threshold_list[th_idx];
-				RQAdp DET, L, Lmax;
+				RQAdp DET, L, Lmax, ENTR;
 				
-				accrqaDeterminismCPU(&DET, &L, &Lmax, input_data.data(), input_data.size(), threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL);
+				accrqaDeterminismCPU(&DET, &L, &Lmax, &ENTR, input_data.data(), input_data.size(), threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL);
 				
 				result_l2_DET.push_back(DET);
 				result_l2_L.push_back(L);
+				result_l2_Lmax.push_back(Lmax);
+				result_l2_ENTR.push_back(ENTR);
 			}
 			
 			std::ofstream FILEOUT;
@@ -424,11 +437,13 @@ int main(int argc, char* argv[]) {
 			FILEOUT.open(str);
 			size_t size = threshold_list.size();
 			for(size_t i = 0; i<size; i++){
-				RQAdp DET, L, th;
+				RQAdp DET, L, Lmax, ENTR, th;
 				DET = result_l2_DET[i];
 				L = result_l2_L[i];
+				Lmax = result_l2_Lmax[i];
+				ENTR = result_l2_ENTR[i];
 				th = threshold_list[i];
-				FILEOUT << th << " " << DET << " " << L << std::endl;
+				FILEOUT << th << " " << DET << " " << L << " " << Lmax << " " << ENTR << std::endl;
 			}
 			FILEOUT.close();
 		}

@@ -9,6 +9,7 @@ accRQA_det <- function(input, threshold, taup, embp, lminp, norm)
     detp  = double(length=1),
     lp    = double(length=1),
     lmaxp = double(length=1),
+    entr  = double(length=1),
     as.double(input),
     as.integer(n),
     as.double(threshold),
@@ -18,7 +19,7 @@ accRQA_det <- function(input, threshold, taup, embp, lminp, norm)
     as.integer(norm),
     as.integer(device)
   )
-  result <- data.frame(det = rst[["detp"]], l = rst[["lp"]], lmax = rst[["lmaxp"]])
+  result <- data.frame(det = rst[["detp"]], l = rst[["lp"]], lmax = rst[["lmaxp"]], entr = rst[["entr"]])
   return(result)
 }
 

@@ -40,7 +40,6 @@ protected:
 	double primary_metric(size_t minimum_length) {
 		double primary_metric_value;
 		
-		// Addition of (double) corrected_size is to add diagonal which will be always c
 		if(metric[0]>0) primary_metric_value = ((double) metric[minimum_length])/((double) metric[0]);
 		else primary_metric_value = NAN;
 		
@@ -56,7 +55,7 @@ protected:
 		return(secondary_metric_value);
 	}
 	
-	double tertiary_metric(int is_DET) {
+	double tertiary_metric(int is_DET) { // Maximal line lenght
 		unsigned long long int last_element;
 		unsigned long long int start, mid, end, length;
 		unsigned long long int mid_value, midm1_value;
@@ -95,6 +94,19 @@ protected:
 		}
 		
 		return(mid);
+	}
+	
+	double quaternary_metric(size_t minimum_length) { // ENTR
+		double entr = 0;
+		printf("Lmin = %zu;\n", minimum_length);
+		for(long int f = minimum_length; f < histogram_size; f++) {
+			double probability;
+			probability = ((double) length_histogram[f])/((double) scan_histogram[f]);
+			if(probability > 0) {
+				entr = entr + probability*log(probability);
+			}
+		}
+		return((-1.0)*entr);
 	}
 	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { // Laminarity
@@ -202,6 +214,10 @@ class accrqaDeterminismResult : public accrqaLengthHistogramResult<input_type> {
 		double Lmax() {
 			return(this->tertiary_metric(1));
 		}
+		
+		double ENTR(size_t minimum_length) {
+			return(this->quaternary_metric(minimum_length));
+		}
 };
 
 template<typename input_type>
@@ -228,6 +244,10 @@ class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 		double TTmax(){
 			return(this->tertiary_metric(0));
 		}
+		
+		double ENTR(size_t minimum_length){
+			return(this->quaternary_metric(minimum_length));
+		}
 };
 
 //-------------------------------------------->
@@ -236,6 +256,7 @@ void template_accrqaDeterminismGPU(
 		input_type *DET, 
 		input_type *L, 
 		input_type *Lmax, 
+		input_type *ENTR, 
 		input_type *input_data, 
 		size_t input_size, 
 		input_type threshold, 
@@ -250,14 +271,15 @@ void template_accrqaDeterminismGPU(
 	*DET  = DETresults.DET(lmin);
 	*L    = DETresults.L(lmin);
 	*Lmax = DETresults.Lmax();
+	*ENTR = DETresults.ENTR(lmin);
 }
 
-void accrqaDeterminismGPU(float *DET, float *L, float *Lmax, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int lmin, int distance_type, int device) {
-	template_accrqaDeterminismGPU<float>(DET, L, Lmax, input_data, input_size, threshold, tau, emb, lmin, distance_type, device);
+void accrqaDeterminismGPU(float *DET, float *L, float *Lmax, float *ENTR, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int lmin, int distance_type, int device) {
+	template_accrqaDeterminismGPU<float>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type, device);
 }
 
-void accrqaDeterminismGPU(double *DET, double *L, double *Lmax, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int lmin, int distance_type, int device) {
-	template_accrqaDeterminismGPU<double>(DET, L, Lmax, input_data, input_size, threshold, tau, emb, lmin, distance_type, device);
+void accrqaDeterminismGPU(double *DET, double *L, double *Lmax, double *ENTR, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int lmin, int distance_type, int device) {
+	template_accrqaDeterminismGPU<double>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type, device);
 }
 //--------------------------------------------<
 
@@ -298,6 +320,7 @@ void template_accrqaDeterminismCPU(
 		input_type *DET, 
 		input_type *L, 
 		input_type *Lmax, 
+		input_type *ENTR, 
 		input_type *input_data, 
 		size_t input_size, 
 		input_type threshold, 
@@ -311,14 +334,15 @@ void template_accrqaDeterminismCPU(
 	*DET  = DETresults.DET(lmin);
 	*L    = DETresults.L(lmin);
 	*Lmax = DETresults.Lmax();
+	*ENTR = DETresults.ENTR(lmin);
 }
 
-void accrqaDeterminismCPU(float *DET, float *L, float *Lmax, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int lmin, int distance_type) {
-	template_accrqaDeterminismCPU<float>(DET, L, Lmax, input_data, input_size, threshold, tau, emb, lmin, distance_type);
+void accrqaDeterminismCPU(float *DET, float *L, float *Lmax, float *ENTR, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int lmin, int distance_type) {
+	template_accrqaDeterminismCPU<float>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type);
 }
 
-void accrqaDeterminismCPU(double *DET, double *L, double *Lmax, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int lmin, int distance_type) {
-	template_accrqaDeterminismCPU<double>(DET, L, Lmax, input_data, input_size, threshold, tau, emb, lmin, distance_type);
+void accrqaDeterminismCPU(double *DET, double *L, double *Lmax, double *ENTR, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int lmin, int distance_type) {
+	template_accrqaDeterminismCPU<double>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type);
 }
 //--------------------------------------------<
 
