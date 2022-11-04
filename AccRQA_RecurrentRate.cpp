@@ -156,7 +156,7 @@ void template_accrqaRecurrentRateCPU(
 	for(int f=0; f<nThresholds; f++){
 		rr_thresholds[f] = thresholds[f];
 	}
-	rqa_RR_metric(
+	rqa_CPU_RR_metric_ref(
 		rr_count.data(), 
 		rr_thresholds, 
 		tau, 

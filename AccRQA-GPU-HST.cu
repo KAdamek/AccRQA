@@ -173,7 +173,6 @@ __inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const
 		long int row = gl_index;
 		long int column = gl_index - block_y; //block_y is negative thus it is like + block_y
 		if(row >= 0 && row < corrected_size && column  >= 0 && column < corrected_size) {
-			//int value = R_element_cartesian(d_input[row], d_input[column], threshold);
 			int value = R_element_max(d_input, row, column, threshold, tau, emb, corrected_size);
 			return(value);
 		}
@@ -184,7 +183,6 @@ __inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const
 		long int row = gl_index + block_y;
 		long int column = gl_index;
 		if(row >= 0 && row < corrected_size && column  >= 0 && column < corrected_size) {
-			//int value = R_element_cartesian(d_input[row], d_input[column], threshold);
 			int value = R_element_max(d_input, row, column, threshold, tau, emb, corrected_size);
 			return(value);
 		}
@@ -195,7 +193,6 @@ __inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const
 		long int row = gl_index;
 		long int column = gl_index;
 		if(row >= 0 && row < corrected_size && column  >= 0 && column < corrected_size) {
-			//int value = R_element_cartesian(d_input[row], d_input[column], threshold);
 			int value = R_element_max(d_input, row, column, threshold, tau, emb, corrected_size);
 			return(value);
 		}
@@ -272,6 +269,19 @@ __global__ void reverse_array(Type *d_output, Type *d_input, unsigned int nEleme
 	int write_index = blockIdx.x*blockDim.x + threadIdx.x;
 	if(read_index>=0 && write_index<nElements) {
 		d_output[write_index] = d_input[read_index];
+	}
+}
+
+template<typename Type>
+__global__ void GPU_RQA_HST_correction_diagonal_half(Type *d_histogram, unsigned int nElements){
+	int read_index  = blockIdx.x*blockDim.x + threadIdx.x;
+	// Correction because we created histogram from only half of the recurrent matrix
+	if(read_index >= 0 && read_index < (nElements - 1)) {
+		d_histogram[read_index] = 2*d_histogram[read_index];
+	}
+	// Correction because we did not include diagonal
+	if(read_index == (nElements - 1)) {
+		d_histogram[read_index] = d_histogram[read_index] + 1;
 	}
 }
 
@@ -439,6 +449,7 @@ __global__ void GPU_RQA_HST_length_histogram_diagonal(
 		GPU_RQA_HST_reset_data<const_params>(s_start, s_end, &start_count, &end_count, bl);
 		
 		// Now we can start the loop again
+		if(bl*blockDim.x > blockIdx.x) break;
 	}
 }
 
@@ -711,7 +722,7 @@ void RQA_length_histogram_vertical_wrapper(
 
 
 template<class const_params, typename IOtype>
-void RQA_length_histogram_diagonal_wrapper(
+void RQA_length_histogram_diagonal_wrapper_mk1(
 		unsigned long long int *h_length_histogram, 
 		unsigned long long int *h_scan_histogram, 
 		unsigned long long int *h_metric, 
@@ -778,6 +789,78 @@ void RQA_length_histogram_diagonal_wrapper(
 	checkCudaErrors(cudaFree(d_metric));
 	//--------------------------------<
 }
+
+
+template<class const_params, typename IOtype>
+void RQA_length_histogram_diagonal_wrapper_mk2(
+		unsigned long long int *h_length_histogram, 
+		unsigned long long int *h_scan_histogram, 
+		unsigned long long int *h_metric, 
+		IOtype *d_input, 
+		IOtype threshold, 
+		int tau, 
+		int emb, 
+		long int corrected_size
+	){
+	unsigned int hst_size = corrected_size + 1;
+	size_t histogram_size_in_bytes = hst_size*sizeof(unsigned long long int);
+	int nThreads = 1024;
+	
+	// CUDA grid and block size for length histogram calculation
+	dim3 gridSize(corrected_size - 1, 1, 1);
+	dim3 blockSize(nThreads, 1, 1);
+	// CUDA grid and block size for reverse_array
+	dim3 ra_gridSize( (hst_size + nThreads - 1)/nThreads, 1, 1);
+	dim3 ra_blockSize(nThreads, 1, 1);
+	
+	if(DEBUG) printf("Data dimensions: %ld;\n", corrected_size);
+	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	
+	//---------------> GPU Allocations
+	unsigned long long int *d_histogram;
+	unsigned long long int *d_temporary;
+	unsigned long long int *d_metric;
+	
+	checkCudaErrors( cudaMalloc((void **) &d_histogram, histogram_size_in_bytes) );
+	checkCudaErrors( cudaMalloc((void **) &d_temporary, histogram_size_in_bytes) );
+	checkCudaErrors( cudaMalloc((void **) &d_metric,    histogram_size_in_bytes) );
+	checkCudaErrors( cudaMemset(d_histogram, 0, histogram_size_in_bytes) );
+	checkCudaErrors( cudaMemset(d_temporary, 0, histogram_size_in_bytes) );
+	checkCudaErrors( cudaMemset(d_metric, 0,    histogram_size_in_bytes) );
+	//--------------------------------<
+	
+	//------------> GPU kernel
+	GPU_RQA_HST_length_histogram_diagonal<const_params><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+	GPU_RQA_HST_correction_diagonal_half<<< ra_gridSize , ra_blockSize >>>( d_histogram, hst_size );
+	
+	//------------> Calculation metric
+	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	cudaDeviceSynchronize();
+	checkCudaErrors(cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost));
+	//--------------------------------<
+	
+	//------------> Calculation scan histogram
+	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	cudaDeviceSynchronize();
+	checkCudaErrors(cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost));
+	//--------------------------------<
+	
+	//------------> Copy data to host
+	checkCudaErrors(cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost));
+	//--------------------------------<
+	
+	//----------> Deallocations
+	checkCudaErrors(cudaFree(d_histogram));
+	checkCudaErrors(cudaFree(d_temporary));
+	checkCudaErrors(cudaFree(d_metric));
+	//--------------------------------<
+}
+
 
 
 void test_array_reversal(){
@@ -895,7 +978,7 @@ int GPU_RQA_length_histogram_diagonal_tp(unsigned long long int *h_length_histog
 	
 	//------------- GPU kernel
 	timer.Start();
-	RQA_length_histogram_diagonal_wrapper<const_params>(h_length_histogram, h_scan_histogram, h_metric, d_input, threshold, tau, emb, corrected_size);
+	RQA_length_histogram_diagonal_wrapper_mk2<const_params>(h_length_histogram, h_scan_histogram, h_metric, d_input, threshold, tau, emb, corrected_size);
 	timer.Stop();
 	*execution_time = timer.Elapsed();
 	//------------- GPU kernel
@@ -907,7 +990,16 @@ int GPU_RQA_length_histogram_diagonal_tp(unsigned long long int *h_length_histog
 
 
 template<class const_params, typename IOtype>
-int GPU_RQA_diagonal_R_matrix_tp(int *h_diagonal_R_matrix, IOtype *h_input, IOtype threshold, int tau, int emb, long int input_size, int device, double *execution_time){
+int GPU_RQA_diagonal_R_matrix_tp(
+	int *h_diagonal_R_matrix, 
+	IOtype *h_input, 
+	IOtype threshold, 
+	int tau, 
+	int emb, 
+	long int input_size, 
+	int device, 
+	double *execution_time
+){
 	//---------> Initial nVidia stuff
 	int devCount;
 	checkCudaErrors(cudaGetDeviceCount(&devCount));
@@ -1031,13 +1123,33 @@ int GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram
 	return(ret);
 }
 
-int GPU_RQA_diagonal_R_matrix(int *h_diagonal_R_matrix, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time){
+int GPU_RQA_diagonal_R_matrix(
+	int *h_diagonal_R_matrix, 
+	float *h_input, 
+	float threshold, 
+	int tau, 
+	int emb, 
+	long int input_size, 
+	int distance_type, 
+	int device, 
+	double *execution_time
+){
 	int ret;
 	ret = GPU_RQA_diagonal_R_matrix_tp<RQA_ConstParams>(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, device, execution_time);
 	return(ret);
 }
 
-int GPU_RQA_diagonal_R_matrix(int *h_diagonal_R_matrix, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time){
+int GPU_RQA_diagonal_R_matrix(
+	int *h_diagonal_R_matrix, 
+	double *h_input, 
+	double threshold, 
+	int tau, 
+	int emb, 
+	long int input_size, 
+	int distance_type, 
+	int device, 
+	double *execution_time
+){
 	int ret;
 	ret = GPU_RQA_diagonal_R_matrix_tp<RQA_ConstParams>(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, device, execution_time);
 	return(ret);

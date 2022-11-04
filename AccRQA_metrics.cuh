@@ -7,7 +7,7 @@
 
 template<typename IOtype>
 __inline__ __device__ int R_element_cartesian(IOtype i, IOtype j, IOtype threshold){
-	return ( (fabsf(i - j)<threshold ? 1 : 0 ) );
+	return ( (fabsf(i - j)<=threshold ? 1 : 0 ) );
 }
 
 template<typename IOtype>
@@ -50,7 +50,7 @@ __inline__ __device__ int R_element_euc(
 		sum += (A - B)*(A - B);
 	}
 	sum = sqrt(sum);
-	return ( ( (threshold-max)>0 ? 1 : 0 ) );
+	return ( ( (threshold-max)>=0 ? 1 : 0 ) );
 }
 
 #endif

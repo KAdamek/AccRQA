@@ -109,7 +109,7 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { // Laminarity
-		rqa_LAM_metric_CPU(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		rqa_CPU_LAM_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
 	}
 	
 	void calculate_rqa_histogram_horizontal_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device) { // Laminarity
@@ -145,7 +145,7 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_diagonal_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { // Determinism
-		rqa_DET_metric_CPU(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		rqa_CPU_DET_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
 	}
 	
 	void calculate_rqa_histogram_diagonal_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device) { 
@@ -160,13 +160,19 @@ protected:
 		else if(distance_type == RQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
 		std::ofstream FILEOUT;
 		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DET" << " " << execution_time << std::endl;
+		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETmk1" << " " << execution_time << std::endl;
 		FILEOUT.close();
 		#endif
 	}
 	
 	
 public:
+	~accrqaLengthHistogramResult(){
+		length_histogram.clear();
+		scan_histogram.clear();
+		metric.clear();
+	}
+	
 	double threshold(){
 		return(rqathreshold);
 	}

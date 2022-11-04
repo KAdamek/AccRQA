@@ -11,7 +11,8 @@ NVCCFLAGS = -O3 -arch=sm_70 --ptxas-options=-v -Xcompiler -Wextra -Xcompiler -fP
 
 GCC_OPTS =-O3 -fPIC -Wall -Wextra $(INC)
 
-ANALYZE = RQA.exe
+USERAPP = RQA.exe
+TESTAPP = TEST_RQA.exe
 
 
 ifdef reglim
@@ -22,13 +23,16 @@ ifdef fastmath
 NVCCFLAGS += --use_fast_math
 endif
 
-all: clean sharedlibrary analyze 
+all: clean sharedlibrary userapp testapp
 
 sharedlibrary: AccRQA-GPU-RR.o AccRQA-GPU-HST.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o Makefile
 	$(NVCC) $(NVCCFLAGS) $(INC) $(LIB) -shared -o libAccRQA.so AccRQA-GPU-RR.o AccRQA-GPU-HST.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o
 
-analyze: Makefile
-	$(GCC) $(GCC_OPTS) -o $(ANALYZE) RQA.cpp $(LIBRQA)
+userapp: Makefile
+	$(GCC) $(GCC_OPTS) -o $(USERAPP) RQA.cpp $(LIBRQA)
+
+testapp: Makefile
+	$(GCC) $(GCC_OPTS) -o $(TESTAPP) test_RQA.cpp $(LIBRQA)
 
 AccRQA-GPU-RR.o: timer.h utils_cuda.h
 	$(NVCC) -c AccRQA-GPU-RR.cu $(NVCCFLAGS)
