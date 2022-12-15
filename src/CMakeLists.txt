@@ -1,0 +1,21 @@
+
+set(${CMAKE_PROJECT_NAME}_CUDA_SRC
+    src/AccRQA-GPU-HST.cu
+    src/AccRQA-GPU-RR.cu
+    PARENT_SCOPE
+)
+
+set(${CMAKE_PROJECT_NAME}_SRC
+    src/AccRQA_CPU_function.cpp
+    src/AccRQA_functions.cpp
+    PARENT_SCOPE
+)
+
+set(${CMAKE_PROJECT_NAME}_R_SRC
+    src/AccRQA_R_bindings.cpp
+    PARENT_SCOPE
+)
+
+#set(${CMAKE_PROJECT_NAME}_CUDA_SRC "${${CMAKE_PROJECT_NAME}_CUDA_SRC}" PARENT_SCOPE)
+#set(${CMAKE_PROJECT_NAME}_SRC "${${CMAKE_PROJECT_NAME}_SRC}" PARENT_SCOPE)
+

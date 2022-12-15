@@ -1,5 +1,5 @@
 #include <R.h>
-#include "AccRQA_library.hpp"
+#include "../include/AccRQA_library.hpp"
 
 extern "C" {
 	void R_double_accrqaDeterminismGPU(

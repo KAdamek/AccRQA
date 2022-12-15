@@ -8,11 +8,13 @@
 #include <iomanip>
 #include <vector>
 
+#define VERBOSE false
+
 using namespace std;
 
 #include <dirent.h>
 
-#include "AccRQA_library.hpp"
+#include "../include/AccRQA_library.hpp"
 
 typedef double RQAdp;
 
@@ -46,7 +48,6 @@ int Load_data(std::vector<float> *data, char *filename){
 	FILEIN.open(filename,ios::in);
 	if (!FILEIN.fail()){
 		long int file_size = get_file_size(FILEIN);
-		if(DEBUG) printf("nSamples:%ld;\n", file_size );
 		
 		// read data
 		FILEIN.clear();
@@ -79,7 +80,6 @@ int Load_data(std::vector<double> *data, char *filename){
 	FILEIN.open(filename,ios::in);
 	if (!FILEIN.fail()){
 		long int file_size = get_file_size(FILEIN);
-		if(DEBUG) printf("nSamples:%ld;\n", file_size );
 		
 		// read data
 		FILEIN.clear();
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 		return(1);
 	}
 	
-	if(DEBUG) {
+	if(VERBOSE) {
 		printf("Program parameters:\n");
 		printf("  data file: %s;\n", input_data_file);
 		printf("  threshold file: %s;\n", input_threshold_file);
@@ -303,14 +303,14 @@ int main(int argc, char* argv[]) {
 		
 		//---------------------> Everything
 		if(GPU_RQA_ALL){
-			if(DEBUG) printf("--> GPU recurrent rate\n");
+			if(VERBOSE) printf("--> GPU recurrent rate\n");
 			int nThresholds = (int) threshold_list.size();
 			RQAdp *RR;
 			RR = new RQAdp[nThresholds];
 			
 			accrqaRecurrentRateGPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
 			
-			if(DEBUG) printf("--> GPU DET and LAM\n");
+			if(VERBOSE) printf("--> GPU DET and LAM\n");
 			vector<double> result_DET;
 			vector<double> result_L;
 			vector<double> result_Lmax;

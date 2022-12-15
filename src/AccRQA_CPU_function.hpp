@@ -6,55 +6,6 @@
 #include <stdlib.h>
 #include <vector>
 
-
-template <typename input_type>
-int rqa_CPU_R_matrix_ref(
-	int *R_matrix, 
-	input_type *time_series, 
-	long int corrected_size, 
-	input_type threshold, 
-	int tau, 
-	int emb, 
-	int distance_type
-);
-
-
-template <typename input_type>
-int rqa_CPU_R_matrix(
-	int *R_matrix, 
-	input_type *time_series, 
-	long int corrected_size, 
-	input_type threshold, 
-	int tau, 
-	int emb, 
-	int distance_type
-);
-
-
-template <typename input_type>
-int rqa_CPU_R_matrix_diagonal_ref(
-	int *R_matrix_diagonal, 
-	input_type *time_series, 
-	long int corrected_size, 
-	input_type threshold, 
-	int tau, 
-	int emb, 
-	int distance_type
-);
-
-
-template <typename input_type>
-int rqa_CPU_R_matrix_diagonal(
-	int *R_matrix_diagonal, 
-	input_type *time_series, 
-	long int corrected_size, 
-	input_type threshold, 
-	int tau, 
-	int emb, 
-	int distance_type
-);
-
-
 template <typename input_type>
 void rqa_CPU_RR_metric_ref(
 	unsigned long long int *recurrent_rate_integers, 
@@ -133,9 +84,6 @@ void rqa_CPU_DET_metric(
 	long int input_size, 
 	int distance_type
 );
-
-
-//void get_length_histogram(unsigned long long int *LAM_histogram, int *time_series, size_t size);
 
 #include "AccRQA_CPU_function.cpp"
 

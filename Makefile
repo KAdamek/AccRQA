@@ -25,8 +25,8 @@ endif
 
 all: clean sharedlibrary userapp testapp
 
-sharedlibrary: AccRQA-GPU-RR.o AccRQA-GPU-HST.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o Makefile
-	$(NVCC) $(NVCCFLAGS) $(INC) $(LIB) -shared -o libAccRQA.so AccRQA-GPU-RR.o AccRQA-GPU-HST.o AccRQA_CPU_function.o AccRQA_RecurrentRate.o AccRQA_LengthHistogram.o AccRQA_R_bindings.o
+sharedlibrary: AccRQA-GPU-RR.o AccRQA-GPU-HST.o AccRQA_CPU_function.o AccRQA_functions.o AccRQA_R_bindings.o Makefile
+	$(NVCC) $(NVCCFLAGS) $(INC) $(LIB) -shared -o libAccRQA.so AccRQA-GPU-RR.o AccRQA-GPU-HST.o AccRQA_CPU_function.o AccRQA_functions.o AccRQA_R_bindings.o
 
 userapp: Makefile
 	$(GCC) $(GCC_OPTS) -o $(USERAPP) RQA.cpp $(LIBRQA)
@@ -43,11 +43,8 @@ AccRQA-GPU-HST.o: timer.h utils_cuda.h
 AccRQA_CPU_function.o: AccRQA_CPU_function.cpp
 	$(GCC) -c AccRQA_CPU_function.cpp $(GCC_OPTS)
 
-AccRQA_LengthHistogram.o: AccRQA_LengthHistogram.cpp
-	$(GCC) -c AccRQA_LengthHistogram.cpp $(GCC_OPTS)
-	
-AccRQA_RecurrentRate.o: AccRQA_RecurrentRate.cpp
-	$(GCC) -c AccRQA_RecurrentRate.cpp $(GCC_OPTS)
+AccRQA_functions.o: AccRQA_functions.cpp
+	$(GCC) -c AccRQA_functions.cpp $(GCC_OPTS)
 	
 AccRQA_R_bindings.o: AccRQA_R_bindings.cpp
 	$(GCC) -c AccRQA_R_bindings.cpp $(GCC_OPTS) $(LIB)

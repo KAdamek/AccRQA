@@ -1123,6 +1123,20 @@ int GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram
 	return(ret);
 }
 
+/*
+int GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time){
+	int ret;
+	ret = GPU_RQA_length_histogram_diagonal_tp<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, device, execution_time);
+	return(ret);
+}
+
+int GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time){
+	int ret;
+	ret = GPU_RQA_length_histogram_diagonal_tp<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, device, execution_time);
+	return(ret);
+}
+*/
+
 int GPU_RQA_diagonal_R_matrix(
 	int *h_diagonal_R_matrix, 
 	float *h_input, 

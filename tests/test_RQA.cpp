@@ -12,7 +12,7 @@ using namespace std;
 
 #include <dirent.h>
 
-#include "AccRQA_library.hpp"
+#include "../include/AccRQA_library.hpp"
 
 typedef double RQAdp;
 
