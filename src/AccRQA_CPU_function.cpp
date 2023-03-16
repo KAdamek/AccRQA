@@ -198,30 +198,25 @@ int rqa_CPU_R_matrix_diagonal(
 //---------------------- Recurrent rate -------------------->
 template <typename input_type>
 void rqa_CPU_RR_metric_ref(
-	unsigned long long int *recurrent_rate_integers, 
-	std::vector<input_type> threshold_list, 
-	int tau, 
-	int emb, 
+	input_type *output_RR, 
 	input_type *time_series, 
 	unsigned long long int input_size, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
 	int distance_type
 ) {
 	long int corrected_size = input_size - (emb - 1)*tau;
 	
-	if(DEBUG) printf("Calculating recurrent rate on the CPU:\n");
-	for(size_t f = 0; f < threshold_list.size(); f++){
-		input_type threshold = threshold_list[f];
-		
-		unsigned long long int sum = 0;
-		for(long int i=0; i<corrected_size; i++) {
-			for(long int j=0; j<corrected_size; j++) {
-				sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
-			}
+	unsigned long long int sum = 0;
+	for(long int i=0; i<corrected_size; i++) {
+		for(long int j=0; j<corrected_size; j++) {
+			sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
 		}
-		recurrent_rate_integers[f] = sum;
-		if(DEBUG) {printf("|"); fflush( stdout );}
 	}
-	if(DEBUG) printf(" Done\n");
+	*output_RR = ((input_type) sum)/((input_type) (corrected_size*corrected_size));
+	
+	if(DEBUG) {printf("|"); fflush( stdout );}
 }
 
 template <typename input_type>

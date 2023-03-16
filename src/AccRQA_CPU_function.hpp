@@ -8,12 +8,12 @@
 
 template <typename input_type>
 void rqa_CPU_RR_metric_ref(
-	unsigned long long int *recurrent_rate_integers, 
-	std::vector<input_type> threshold_list, 
-	int tau, 
-	int emb, 
+	input_type *output_RR, 
 	input_type *time_series, 
 	unsigned long long int input_size, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
 	int distance_type
 );
 

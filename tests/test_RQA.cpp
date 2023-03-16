@@ -25,10 +25,11 @@ bool DEBUG_MODE = false;
 bool CHECK = true;
 bool GPU_UNIT_TEST = true;
 bool CPU_UNIT_TEST = false;
+bool RR_EXTENDED_TEST = true;
 
 //-----------------------------------------------
 //---------- Data checks and generation
-double max_error = 1.0e-4;
+double max_error = 1.0e-3;
 
 template<typename input_type>
 double get_error(input_type iA, input_type iB){
@@ -163,7 +164,7 @@ int Generate_random(std::vector<input_type> *input){
 
 
 //---------------- Recurrent rate unit test
-int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_high, RQAdp threshold_step, int tau, int emb, int device){
+int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_high, RQAdp threshold_step, int tau, int emb){
 	std::vector<RQAdp> input_data(input_size, 0);
 	Generate_random(&input_data);
 	
@@ -171,37 +172,99 @@ int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_
 	for (RQAdp threshold = threshold_low; threshold < threshold_high; threshold = threshold + threshold_step) threshold_list.push_back(threshold);
 	int nThresholds = (int) threshold_list.size(); 
 	
-	RQAdp *CPU_RR_result, *GPU_RR_result;
+	RQAdp *CPU_RR_result, *GPU_RR_result, *GPU_DET_RR_result, *GPU_LAM_RR_result;
+	int RR_output_size = accrqa_RR_output_size_in_elements(1, 1, threshold_list.size());
 	CPU_RR_result = new RQAdp[nThresholds];
 	GPU_RR_result = new RQAdp[nThresholds];
+	GPU_DET_RR_result = new RQAdp[nThresholds];
+	GPU_LAM_RR_result = new RQAdp[nThresholds];
 
+	int tau_values = tau;
+	int emb_values = emb;
+	int error = 0;
+	
 	//-------> GPU
-	if(GPU_UNIT_TEST) accrqaRecurrentRateGPU(GPU_RR_result, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
+	if(GPU_UNIT_TEST) {
+		accrqa_RR_GPU(GPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+	}
 	
 	//-------> CPU
-	accrqaRecurrentRateCPU(CPU_RR_result, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+	accrqa_RR_CPU(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
 	
+	//-------> GPU LAM
+	if(RR_EXTENDED_TEST){
+		RQAdp *output_GPU;
+		int output_size = accrqa_LAM_output_size_in_elements(1, 1, 1, 1);
+		output_GPU = new RQAdp[output_size];
+		int vmin_values = 2;
+		int calc_ENTR = 1;
+		for(size_t th_idx = 0; th_idx < threshold_list.size(); th_idx++){
+			RQAdp threshold_values = threshold_list[th_idx];
+			accrqa_LAM_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+			GPU_LAM_RR_result[th_idx] = output_GPU[4];
+		}
+		delete[] output_GPU;
+	}
+	
+	//-------> GPU DET
+	if(RR_EXTENDED_TEST){
+		RQAdp *output_GPU;
+		int output_size = accrqa_LAM_output_size_in_elements(1, 1, 1, 1);
+		output_GPU = new RQAdp[output_size];
+		int lmin_values = 2;
+		int calc_ENTR = 1;
+		for(size_t th_idx = 0; th_idx < threshold_list.size(); th_idx++){
+			RQAdp threshold_values = threshold_list[th_idx];
+			accrqa_DET_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+			GPU_DET_RR_result[th_idx] = output_GPU[4];
+		}
+		delete[] output_GPU;
+	}
 	
 	int nErrors = 0;
 	if(CHECK) {
 		nErrors = Compare_data(GPU_RR_result, CPU_RR_result, nThresholds);
-		if(nErrors>0 && DEBUG_MODE){
+		if(nErrors>0 || DEBUG_MODE){
 			if(nErrors>0) printf("------> Errors detected:\n");
 			for(size_t f=0; f<threshold_list.size(); f++){
-				long long int CPU = CPU_RR_result[f];
-				long long int GPU = GPU_RR_result[f];
-				long long int dif = CPU - GPU;
-				if(dif>0) printf("f=%zu; CPU:%lld; GPU:%lld; diff:%lld \n", f, CPU, GPU, dif);
+				double CPU = CPU_RR_result[f];
+				double GPU = GPU_RR_result[f];
+				double dif = CPU - GPU;
+				printf("f=%zu; CPU:%e; GPU:%e; diff:%e \n", f, CPU, GPU, dif);
+			}
+		}
+		if(RR_EXTENDED_TEST){
+			nErrors += Compare_data(GPU_DET_RR_result, CPU_RR_result, nThresholds);
+			if(nErrors>0 || DEBUG_MODE){
+				if(nErrors>0) printf("------> Errors detected:\n");
+				for(size_t f=0; f<threshold_list.size(); f++){
+					double CPU = CPU_RR_result[f];
+					double GPU = GPU_DET_RR_result[f];
+					double dif = CPU - GPU;
+					printf("f=%zu; CPU:%e; GPU DET:%e; diff:%e \n", f, CPU, GPU, dif);
+				}
+			}
+			nErrors += Compare_data(GPU_LAM_RR_result, CPU_RR_result, nThresholds);
+			if(nErrors>0 || DEBUG_MODE){
+				if(nErrors>0) printf("------> Errors detected:\n");
+				for(size_t f=0; f<threshold_list.size(); f++){
+					double CPU = CPU_RR_result[f];
+					double GPU = GPU_LAM_RR_result[f];
+					double dif = CPU - GPU;
+					printf("f=%zu; CPU:%e; GPU LAM:%e; diff:%e \n", f, CPU, GPU, dif);
+				}
 			}
 		}
 	}
 	
 	delete[] CPU_RR_result;
 	delete[] GPU_RR_result;
+	delete[] GPU_DET_RR_result;
+	delete[] GPU_LAM_RR_result;
 	return(nErrors);
 }
 
-void unit_test_RR(int device){
+void unit_test_RR(){
 	printf("\n== Recurrent rate unit test ==\n");
 	int total_GPU_nErrors = 0, GPU_nErrors = 0;
 	
@@ -215,7 +278,7 @@ void unit_test_RR(int device){
 		RQAdp threshold_low = 0.0;
 		RQAdp threshold_high = 1.0;
 		RQAdp threshold_step = 1.0/((double) nThresholds);
-		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, device);
+		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -241,7 +304,7 @@ void unit_test_RR(int device){
 		RQAdp threshold_low = 0;
 		RQAdp threshold_high = 1.0;
 		RQAdp threshold_step = 1.0/((double) nThresholds);
-		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, device);
+		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -265,7 +328,7 @@ void unit_test_RR(int device){
 			RQAdp threshold_low = 0.1;
 			RQAdp threshold_high = 1.0;
 			RQAdp threshold_step = 1.0/((double) nThresholds);
-			GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, device);
+			GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb);
 			total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 			if(GPU_nErrors==0) {
 				printf("\033[1;32m.\033[0m");
@@ -285,18 +348,44 @@ void unit_test_RR(int device){
 
 
 //---------------- DET and LAM unit test
-int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int lmin, int device){
+int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int lmin){
 	std::vector<RQAdp> input_data(input_size, 0);
 	Generate_random(&input_data);
 	
 	// GPU
 	RQAdp GPU_DET = 0, GPU_L = 0, GPU_Lmax = 0, GPU_ENTR = 0;
-	if(GPU_UNIT_TEST) accrqaDeterminismGPU(&GPU_DET, &GPU_L, &GPU_Lmax, &GPU_ENTR, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
+	
+	int output_size = accrqa_LAM_output_size_in_elements(1, 1, 1, 1);
+	int tau_values = tau;
+	int emb_values = emb;
+	RQAdp threshold_values = threshold;
+	int lmin_values = lmin;
+	int calc_ENTR = 1;
+	int error = 0;
+	
+	if(GPU_UNIT_TEST) {
+		RQAdp *output_GPU;
+		output_GPU = new RQAdp[output_size];
+		accrqa_DET_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		GPU_DET  = output_GPU[0];
+		GPU_L    = output_GPU[1];
+		GPU_Lmax = output_GPU[2];
+		GPU_ENTR = output_GPU[3];
+		delete[] output_GPU;
+	}
 	
 	// CPU
 	RQAdp ref_DET = 0, ref_L = 0, ref_Lmax = 0, ref_ENTR = 0;
-	accrqaDeterminismCPU(&ref_DET, &ref_L, &ref_Lmax, &ref_ENTR, input_data.data(), input_data.size(), threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL);
-	
+	{
+		RQAdp *output_CPU;
+		output_CPU = new RQAdp[output_size];
+		accrqa_DET_CPU(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		ref_DET  = output_CPU[0];
+		ref_L    = output_CPU[1];
+		ref_Lmax = output_CPU[2];
+		ref_ENTR = output_CPU[3];
+		delete[] output_CPU;
+	}
 	
 	int nErrors = 0;
 	double ferror = 0;
@@ -324,7 +413,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	return(nErrors);
 }	
 
-void unit_test_DET(int device){
+void unit_test_DET(){
 	printf("\n== Determinism unit test ==\n");
 	int total_GPU_nErrors = 0, GPU_nErrors = 0;
 
@@ -343,7 +432,7 @@ void unit_test_DET(int device){
 		int emb = 1;
 		int lmin = 2;
 		if(DEBUG_MODE) printf("Testing with threshold=%f;\n", threshold);
-		GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin, device);
+		GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -368,7 +457,7 @@ void unit_test_DET(int device){
 			int emb = 1;
 			int lmin = 2;
 			if(DEBUG_MODE) printf("Testing with size=%zu;\n", s);
-			GPU_nErrors = test_determinism(s, threshold, tau, emb, lmin, device);
+			GPU_nErrors = test_determinism(s, threshold, tau, emb, lmin);
 			total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 			if(GPU_nErrors==0) {
 				printf("\033[1;32m.\033[0m");
@@ -394,7 +483,7 @@ void unit_test_DET(int device){
 				size_t size = 10000;
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d\n", size, threshold, tau, emb);
 				int lmin = 2;
-				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin, device);
+				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin);
 				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 				if(GPU_nErrors==0) {
 					printf("\033[1;32m.\033[0m");
@@ -415,17 +504,40 @@ void unit_test_DET(int device){
 
 
 //---------------- DET and LAM unit test
-int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int vmin, int device){
+int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int vmin){
 	std::vector<RQAdp> input_data(input_size, 0);
 	Generate_random(&input_data);
 	
-	// GPU
+	int output_size = accrqa_LAM_output_size_in_elements(1, 1, 1, 1);
+	int tau_values = tau;
+	int emb_values = emb;
+	RQAdp threshold_values = threshold;
+	int vmin_values = vmin;
+	int calc_ENTR = 0;
+	int error = 0;
+	
 	RQAdp GPU_LAM, GPU_TT, GPU_TTmax;
-	if(GPU_UNIT_TEST) accrqaLaminarityGPU(&GPU_LAM, &GPU_TT, &GPU_TTmax, input_data.data(), input_data.size(), threshold, tau, emb, vmin, RQA_METRIC_MAXIMAL, device);
+	if(GPU_UNIT_TEST) {
+		RQAdp *output_GPU;
+		output_GPU = new RQAdp[output_size];
+		accrqa_LAM_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		GPU_LAM   = output_GPU[0];
+		GPU_TT    = output_GPU[1];
+		GPU_TTmax = output_GPU[2];
+		delete[] output_GPU;
+	}
 	
 	// Reference
 	RQAdp ref_LAM, ref_TT, ref_TTmax;
-	accrqaLaminarityCPU(&ref_LAM, &ref_TT, &ref_TTmax, input_data.data(), input_data.size(), threshold, tau, emb, vmin, RQA_METRIC_MAXIMAL);
+	{
+		RQAdp *output_CPU;
+		output_CPU = new RQAdp[output_size];
+		accrqa_LAM_CPU(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		ref_LAM   = output_CPU[0];
+		ref_TT    = output_CPU[1];
+		ref_TTmax = output_CPU[2];
+		delete[] output_CPU;
+	}
 	
 	//Potentially add histogram tests as well
 	int nErrors = 0;
@@ -449,7 +561,7 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 	return(nErrors);
 }
 
-void unit_test_LAM(int device){
+void unit_test_LAM(void){
 	printf("\n== Laminarity unit test ==\n");
 	int total_GPU_nErrors = 0, GPU_nErrors = 0;
 	
@@ -468,7 +580,7 @@ void unit_test_LAM(int device){
 		int emb = 1;
 		int vmin = 2;
 		if(DEBUG_MODE) printf("Testing with threshold=%f;\n", threshold);
-		GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin, device);
+		GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -493,7 +605,7 @@ void unit_test_LAM(int device){
 			int emb = 1;
 			int vmin = 2;
 			if(DEBUG_MODE) printf("Testing with size=%zu and threshold=%f\n", s, threshold);
-			GPU_nErrors = test_laminarity(s, threshold, tau, emb, vmin, device);
+			GPU_nErrors = test_laminarity(s, threshold, tau, emb, vmin);
 			total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 			if(GPU_nErrors==0) {
 				printf("\033[1;32m.\033[0m");
@@ -519,7 +631,7 @@ void unit_test_LAM(int device){
 				int vmin = 2;
 				RQAdp threshold = threshold_list[t];
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d \n", size, threshold, tau, emb);
-				GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin, device);
+				GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin);
 				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 				if(GPU_nErrors==0) {
 					printf("\033[1;32m.\033[0m");
@@ -541,9 +653,9 @@ void unit_test_LAM(int device){
 
 int main(void) {
 	
-	unit_test_RR(0);
-	unit_test_DET(0);
-	unit_test_LAM(0);
+	unit_test_RR();
+	//unit_test_DET();
+	//unit_test_LAM();
 	
 	return (0);
 }

@@ -112,19 +112,26 @@ protected:
 		return((-1.0)*entr);
 	}
 	
+	double RR_value() { // ENTR
+		double entr = 0;
+		double RR = ((double) metric[0])/((double) (corrected_size*corrected_size));
+		return( RR );
+	}
+	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { // Laminarity
 		rqa_CPU_LAM_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
 	}
 	
-	void calculate_rqa_histogram_horizontal_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device) { // Laminarity
+	void calculate_rqa_histogram_horizontal_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { // Laminarity
 		double execution_time = 0;
 		
-		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, device, &execution_time);
+		int error = ACCRQA_SUCCESS;
+		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
 		char metric[200]; 
-		if(distance_type == RQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == RQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
+		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
+		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
 		std::ofstream FILEOUT;
 		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
 		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "LAM" << " " << execution_time << std::endl;
@@ -132,15 +139,16 @@ protected:
 		#endif
 	}
 	
-	void calculate_rqa_histogram_vertical_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device) { // Laminarity
+	void calculate_rqa_histogram_vertical_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { // Laminarity
 		double execution_time = 0;
 		
-		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, device, &execution_time);
+		int error = ACCRQA_SUCCESS;
+		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
 		char metric[200]; 
-		if(distance_type == RQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == RQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
+		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
+		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
 		std::ofstream FILEOUT;
 		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
 		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "LAM" << " " << execution_time << std::endl;
@@ -152,16 +160,17 @@ protected:
 		rqa_CPU_DET_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
 	}
 	
-	void calculate_rqa_histogram_diagonal_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device) { 
+	void calculate_rqa_histogram_diagonal_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type) { 
 		// Determinism
 		double execution_time = 0;
 		
-		GPU_RQA_length_histogram_diagonal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, device, &execution_time);
+		int error = ACCRQA_SUCCESS;
+		GPU_RQA_length_histogram_diagonal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
 		char metric[200]; 
-		if(distance_type == RQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == RQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
+		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
+		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
 		std::ofstream FILEOUT;
 		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
 		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETmk1" << " " << execution_time << std::endl;
@@ -204,8 +213,8 @@ class accrqaDeterminismResult : public accrqaLengthHistogramResult<input_type> {
 	public:
 		accrqaDeterminismResult(size_t input_size, input_type t_threshold, int t_tau, int t_emb) : accrqaLengthHistogramResult<input_type>(input_size, t_threshold, t_tau, t_emb){}
 		
-		void ProcessData_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device){
-			this->calculate_rqa_histogram_diagonal_GPU(time_series, input_size, threshold, distance_type, device);
+		void ProcessData_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type){
+			this->calculate_rqa_histogram_diagonal_GPU(time_series, input_size, threshold, distance_type);
 		}
 		
 		void ProcessData_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type){
@@ -227,15 +236,20 @@ class accrqaDeterminismResult : public accrqaLengthHistogramResult<input_type> {
 		double ENTR(size_t minimum_length) {
 			return(this->quaternary_metric(minimum_length));
 		}
+		
+		double RR() {
+			return(this->RR_value());
+		}
 };
+
 
 template<typename input_type>
 class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 	public:
 		accrqaLaminarityResult(size_t input_size, input_type t_threshold, int t_tau, int t_emb) : accrqaLengthHistogramResult<input_type>(input_size, t_threshold, t_tau, t_emb){}
 		
-		void ProcessData_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type, int device){
-			this->calculate_rqa_histogram_vertical_GPU(time_series, input_size, threshold, distance_type, device);
+		void ProcessData_GPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type){
+			this->calculate_rqa_histogram_vertical_GPU(time_series, input_size, threshold, distance_type);
 		}
 		
 		void ProcessData_CPU(input_type *time_series, size_t input_size, input_type threshold, int distance_type){
@@ -257,147 +271,328 @@ class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 		double ENTR(size_t minimum_length){
 			return(this->quaternary_metric(minimum_length));
 		}
+		
+		double RR(){
+			return(this->RR_value());
+		}
 };
 //--------------------------------------------<
 
 
-//---> One off functions for GPU DET?
-//-------------------------------------------->
+void accrqa_print_error(int *error){
+	switch(*error) {
+		case ACCRQA_SUCCESS:
+			printf("success");
+			break;
+		case ACCRQA_ERROR_CUDA_NOT_FOUND:
+			printf("CUDA not found");
+			break;
+		case ACCRQA_ERROR_WRONG_ARGUMENTS:
+			printf("wrong arguments");
+			break;
+		case ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED:
+			printf("array not allocated");
+			break;
+		case ACCRQA_ERROR_WRONG_METRIC_TYPE:
+			printf("wrong metric type");
+			break;
+		case ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND:
+			printf("CUDA device not found");
+			break;
+		case ACCRQA_ERROR_CUDA_NOT_ENOUGH_MEMORY:
+			printf("not enough memory on device (GPU)");
+			break;
+		case ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION:
+			printf("could not allocate memory on the device (GPU)");
+			break;
+		case ACCRQA_ERROR_CUDA_MEMORY_COPY:
+			printf("could not copy memory host<->device");
+			break;
+		case ACCRQA_ERROR_CUDA_KERNEL:
+			printf("CUDA kernel error");
+			break;
+		default:
+			printf("unrecognised AccRQA error");
+	}
+}
+
+
+
+//==========================================================
+//========================= LAM ============================
+//==========================================================
+
 template<typename input_type>
-void template_accrqaDeterminismGPU(
-		input_type *DET, 
-		input_type *L, 
-		input_type *Lmax, 
-		input_type *ENTR, 
-		input_type *input_data, 
-		size_t input_size, 
-		input_type threshold, 
-		int tau, 
-		int emb,
-		int lmin,
-		int distance_type,
-		int device
-	){
-	accrqaDeterminismResult<input_type> DETresults(input_size, threshold, tau, emb);
-	DETresults.ProcessData_GPU(input_data, input_size, threshold, distance_type, device);
-	*DET  = DETresults.DET(lmin);
-	*L    = DETresults.L(lmin);
-	*Lmax = DETresults.Lmax();
-	*ENTR = DETresults.ENTR(lmin);
+void calculate_LAM_GPU_default(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, input_type *threshold_values, int nThresholds, int distance_type, int *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+				
+				accrqaLaminarityResult<input_type> LAMresults(data_size, threshold, tau, emb);
+				LAMresults.ProcessData_GPU(input_data, data_size, threshold, distance_type);
+				
+				for(int v_id = 0; v_id < nVmins; v_id++){
+					int vmin = vmin_values[v_id];
+					
+					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + th_id*nVmins + v_id;
+					output[5*pos + 0] = LAMresults.LAM(vmin);
+					output[5*pos + 1] = LAMresults.TT(vmin);
+					output[5*pos + 2] = LAMresults.TTmax();
+					output[5*pos + 3] = LAMresults.ENTR(vmin);
+					output[5*pos + 4] = LAMresults.RR();
+				}
+			}
+		}
+	}
+	
 }
 
-void accrqaDeterminismGPU(float *DET, float *L, float *Lmax, float *ENTR, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int lmin, int distance_type, int device) {
-	template_accrqaDeterminismGPU<float>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type, device);
-}
-
-void accrqaDeterminismGPU(double *DET, double *L, double *Lmax, double *ENTR, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int lmin, int distance_type, int device) {
-	template_accrqaDeterminismGPU<double>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type, device);
-}
-//--------------------------------------------<
-
-//---> One off functions for GPU LAM?
-//-------------------------------------------->
 template<typename input_type>
-void template_accrqaLaminarityGPU(
-		input_type *LAM, 
-		input_type *TT, 
-		input_type *TTmax, 
-		input_type *input_data, 
-		size_t input_size, 
-		input_type threshold, 
-		int tau, 
-		int emb,
-		int vmin,
-		int distance_type,
-		int device
-	){
-	accrqaLaminarityResult<input_type> LAMresults(input_size, threshold, tau, emb);
-	LAMresults.ProcessData_GPU(input_data, input_size, threshold, distance_type, device);
-	*LAM   = LAMresults.LAM(vmin);
-	*TT    = LAMresults.TT(vmin);
-	*TTmax = LAMresults.TTmax();
+void calculate_LAM_CPU_default(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, input_type *threshold_values, int nThresholds, int distance_type, int *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+
+				accrqaLaminarityResult<input_type> LAMresults(data_size, threshold, tau, emb);
+				LAMresults.ProcessData_CPU(input_data, data_size, threshold, distance_type);
+				
+				for(int v_id = 0; v_id < nVmins; v_id++){
+					int vmin = vmin_values[v_id];
+					
+					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + th_id*nVmins + v_id;
+					output[5*pos + 0] = LAMresults.LAM(vmin);
+					output[5*pos + 1] = LAMresults.TT(vmin);
+					output[5*pos + 2] = LAMresults.TTmax();
+					output[5*pos + 3] = LAMresults.ENTR(vmin);
+					output[5*pos + 4] = LAMresults.RR();
+				}
+			}
+		}
+	}
+	
 }
 
-void accrqaLaminarityGPU(float *LAM, float *TT, float *TTmax, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int vmin, int distance_type, int device) {
-	template_accrqaLaminarityGPU<float>(LAM, TT, TTmax, input_data, input_size, threshold, tau, emb, vmin, distance_type, device);
-}
 
-void accrqaLaminarityGPU(double *LAM, double *TT, double *TTmax, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int vmin, int distance_type, int device) {
-	template_accrqaLaminarityGPU<double>(LAM, TT, TTmax, input_data, input_size, threshold, tau, emb, vmin, distance_type, device);
-}
-//--------------------------------------------<
-
-//---> One off functions for CPU DET?
-//-------------------------------------------->
 template<typename input_type>
-void template_accrqaDeterminismCPU(
-		input_type *DET, 
-		input_type *L, 
-		input_type *Lmax, 
-		input_type *ENTR, 
-		input_type *input_data, 
-		size_t input_size, 
-		input_type threshold, 
-		int tau, 
-		int emb,
-		int lmin,
-		int distance_type
-	){
-	accrqaDeterminismResult<input_type> DETresults(input_size, threshold, tau, emb);
-	DETresults.ProcessData_CPU(input_data, input_size, threshold, distance_type);
-	*DET  = DETresults.DET(lmin);
-	*L    = DETresults.L(lmin);
-	*Lmax = DETresults.Lmax();
-	*ENTR = DETresults.ENTR(lmin);
+void accrqa_LAM_GPU_t(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, input_type *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+	if(data_size == 0 || nTaus <= 0 || nEmbs <= 0 || nVmins <= 0 || nThresholds <= 0) *error = ACCRQA_ERROR_WRONG_ARGUMENTS;
+	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || vmin_values == NULL || threshold_values == NULL) *error = ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED;
+	if(*error!=ACCRQA_SUCCESS) return;
+	
+	// Default code
+	calculate_LAM_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
+
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
 }
 
-void accrqaDeterminismCPU(float *DET, float *L, float *Lmax, float *ENTR, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int lmin, int distance_type) {
-	template_accrqaDeterminismCPU<float>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type);
-}
-
-void accrqaDeterminismCPU(double *DET, double *L, double *Lmax, double *ENTR, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int lmin, int distance_type) {
-	template_accrqaDeterminismCPU<double>(DET, L, Lmax, ENTR, input_data, input_size, threshold, tau, emb, lmin, distance_type);
-}
-//--------------------------------------------<
-
-//---> One off functions for CPU LAM?
-//-------------------------------------------->
 template<typename input_type>
-void template_accrqaLaminarityCPU(
-		input_type *LAM, 
-		input_type *TT, 
-		input_type *TTmax, 
-		input_type *input_data, 
-		size_t input_size, 
-		input_type threshold, 
-		int tau, 
-		int emb,
-		int vmin,
-		int distance_type
-	){
-	accrqaLaminarityResult<input_type> LAMresults(input_size, threshold, tau, emb);
-	LAMresults.ProcessData_CPU(input_data, input_size, threshold, distance_type);
-	*LAM   = LAMresults.LAM(vmin);
-	*TT    = LAMresults.TT(vmin);
-	*TTmax = LAMresults.TTmax();
+void accrqa_LAM_CPU_t(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, input_type *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	if(data_size == 0 || nTaus <= 0 || nEmbs <= 0 || nVmins <= 0 || nThresholds <= 0) *error = ACCRQA_ERROR_WRONG_ARGUMENTS;
+	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || vmin_values == NULL || threshold_values == NULL) *error = ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED;
+	if(*error!=ACCRQA_SUCCESS) return;
+	
+	// Default code
+	calculate_LAM_CPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
 }
 
-void accrqaLaminarityCPU(float *LAM, float *TT, float *TTmax, float *input_data, size_t input_size,  float threshold,  int tau, int emb, int vmin, int distance_type) {
-	template_accrqaLaminarityCPU<float>(LAM, TT, TTmax, input_data, input_size, threshold, tau, emb, vmin, distance_type);
+
+
+// Thin wrappers that call either accrqa_LAM_CPU_t or accrqa_LAM_GPU_t
+void accrqa_LAM_GPU(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, float *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
+}
+void accrqa_LAM_GPU(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, double *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
+}
+void accrqa_LAM_CPU(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, float *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+}
+void accrqa_LAM_CPU(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, double *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+}
+void accrqa_LAM(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, float *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		printf("===> Doing GPU!!\n");
+		accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		printf("===> Doing CPU!!\n");
+		accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#endif
+}
+void accrqa_LAM(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, double *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		printf("===> Doing GPU!!\n");
+		accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		printf("===> Doing CPU!!\n");
+		accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#endif
 }
 
-void accrqaLaminarityCPU(double *LAM, double *TT, double *TTmax, double *input_data, size_t input_size,  double threshold,  int tau, int emb, int vmin, int distance_type) {
-	template_accrqaLaminarityCPU<double>(LAM, TT, TTmax, input_data, input_size, threshold, tau, emb, vmin, distance_type);
+// Calculate output size
+int accrqa_LAM_output_size_in_elements(int nTaus, int nEmbs, int nVmins, int nThresholds){
+	return(nTaus*nEmbs*nVmins*nThresholds*5);
 }
-//--------------------------------------------<
 
 
 
+//==========================================================
+//========================= DET ============================
+//==========================================================
+
+// Do we need access class?
+
+template<typename input_type>
+void calculate_DET_GPU_default(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, int distance_type, int *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+
+				accrqaDeterminismResult<input_type> DETresults(data_size, threshold, tau, emb);
+				DETresults.ProcessData_GPU(input_data, data_size, threshold, distance_type);
+				
+				for(int l_id = 0; l_id < nLmins; l_id++){
+					int lmin = lmin_values[l_id];
+					
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + th_id*nLmins + l_id;
+					output[5*pos + 0] = DETresults.DET(lmin);;
+					output[5*pos + 1] = DETresults.L(lmin);
+					output[5*pos + 2] = DETresults.Lmax();
+					output[5*pos + 3] = DETresults.ENTR(lmin);
+					output[5*pos + 4] = DETresults.RR();
+				}
+			}
+		}
+	}
+	
+}
+
+template<typename input_type>
+void calculate_DET_CPU_default(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, int distance_type, int *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+
+				accrqaDeterminismResult<input_type> DETresults(data_size, threshold, tau, emb);
+				DETresults.ProcessData_CPU(input_data, data_size, threshold, distance_type);
+				
+				for(int l_id = 0; l_id < nLmins; l_id++){
+					int lmin = lmin_values[l_id];
+					
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + th_id*nLmins + l_id;
+					output[5*pos + 0] = DETresults.DET(lmin);
+					output[5*pos + 1] = DETresults.L(lmin);
+					output[5*pos + 2] = DETresults.Lmax();
+					output[5*pos + 3] = DETresults.ENTR(lmin);
+					output[5*pos + 4] = DETresults.RR();
+				}
+			}
+		}
+	}
+	
+}
+
+template<typename input_type>
+void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+	if(data_size == 0 || nTaus <= 0 || nEmbs <= 0 || nLmins <= 0 || nThresholds <= 0) *error = ACCRQA_ERROR_WRONG_ARGUMENTS;
+	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || lmin_values == NULL || threshold_values == NULL) *error = ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED;
+	if(*error!=ACCRQA_SUCCESS) return;
+	
+	// Default code
+	calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
+}
+
+template<typename input_type>
+void accrqa_DET_CPU_t(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	if(data_size == 0 || nTaus <= 0 || nEmbs <= 0 || nLmins <= 0 || nThresholds <= 0) *error = ACCRQA_ERROR_WRONG_ARGUMENTS;
+	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || lmin_values == NULL || threshold_values == NULL) *error = ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED;
+	if(*error!=ACCRQA_SUCCESS) return;
+	
+	// Default code
+	calculate_DET_CPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+
+}
+
+// Thin wrappers that call either accrqa_DET_CPU_t or accrqa_DET_GPU_t
+void accrqa_DET_GPU(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, float *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
+}
+void accrqa_DET_GPU(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, double *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
+}
+void accrqa_DET_CPU(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, float *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+}
+void accrqa_DET_CPU(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, double *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+}
+void accrqa_DET(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, float *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		printf("===> Doing GPU!!\n");
+		accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		printf("===> Doing CPU!!\n");
+		accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#endif
+}
+void accrqa_DET(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, double *threshold_values, int nThresholds, int distance_type, int calc_ENTR, int *error) {
+	#ifdef CUDA_FOUND
+		printf("===> Doing GPU!!\n");
+		accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#else
+		printf("===> Doing CPU!!\n");
+		accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
+	#endif
+}
+int accrqa_DET_output_size_in_elements(int nTaus, int nEmbs, int nLmins, int nThresholds){
+	return(nTaus*nEmbs*nLmins*nThresholds*5);
+}
 
 //==========================================================
 //========================== RR ============================
 //==========================================================
 
+// This class needs to be converted into class for accessing results 
 template<typename input_type>
 class accrqaRecurrentRateResult {
 private:
@@ -427,14 +622,15 @@ public:
 		int nThresholds = (int) rr_thresholds.size();
 		double execution_time = 0;
 		
-		GPU_RQA_RR_metric(rr_count.data(), input, input_size, rr_thresholds.data(), nThresholds, c_tau, c_emb, distance_type, device, &execution_time);
+		int error = ACCRQA_SUCCESS;
+		GPU_RQA_RR_metric(rr_count.data(), input, input_size, rr_thresholds.data(), nThresholds, c_tau, c_emb, distance_type, device, &execution_time, &error);
 		
 		calculated = true;
 		
 		#ifdef MONITOR_PERFORMANCE
 		char metric[200]; 
-		if(distance_type == RQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == RQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
+		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
+		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
 		std::ofstream FILEOUT;
 		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
 		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << "0" << " " << (int) rr_thresholds.size() << " " << c_tau << " " << c_emb << " " << "1" << " " << metric << " " << "RR" << " " << execution_time << std::endl;
@@ -486,83 +682,190 @@ public:
 };
 
 
-//-------------------------------------------->
 template<typename input_type>
-void template_accrqaRecurrentRateGPU(
-		input_type *RR, 
-		input_type *thresholds, 
-		int nThresholds, 
-		input_type *input, 
-		size_t input_size, 
-		int tau, 
-		int emb, 
-		int distance_type, 
-		int device
-	){
-	size_t corrected_size = input_size - (emb - 1)*tau;
-	std::vector<unsigned long long int> rr_count;
-	rr_count.resize(nThresholds, 0);
-	double execution_time = 0;
-	
-	GPU_RQA_RR_metric(rr_count.data(), input, input_size, thresholds, nThresholds, tau, emb, distance_type, device, &execution_time);
-	
-	for(int idx = 0; idx < (int) rr_count.size(); idx++){
-		RR[idx] = ((double) rr_count[idx])/((double) (corrected_size*corrected_size));
+void calculate_RR_CPU_default(
+	input_type *RR, 
+	input_type *input_data,
+	size_t input_size,
+	int *tau_values, 
+	int nTaus, 
+	int *emb_values, 
+	int nEmbs, 
+	input_type *threshold_values,
+	int nThresholds, 
+	int distance_type
+){
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type RR_value = 0;
+				input_type threshold = threshold_values[th_id];
+				
+				rqa_CPU_RR_metric_ref(
+					&RR_value, 
+					input_data, 
+					(unsigned long long int) input_size, 
+					threshold, 
+					tau, 
+					emb, 
+					distance_type
+				);
+				
+				int pos = tau_id*nEmbs*nThresholds + emb_id*nThresholds + th_id;
+				RR[pos] = RR_value;
+			}
+		}
 	}
-	
-	rr_count.clear();
 }
 
-void accrqaRecurrentRateGPU(float *RR, float *thresholds, int nThresholds, float *input, size_t input_size, int tau, int emb, int distance_type, int device) {
-	template_accrqaRecurrentRateGPU<float>(RR, thresholds, nThresholds, input, input_size, tau, emb, distance_type, device);
-}
-void accrqaRecurrentRateGPU(double *RR, double *thresholds, int nThresholds, double *input, size_t input_size, int tau, int emb, int distance_type, int device) {
-	template_accrqaRecurrentRateGPU<double>(RR, thresholds, nThresholds, input, input_size, tau, emb, distance_type, device);
-}
-//--------------------------------------------<
-
-//-------------------------------------------->
 template<typename input_type>
-void template_accrqaRecurrentRateCPU(
-		input_type *RR, 
-		input_type *thresholds, 
-		int nThresholds, 
-		input_type *input, 
-		size_t input_size, 
-		int tau, 
-		int emb, 
-		int distance_type
-	){
-	size_t corrected_size = input_size - (emb - 1)*tau;
-	std::vector<unsigned long long int> rr_count;
-	rr_count.resize(nThresholds, 0);
-	std::vector<input_type> rr_thresholds;
-	rr_thresholds.resize(nThresholds, 0);
-	for(int f=0; f<nThresholds; f++){
-		rr_thresholds[f] = thresholds[f];
+void calculate_RR_GPU_default(
+	input_type *RR, 
+	input_type *input_data,
+	size_t input_size,
+	int *tau_values, 
+	int nTaus, 
+	int *emb_values, 
+	int nEmbs, 
+	input_type *threshold_values,
+	int nThresholds, 
+	int distance_type
+){
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			
+			long int corrected_size = input_size - (emb - 1)*tau;
+			std::vector<unsigned long long int> rr_count;
+			rr_count.resize(nThresholds, 0);
+			double execution_time = 0;
+			int error = ACCRQA_SUCCESS;
+			GPU_RQA_RR_metric_integer(rr_count.data(), input_data, input_size, threshold_values, nThresholds, tau, emb, distance_type, &execution_time, &error);
+	
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				int pos = tau_id*nEmbs*nThresholds + emb_id*nThresholds + th_id;
+				RR[pos] = (input_type) ((double) rr_count[th_id])/((double) (corrected_size*corrected_size));
+			}
+			
+			rr_count.clear();
+		}
 	}
-	rqa_CPU_RR_metric_ref(
-		rr_count.data(), 
-		rr_thresholds, 
-		tau, 
-		emb, 
-		input, 
-		input_size,
+}
+
+
+
+template<typename input_type>
+void accrqa_RR_GPU_t(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, input_type *threshold_values, int nThresholds, int distance_type, int *error) {
+	#ifdef CUDA_FOUND
+	if(data_size == 0 || nTaus <=0 || nEmbs <=0 || nThresholds <=0) *error = ACCRQA_ERROR_WRONG_ARGUMENTS;
+	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || threshold_values == NULL) *error = ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED;
+	if(*error!=ACCRQA_SUCCESS) return;
+	
+	// Default code
+	calculate_RR_GPU_default(
+		output, 
+		input_data,
+		data_size,
+		tau_values, 
+		nTaus, 
+		emb_values, 
+		nEmbs, 
+		threshold_values,
+		nThresholds, 
 		distance_type
 	);
-	
-	for(int idx = 0; idx < (int) rr_count.size(); idx++){
-		RR[idx] = ((double) rr_count[idx])/((double) (corrected_size*corrected_size));
-	}
-	
-	rr_count.clear();
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
 }
 
-void accrqaRecurrentRateCPU(float *RR, float *thresholds, int nThresholds, float *input, size_t input_size, int tau, int emb, int distance_type) {
-	template_accrqaRecurrentRateCPU<float>(RR, thresholds, nThresholds, input, input_size, tau, emb, distance_type);
+template<typename input_type>
+void accrqa_RR_CPU_t(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, input_type *threshold_values, int nThresholds, int distance_type, int *error) {
+	if(data_size == 0 || nTaus <=0 || nEmbs <=0 || nThresholds <=0) *error = ACCRQA_ERROR_WRONG_ARGUMENTS;
+	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || threshold_values == NULL) *error = ACCRQA_ERROR_ARRAYS_NOT_ALLOCATED;
+	if(*error!=ACCRQA_SUCCESS) return;
+	
+	// Default code
+	calculate_RR_CPU_default(
+		output, 
+		input_data,
+		data_size,
+		tau_values, 
+		nTaus, 
+		emb_values, 
+		nEmbs, 
+		threshold_values,
+		nThresholds, 
+		distance_type
+	);
 }
-void accrqaRecurrentRateCPU(double *RR, double *thresholds, int nThresholds, double *input, size_t input_size, int tau, int emb, int distance_type) {
-	template_accrqaRecurrentRateCPU<double>(RR, thresholds, nThresholds, input, input_size, tau, emb, distance_type);
+
+// Thin wrappers that call either accrqa_RR_CPU_t or accrqa_RR_GPU_t
+void accrqa_RR_GPU(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, float *threshold_values, int nThresholds, int distance_type, int *error) {
+	#ifdef CUDA_FOUND
+		accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
 }
-//--------------------------------------------<
+void accrqa_RR_GPU(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, double *threshold_values, int nThresholds, int distance_type, int *error) {
+	#ifdef CUDA_FOUND
+		accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+	#else
+		*error = ACCRQA_ERROR_CUDA_NOT_FOUND;
+	#endif
+}
+void accrqa_RR_CPU(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, float *threshold_values, int nThresholds, int distance_type, int *error) {
+	accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+}
+void accrqa_RR_CPU(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, double *threshold_values, int nThresholds, int distance_type, int *error) {
+	accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+}
+void accrqa_RR(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, float *threshold_values, int nThresholds, int distance_type, int *error) {
+	#ifdef CUDA_FOUND
+		printf("===> Doing GPU!!\n");
+		accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+	#else
+		printf("===> Doing CPU!!\n");
+		accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+	#endif
+}
+void accrqa_RR(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, double *threshold_values, int nThresholds, int distance_type, int *error) {
+	#ifdef CUDA_FOUND
+		printf("===> Doing GPU!!\n");
+		accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+	#else
+		printf("===> Doing CPU!!\n");
+		accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
+	#endif
+}
+int accrqa_RR_output_size_in_elements(int nTaus, int nEmbs, int nThresholds){
+	return(nTaus*nEmbs*nThresholds);
+}
+
+//=============================>
+
+// Python interface will decide based on numpy/cupy
+// R interface will decide based on availability of a GPU
+// C++ interface could be called directly? or based on availability
+// For R and C++ interface it is assumed that CUDA_VISIBLE_​DEVICES will be set to something reasonable thus by default we use device 0
+
+
+
+// Input: 
+//  -- float *data; or double *data;
+//  -- std::vector<int> tau;
+//  -- std::vector<int> emb;
+//  -- std::vector<float> threshold; or std::vector<double> threshold;
+//  -- What to calculate will be determined by DET or LAM call and additional flag for entropy
+//  
+// Output:
+//  -- Four dimensional array [tau][emb][threshold][M1,M2,M3,M4]. Where M1 = DET/LAM; M2 = L/TT; M3 = Lmax/TTmax; M4 = ENTR;
+
+
+// How to do GPU thing?
+// No idea at the moment.
 

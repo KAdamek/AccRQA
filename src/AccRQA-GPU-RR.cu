@@ -13,6 +13,7 @@
 #include <iomanip> 
 #include <vector>
 
+#include "../include/AccRQA_definitions.hpp"
 #include "GPU_reduction.cuh"
 #include "AccRQA_metrics.cuh"
 
@@ -53,7 +54,6 @@ __global__ void GPU_RQA_R_kernel(
 	unsigned long long int pos_x = (blockIdx.x*NTHREADS + threadIdx.x);
 
 	int result = R_element_max(d_input, seed_value_pos, pos_x, threshold, tau, emb, matrix_size);
-	//int result = R_element_equ(d_input, seed_value_pos, pos_x, threshold, tau, emb, matrix_size);
 
 	size_t matrix_pos_x = (blockIdx.x*NTHREADS + threadIdx.x);
 	if(matrix_pos_x<matrix_size){
@@ -61,9 +61,9 @@ __global__ void GPU_RQA_R_kernel(
 	}
 }
 
-// ***********************************************************************************
-// ***********************************************************************************
-// ***********************************************************************************
+// ***********************************************************************
+// ***********************************************************************
+// ***********************************************************************
 
 template<class const_params, typename IOtype>
 __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
@@ -148,7 +148,6 @@ __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
 
 void RQA_R_init(){
 	//---------> Specific nVidia stuff
-	//cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
 	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
 }
@@ -166,31 +165,17 @@ int RQA_RR_GPU_sharedmemory_metric(
 	){
 	GpuTimer timer;
 	
-	//---------> Task specific
-	int nBlocks_x, nBlocks_y;
-
-	nBlocks_x = (corrected_size + NTHREADS - 1)/(NTHREADS);
-	nBlocks_y = (corrected_size + NSEEDS - 1)/(NSEEDS);
-	
-	dim3 gridSize(nBlocks_x, nBlocks_y, 1);
+	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(NTHREADS, 1, 1);
+	gridSize.x = (corrected_size + NTHREADS - 1)/(NTHREADS);
+	gridSize.y = (corrected_size + NSEEDS - 1)/(NSEEDS);
 	
-	if(DEBUG) printf("Data dimensions: %llu;\n",corrected_size);
-	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
-	
-	// ----------------------------------------------->
-	// --------> Measured part (Pulse detection FIR)
 	timer.Start();
-	
-	//---------> Pulse detection FIR
 	RQA_R_init();
 	GPU_RQA_RR_seedsSM_improved_reduction_kernel<const_params><<< gridSize , blockSize, nThresholds*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, threshold_list, nThresholds, tau, emb);
-	
 	timer.Stop();
 	*exec_time += timer.Elapsed();
-	// --------> Measured part (Pulse detection FIR)
-	// ----------------------------------------------->
+	
 	return(0);
 }
 
@@ -206,31 +191,17 @@ int RQA_R_GPU(
 	){
 	GpuTimer timer;
 	
-	//---------> Task specific
-	int nBlocks_x, nBlocks_y;
-
-	nBlocks_x = (size + NTHREADS - 1)/(NTHREADS);
-	nBlocks_y = (size);
-	
-	dim3 gridSize(nBlocks_x, nBlocks_y, 1);
+	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(NTHREADS, 1, 1);
+	gridSize.x = (size + NTHREADS - 1)/(NTHREADS);
+	gridSize.y = (size);
 	
-	if(DEBUG) printf("Data dimensions: %llu;\n",size);
-	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
-	
-	// ----------------------------------------------->
-	// --------> Measured part (Pulse detection FIR)
 	timer.Start();
-	
-	//---------> Pulse detection FIR
 	RQA_R_init();
 	GPU_RQA_R_kernel<const_params><<< gridSize , blockSize >>>(d_R_matrix, d_input, size, threshold, tau, emb);
-	
 	timer.Stop();
 	*exec_time += timer.Elapsed();
-	// --------> Measured part (Pulse detection FIR)
-	// ----------------------------------------------->
+
 	return(0);
 }
 
@@ -242,13 +213,13 @@ int check_memory(size_t total_size, float multiple){
 	double required_memory = multiple*((double) total_size);
 	if(DEBUG) printf("\n");
 	if(DEBUG) printf("Device has %0.3f MB of total memory, which %0.3f MB is available. Memory required %0.3f MB\n", ((float) total_mem)/(1024.0*1024.0), free_memory/(1024.0*1024.0), required_memory/(1024.0*1024.0));
-	if(required_memory>free_memory) {printf("\n \n Array is too big for the device! \n \n"); return(3);}
+	if(required_memory>free_memory) return(3);
 	return(0);
 }
 
 
 template<class const_params, typename IOtype>
-int GPU_RQA_R_matrix_tp(
+void GPU_RQA_R_matrix_tp(
 		int *h_R_matrix, 
 		IOtype *h_input, 
 		unsigned long long int size, 
@@ -256,65 +227,78 @@ int GPU_RQA_R_matrix_tp(
 		int tau, 
 		int emb, 
 		int device, 
-		double *execution_time
+		double *execution_time,
+		int *error
 	){
+	if(*error != ACCRQA_SUCCESS) return;
+	
 	//---------> Initial nVidia stuff
 	int devCount;
-	checkCudaErrors(cudaGetDeviceCount(&devCount));
-	if(device<devCount) checkCudaErrors(cudaSetDevice(device));
-	else { printf("Wrong device!\n"); exit(1); }
-	
-	unsigned long long int matrix_size = size - (emb - 1)*tau;
+	cudaError_t cudaError;
+	cudaError = cudaGetDeviceCount(&devCount);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
+		return;
+	}
 	
 	//---------> Checking memory
+	unsigned long long int matrix_size = size - (emb - 1)*tau;
 	size_t total_size = matrix_size*matrix_size*sizeof(int) + size*sizeof(float);
-	if(check_memory(total_size, 1.0)!=0) return(1);
+	if(check_memory(total_size, 1.0)!=0) {
+		*error = ACCRQA_ERROR_CUDA_NOT_ENOUGH_MEMORY;
+		return;
+	}
 	
-	//---------> Measurements
-	double exec_time = 0;
-	GpuTimer timer;
-
 	//---------> Memory allocation
-	if (DEBUG) printf("Device memory allocation...: \t\t");
 	size_t input_size = size*sizeof(IOtype);
 	size_t output_size = matrix_size*matrix_size*sizeof(int);
 	IOtype *d_input;
 	int *d_R_matrix;
-	timer.Start();
-	checkCudaErrors(cudaMalloc((void **) &d_input, input_size));
-	checkCudaErrors(cudaMalloc((void **) &d_R_matrix, output_size));
-	timer.Stop();
-	if (DEBUG) printf("done in %g ms.\n", timer.Elapsed());
 
-	//---------> FFT calculation
-		//-----> Copy chunk of input data to a device
-		checkCudaErrors(cudaMemcpy(d_input, h_input, input_size, cudaMemcpyHostToDevice));
+	cudaError = cudaMalloc((void **) &d_input, input_size);
+	if(cudaError != cudaSuccess) { 
+		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		d_input = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_R_matrix, output_size);
+	if(cudaError != cudaSuccess) { 
+		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		d_R_matrix = NULL;
+	}
+
+	//---------> Memory copy and preparation
+	cudaError = cudaMemcpy(d_input, h_input, input_size, cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+	}
 		
-		//-----> Compute distance matrix
-		RQA_R_GPU<RQA_ConstParams, IOtype>(d_R_matrix, d_input, size, threshold, tau, emb, &exec_time);
-		
-		*execution_time = exec_time;
-		if(DEBUG) printf("RQA R matrix: %fms;\n", exec_time);
-		
-		checkCudaErrors(cudaGetLastError());
-		
-		//-----> Copy chunk of output data to host
-		checkCudaErrors(cudaMemcpy(h_R_matrix, d_R_matrix, output_size, cudaMemcpyDeviceToHost));
-	//------------------------------------<
-		
-	//---------> error check -----
-	checkCudaErrors(cudaGetLastError());
+	//-----> Compute distance matrix
+	if(*error == ACCRQA_SUCCESS) {
+		RQA_R_GPU<RQA_ConstParams, IOtype>(d_R_matrix, d_input, size, threshold, tau, emb, execution_time);
+	}
+
+	if(DEBUG) printf("RQA R matrix: %fms;\n", *execution_time);
+	
+	//-----> Copy chunk of output data to host
+	cudaError = cudaMemcpy(h_R_matrix, d_R_matrix, output_size, cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+	}
+	
+	//---------> error check
+	cudaError = cudaGetLastError();
+	if(cudaError != cudaSuccess){
+		*error = ACCRQA_ERROR_CUDA_KERNEL;
+	}
 	
 	//---------> Feeing allocated resources
-	checkCudaErrors(cudaFree(d_input));
-	checkCudaErrors(cudaFree(d_R_matrix));
-	
-	return(0);
+	if(d_input!=NULL) cudaFree(d_input);
+	if(d_R_matrix!=NULL) cudaFree(d_R_matrix);
 }
 
 
 template<class const_params, typename IOtype>
-int GPU_RQA_RR_metric_tp(
+void GPU_RQA_RR_metric_tp(
 		unsigned long long int *h_RR_metric_integer, 
 		IOtype *h_input, 
 		long int input_size, 
@@ -322,69 +306,88 @@ int GPU_RQA_RR_metric_tp(
 		int nThresholds, 
 		int tau, 
 		int emb, 
-		int device, 
-		double *execution_time
-	){
+		double *execution_time, 
+		int *error
+){
+	if(*error != ACCRQA_SUCCESS) return;
+	
 	//---------> Initial nVidia stuff
 	int devCount;
-	checkCudaErrors(cudaGetDeviceCount(&devCount));
-	if(device<devCount) checkCudaErrors(cudaSetDevice(device));
-	else { printf("Wrong device!\n"); exit(1); }
+	cudaError_t cudaError;
+	cudaError = cudaGetDeviceCount(&devCount);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
+		return;
+	}
 	
 	//---------> Checking memory
 	size_t total_size = nThresholds*sizeof(float) + nThresholds*sizeof(unsigned long long int) + input_size*sizeof(float);
-	if(check_memory(total_size, 1.0)!=0) return(1);
+	if(check_memory(total_size, 1.0)!=0) {
+		*error = ACCRQA_ERROR_CUDA_NOT_ENOUGH_MEMORY;
+		return;
+	}
 	
-	//---------> Measurements
-	double exec_time = 0;
-	GpuTimer timer;
-
 	//---------> Memory allocation
-	if (DEBUG) printf("Device memory allocation...: \t\t");
 	long int corrected_size = input_size - (emb - 1)*tau;
 	size_t input_size_bytes = input_size*sizeof(IOtype);
 	size_t output_size_bytes = nThresholds*sizeof(IOtype);
 	IOtype *d_input;
 	IOtype *d_threshold_list;
 	unsigned long long int *d_RR_metric_integers;
-	timer.Start();
-	checkCudaErrors(cudaMalloc((void **) &d_input, input_size_bytes) );
-	checkCudaErrors(cudaMalloc((void **) &d_threshold_list, output_size_bytes) );
-	checkCudaErrors(cudaMalloc((void **) &d_RR_metric_integers, nThresholds*sizeof(unsigned long long int)) );
-	checkCudaErrors(cudaMemset(d_RR_metric_integers, 0, nThresholds*sizeof(unsigned long long int)) );
-	timer.Stop();
-	if (DEBUG) printf("done in %g ms.\n", timer.Elapsed());
 
-	//---------> RR calculation
-		//-----> Copy chunk of input data to a device
-		checkCudaErrors(cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice));
-		checkCudaErrors(cudaMemcpy(d_threshold_list, h_threshold_list, output_size_bytes, cudaMemcpyHostToDevice));
-		
-		//-----> Compute RR
-		// for more thresholds d_RR_metric_integers should be batched
-		// d_threshold_list should be batched but remember that 0 th gives bad results.
-		// nThreasholds 
-		
-		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integers, d_input, corrected_size, d_threshold_list, nThresholds, tau, emb, &exec_time);
-		
-		*execution_time = exec_time;
-		if(DEBUG) printf("RQA recurrent rate: %f;\n", exec_time);
-		
-		checkCudaErrors(cudaGetLastError());
-		
-		//-----> Copy chunk of output data to host
-		checkCudaErrors(cudaMemcpy(h_RR_metric_integer, d_RR_metric_integers, nThresholds*sizeof(unsigned long long int), cudaMemcpyDeviceToHost));
-	//------------------------------------<
-		
-	//---------> error check -----
-	checkCudaErrors(cudaGetLastError());
+	cudaError = cudaMalloc((void **) &d_input, input_size_bytes);
+	if(cudaError != cudaSuccess) { 
+		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		d_input = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_threshold_list, output_size_bytes);
+	if(cudaError != cudaSuccess) { 
+		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		d_threshold_list = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_RR_metric_integers, nThresholds*sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		d_RR_metric_integers = NULL;
+	}
 	
-	//---------> Feeing allocated resources
-	checkCudaErrors(cudaFree(d_input));
-	checkCudaErrors(cudaFree(d_threshold_list));
-	checkCudaErrors(cudaFree(d_RR_metric_integers));
+	//---------> Memory copy and preparation
+	cudaError = cudaMemset(d_RR_metric_integers, 0, nThresholds*sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION;
+	}
+	cudaError = cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+	}
+	cudaError = cudaMemcpy(d_threshold_list, h_threshold_list, output_size_bytes, cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+	}
+		
+	//-----> Compute RR
+	if(*error == ACCRQA_SUCCESS){
+		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integers, d_input, corrected_size, d_threshold_list, nThresholds, tau, emb, execution_time);
+	}
 	
-	return(0);
+	if(DEBUG) printf("RQA recurrent rate: %f;\n", *execution_time);
+	
+	//-----> Copy chunk of output data to host
+	cudaError = cudaMemcpy(h_RR_metric_integer, d_RR_metric_integers, nThresholds*sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+	}
+		
+	//---------> error check
+	cudaError = cudaGetLastError();
+	if(cudaError != cudaSuccess){
+		*error = ACCRQA_ERROR_CUDA_KERNEL;
+	}
+	
+	//---------> Freeing allocated resources
+	if(d_input!=NULL) cudaFree(d_input);
+	if(d_threshold_list!=NULL) cudaFree(d_threshold_list);
+	if(d_RR_metric_integers!=NULL) cudaFree(d_RR_metric_integers);
 }
 
 template<class const_params, typename IOtype>
@@ -396,28 +399,20 @@ void RQA_GPU_RR_metric_batch_runner(
 		int nThresholds, 
 		int tau, 
 		int emb, 
-		int device, 
-		double *total_execution_time
-	){
+		double *total_execution_time,
+		int *error
+){
+	if(*error != ACCRQA_SUCCESS) return;
+	
 	// separate thresholds into calculable chunks
 	int max_nThresholds = 254;
 	int nSteps = (nThresholds)/(max_nThresholds);
 	int remainder = nThresholds - nSteps*max_nThresholds;
-	vector<int> th_chunks;
+	std::vector<int> th_chunks;
 	for(int f=0; f<nSteps; f++){
 		th_chunks.push_back(max_nThresholds);
 	}
 	th_chunks.push_back(remainder);
-	
-	// Debugging
-	if(DEBUG_GPU_RR){
-		printf("DEBUG_GPU_RR: Chunks:\n");
-		printf("DEBUG_GPU_RR:   ");
-		for(int f=0; f<(int)th_chunks.size(); f++){
-			printf("%d  ", th_chunks[f]);
-		}
-		printf("\n");
-	}
 	
 	// send a chunk of threshold to the GPU
 	int th_shift = 0;
@@ -427,16 +422,6 @@ void RQA_GPU_RR_metric_batch_runner(
 	for(int f=0; f<(int) th_chunks.size(); f++){
 		memset(temp_rr_count, 0, 256*sizeof(unsigned long long int));
 		memcpy(&temp_rr_thresholds[1], &h_threshold_list[th_shift], th_chunks[f]*sizeof(IOtype));
-		
-		if(DEBUG_GPU_RR){
-			printf("DEBUG_GPU_RR: Temporary threshold list:\n");
-			printf("DEBUG_GPU_RR:   ");
-			for(int i=0; i<(int)(th_chunks[f] + 1); i++){
-				printf("%e  ", temp_rr_thresholds[i]);
-			}
-			printf("\n");
-			printf("DEBUG_GPU_RR: nThresholds=%d;\n", th_chunks[f] + 1);
-		}
 		
 		// calculate RR
 		double execution_time = 0;
@@ -449,20 +434,10 @@ void RQA_GPU_RR_metric_batch_runner(
 				th_chunks[f] + 1, 
 				tau, 
 				emb, 
-				device, 
-				&execution_time
+				&execution_time,
+				error
 			);
 		(*total_execution_time) = (*total_execution_time) + execution_time;
-		
-		if(DEBUG_GPU_RR){
-			long int corrected_size = input_size - (emb - 1)*tau;
-			printf("DEBUG_GPU_RR: Temporary output:\n");
-			printf("DEBUG_GPU_RR:   ");
-			for(int i=0; i<(int)(th_chunks[f] + 1); i++){
-				printf("%e  ", ((double) temp_rr_count[i])/((double) (corrected_size*corrected_size)) );
-			}
-			printf("\n");
-		}
 		
 		// copy results to global results
 		memcpy(&h_RR_metric_integer[th_shift], &temp_rr_count[1], th_chunks[f]*sizeof(unsigned long long int));
@@ -474,27 +449,21 @@ void RQA_GPU_RR_metric_batch_runner(
 //-------------------------------------------------->
 //------------ Wrappers for templating 
 
-int GPU_RQA_R_matrix(int *h_R_matrix, double *h_input, unsigned long long int size, double threshold, int tau, int emb, int device, int distance_type, double *execution_time){
-	int ret;
-	ret = GPU_RQA_R_matrix_tp<RQA_ConstParams, double>(h_R_matrix, h_input, size, threshold, tau, emb, device, execution_time);
-	return(ret);
+void GPU_RQA_R_matrix(int *h_R_matrix, double *h_input, unsigned long long int size, double threshold, int tau, int emb, int device, int distance_type, double *execution_time, int *error){
+	GPU_RQA_R_matrix_tp<RQA_ConstParams, double>(h_R_matrix, h_input, size, threshold, tau, emb, device, execution_time, error);
 }
 
-int GPU_RQA_R_matrix(int *h_R_matrix, float *h_input, unsigned long long int size, float threshold, int tau, int emb, int device, int distance_type, double *execution_time){
-	int ret;
-	ret = GPU_RQA_R_matrix_tp<RQA_ConstParams, float>(h_R_matrix, h_input, size, threshold, tau, emb, device, execution_time);
-	return(ret);
+void GPU_RQA_R_matrix(int *h_R_matrix, float *h_input, unsigned long long int size, float threshold, int tau, int emb, int device, int distance_type, double *execution_time, int *error){
+	GPU_RQA_R_matrix_tp<RQA_ConstParams, float>(h_R_matrix, h_input, size, threshold, tau, emb, device, execution_time, error);
 }
 
 
-int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time){
-	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, double>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, device, execution_time);
-	return(0);
+void GPU_RQA_RR_metric_integer(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, double *execution_time, int *error){
+	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, double>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, execution_time, error);
 }
 
-int GPU_RQA_RR_metric(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, int device, double *execution_time){
-	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, float>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, device, execution_time);
-	return(0);
+void GPU_RQA_RR_metric_integer(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, double *execution_time, int *error){
+	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, float>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, execution_time, error);
 }
 
 //---------------------------------------------------<

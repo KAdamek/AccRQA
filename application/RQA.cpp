@@ -219,7 +219,10 @@ int main(int argc, char* argv[]) {
 			RQAdp *RR;
 			RR = new RQAdp[nThresholds];
 			
-			accrqaRecurrentRateGPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
+			int tau_values = tau;
+			int emb_values = emb;
+			int error = 0;
+			accrqa_RR_GPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
 			
 			//writing results to disk
 			std::ofstream FILEOUT;
@@ -237,20 +240,27 @@ int main(int argc, char* argv[]) {
 		//---------------------> Determinism
 		if(GPU_RQA_DET){
 			printf("--> GPU determinism\n");
-			vector<double> result_l2_DET;
-			vector<double> result_l2_L;
-			vector<double> result_l2_Lmax;
-			vector<double> result_l2_ENTR;
+			vector<RQAdp> result_l2_DET;
+			vector<RQAdp> result_l2_L;
+			vector<RQAdp> result_l2_Lmax;
+			vector<RQAdp> result_l2_ENTR;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
-				RQAdp threshold = threshold_list[th_idx];
-				RQAdp DET, L, Lmax, ENTR;
-				
-				accrqaDeterminismGPU(&DET, &L, &Lmax, &ENTR, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
-				
-				result_l2_DET.push_back(DET);
-				result_l2_L.push_back(L);
-				result_l2_Lmax.push_back(Lmax);
-				result_l2_ENTR.push_back(ENTR);
+				RQAdp threshold_values = threshold_list[th_idx];
+				//=============
+				int tau_values = tau;
+				int emb_values = emb;
+				int lmin_values = lmin;
+				int error = 0;
+				int calc_ENTR = 1;
+				RQAdp *output;
+				output = new RQAdp[5];
+				accrqa_DET_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				result_l2_DET.push_back(output[0]);
+				result_l2_L.push_back(output[1]);
+				result_l2_Lmax.push_back(output[2]);
+				result_l2_ENTR.push_back(output[3]);
+				delete[] output;
+				//=============
 			}
 			
 			std::ofstream FILEOUT;
@@ -273,16 +283,25 @@ int main(int argc, char* argv[]) {
 		//---------------------> Laminarity
 		if(GPU_RQA_LAM){
 			printf("--> GPU laminarity\n");
-			vector<double> result_l2_LAM;
-			vector<double> result_l2_TT;
+			vector<RQAdp> result_l2_LAM;
+			vector<RQAdp> result_l2_TT;
+			vector<RQAdp> result_l2_TTmax;
+			vector<RQAdp> result_l2_ENTR;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
-				RQAdp threshold = threshold_list[th_idx];
-				RQAdp LAM, TT, TTmax;
-				
-				accrqaLaminarityGPU(&LAM, &TT, &TTmax, input_data.data(), input_data.size(), threshold, tau, emb, vmin, RQA_METRIC_MAXIMAL, device);
-				
-				result_l2_LAM.push_back(LAM);
-				result_l2_TT.push_back(TT);
+				RQAdp threshold_values = threshold_list[th_idx];
+				int tau_values = tau;
+				int emb_values = emb;
+				int vmin_values = lmin;
+				int error = 0;
+				int calc_ENTR = 1;
+				RQAdp *output;
+				output = new RQAdp[5];
+				accrqa_LAM_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				result_l2_LAM.push_back(output[0]);
+				result_l2_TT.push_back(output[1]);
+				result_l2_TTmax.push_back(output[2]);
+				result_l2_ENTR.push_back(output[3]);
+				delete[] output;
 			}
 			
 			
@@ -308,30 +327,48 @@ int main(int argc, char* argv[]) {
 			RQAdp *RR;
 			RR = new RQAdp[nThresholds];
 			
-			accrqaRecurrentRateGPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL, device);
+			int tau_values = tau;
+			int emb_values = emb;
+			int error = 0;
+			accrqa_RR_GPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+			
 			
 			if(VERBOSE) printf("--> GPU DET and LAM\n");
-			vector<double> result_DET;
-			vector<double> result_L;
-			vector<double> result_Lmax;
-			vector<double> result_ENTR;
-			vector<double> result_LAM;
-			vector<double> result_TT;
-			vector<double> result_TTmax;
+			vector<RQAdp> result_DET;
+			vector<RQAdp> result_L;
+			vector<RQAdp> result_Lmax;
+			vector<RQAdp> result_ENTR;
+			vector<RQAdp> result_LAM;
+			vector<RQAdp> result_TT;
+			vector<RQAdp> result_TTmax;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
-				RQAdp threshold = threshold_list[th_idx];
-				RQAdp DET, L, Lmax, ENTR, LAM, TT, TTmax;
+				RQAdp threshold_values = threshold_list[th_idx];
+				int tau_values = tau;
+				int emb_values = emb;
+				int lmin_values = lmin;
+				int vmin_values = vmin;
+				int error = 0;
+				int calc_ENTR = 1;
+				RQAdp *output_DET, *output_LAM;
+				output_DET = new RQAdp[5];
+				output_LAM = new RQAdp[5];
 				
-				accrqaDeterminismGPU(&DET, &L, &Lmax, &ENTR, input_data.data(), input_data.size(),  threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL, device);
-				accrqaLaminarityGPU(&LAM, &TT, &TTmax, input_data.data(), input_data.size(), threshold, tau, emb, vmin, RQA_METRIC_MAXIMAL, device);
+				RQAdp LAM, TT, TTmax;
 				
-				result_DET.push_back(DET);
-				result_L.push_back(L);
-				result_Lmax.push_back(Lmax);
-				result_ENTR.push_back(ENTR);
-				result_LAM.push_back(LAM);
-				result_TT.push_back(TT);
-				result_TTmax.push_back(TTmax);
+				accrqa_DET_GPU(output_DET, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				
+				accrqa_DET_GPU(output_LAM, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, 0, &error);
+				
+				result_DET.push_back(output_DET[0]);
+				result_L.push_back(output_DET[1]);
+				result_Lmax.push_back(output_DET[2]);
+				result_ENTR.push_back(output_DET[3]);
+				result_LAM.push_back(output_LAM[0]);
+				result_TT.push_back(output_LAM[1]);
+				result_TTmax.push_back(output_LAM[2]);
+				
+				delete[] output_DET;
+				delete[] output_LAM;
 			}
 			
 			std::ofstream FILEOUT;
@@ -369,7 +406,11 @@ int main(int argc, char* argv[]) {
 			RQAdp *RR;
 			RR = new RQAdp[nThresholds];
 			
-			accrqaRecurrentRateCPU(RR, threshold_list.data(), nThresholds, input_data.data(), input_data.size(), tau, emb, RQA_METRIC_MAXIMAL);
+			int tau_values = tau;
+			int emb_values = emb;
+			int error = 0;
+			accrqa_RR_CPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+			
 			
 			std::ofstream FILEOUT;
 			sprintf(str, "test_CPU_RR_t%d_e%d_l%d.dat", tau, emb, lmin);
@@ -386,16 +427,26 @@ int main(int argc, char* argv[]) {
 		//-------------- Laminarity
 		if(CPU_RQA_LAM){
 			printf("--> CPU laminarity\n");
-			std::vector<double> result_l2_LAM;
-			std::vector<double> result_l2_TT;
+			std::vector<RQAdp> result_l2_LAM;
+			std::vector<RQAdp> result_l2_TT;
+			std::vector<RQAdp> result_l2_TTmax;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
-				RQAdp threshold = threshold_list[th_idx];
-				RQAdp LAM, TT, TTmax;
+				RQAdp threshold_values = threshold_list[th_idx];
 				
-				accrqaLaminarityCPU(&LAM, &TT, &TTmax, input_data.data(), input_data.size(), threshold, tau, emb, vmin, RQA_METRIC_MAXIMAL);
-				
-				result_l2_LAM.push_back(LAM);
-				result_l2_TT.push_back(TT);
+				//=============
+				int tau_values = tau;
+				int emb_values = emb;
+				int vmin_values = vmin;
+				int error = 0;
+				int calc_ENTR = 0;
+				RQAdp *output;
+				output = new RQAdp[5];
+				accrqa_LAM_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				result_l2_LAM.push_back(output[0]);
+				result_l2_TT.push_back(output[1]);
+				result_l2_TTmax.push_back(output[2]);
+				delete[] output;
+				//=============
 			}
 			
 			std::ofstream FILEOUT;
@@ -416,20 +467,28 @@ int main(int argc, char* argv[]) {
 		//-------------- Determinism
 		if(CPU_RQA_DET){
 			printf("--> CPU determinism\n");
-			std::vector<double> result_l2_DET;
-			std::vector<double> result_l2_L;
-			std::vector<double> result_l2_Lmax;
-			std::vector<double> result_l2_ENTR;
+			std::vector<RQAdp> result_l2_DET;
+			std::vector<RQAdp> result_l2_L;
+			std::vector<RQAdp> result_l2_Lmax;
+			std::vector<RQAdp> result_l2_ENTR;
 			for(size_t th_idx = 0; th_idx<threshold_list.size(); th_idx++){
-				RQAdp threshold = threshold_list[th_idx];
-				RQAdp DET, L, Lmax, ENTR;
+				RQAdp threshold_values = threshold_list[th_idx];
 				
-				accrqaDeterminismCPU(&DET, &L, &Lmax, &ENTR, input_data.data(), input_data.size(), threshold, tau, emb, lmin, RQA_METRIC_MAXIMAL);
-				
-				result_l2_DET.push_back(DET);
-				result_l2_L.push_back(L);
-				result_l2_Lmax.push_back(Lmax);
-				result_l2_ENTR.push_back(ENTR);
+				//=============
+				int tau_values = tau;
+				int emb_values = emb;
+				int lmin_values = lmin;
+				int error = 0;
+				int calc_ENTR = 1;
+				RQAdp *output;
+				output = new RQAdp[5];
+				accrqa_DET_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				result_l2_DET.push_back(output[0]);
+				result_l2_L.push_back(output[1]);
+				result_l2_Lmax.push_back(output[2]);
+				result_l2_ENTR.push_back(output[3]);
+				delete[] output;
+				//=============
 			}
 			
 			std::ofstream FILEOUT;
