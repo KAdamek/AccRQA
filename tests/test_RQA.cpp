@@ -181,7 +181,7 @@ int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_
 
 	int tau_values = tau;
 	int emb_values = emb;
-	int error = 0;
+	Accrqa_Error error;
 	
 	//-------> GPU
 	if(GPU_UNIT_TEST) {
@@ -361,7 +361,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	RQAdp threshold_values = threshold;
 	int lmin_values = lmin;
 	int calc_ENTR = 1;
-	int error = 0;
+	Accrqa_Error error;
 	
 	if(GPU_UNIT_TEST) {
 		RQAdp *output_GPU;
@@ -514,7 +514,7 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 	RQAdp threshold_values = threshold;
 	int vmin_values = vmin;
 	int calc_ENTR = 0;
-	int error = 0;
+	Accrqa_Error error;
 	
 	RQAdp GPU_LAM, GPU_TT, GPU_TTmax;
 	if(GPU_UNIT_TEST) {

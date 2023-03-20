@@ -8,6 +8,8 @@ set(${CMAKE_PROJECT_NAME}_CUDA_SRC
 set(${CMAKE_PROJECT_NAME}_SRC
     src/AccRQA_CPU_function.cpp
     src/AccRQA_functions.cpp
+	src/AccRQA_utilities_mem.cpp
+	src/AccRQA_python_bindings.cpp
     PARENT_SCOPE
 )
 

@@ -1,6 +1,5 @@
 //#include "AccRQA_CPU_function.h"
 
-#include "debug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -215,8 +214,6 @@ void rqa_CPU_RR_metric_ref(
 		}
 	}
 	*output_RR = ((input_type) sum)/((input_type) (corrected_size*corrected_size));
-	
-	if(DEBUG) {printf("|"); fflush( stdout );}
 }
 
 template <typename input_type>

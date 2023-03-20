@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
 			
 			int tau_values = tau;
 			int emb_values = emb;
-			int error = 0;
+			Accrqa_Error error;
 			accrqa_RR_GPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
 			
 			//writing results to disk
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
 				int tau_values = tau;
 				int emb_values = emb;
 				int lmin_values = lmin;
-				int error = 0;
+				Accrqa_Error error;
 				int calc_ENTR = 1;
 				RQAdp *output;
 				output = new RQAdp[5];
@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
 				int tau_values = tau;
 				int emb_values = emb;
 				int vmin_values = lmin;
-				int error = 0;
+				Accrqa_Error error;
 				int calc_ENTR = 1;
 				RQAdp *output;
 				output = new RQAdp[5];
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
 			
 			int tau_values = tau;
 			int emb_values = emb;
-			int error = 0;
+			Accrqa_Error error;
 			accrqa_RR_GPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
 			
 			
@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
 				int emb_values = emb;
 				int lmin_values = lmin;
 				int vmin_values = vmin;
-				int error = 0;
+				Accrqa_Error error;
 				int calc_ENTR = 1;
 				RQAdp *output_DET, *output_LAM;
 				output_DET = new RQAdp[5];
@@ -408,7 +408,7 @@ int main(int argc, char* argv[]) {
 			
 			int tau_values = tau;
 			int emb_values = emb;
-			int error = 0;
+			Accrqa_Error error;
 			accrqa_RR_CPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
 			
 			
@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
 				int tau_values = tau;
 				int emb_values = emb;
 				int vmin_values = vmin;
-				int error = 0;
+				Accrqa_Error error;
 				int calc_ENTR = 0;
 				RQAdp *output;
 				output = new RQAdp[5];
@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
 				int tau_values = tau;
 				int emb_values = emb;
 				int lmin_values = lmin;
-				int error = 0;
+				Accrqa_Error error;
 				int calc_ENTR = 1;
 				RQAdp *output;
 				output = new RQAdp[5];

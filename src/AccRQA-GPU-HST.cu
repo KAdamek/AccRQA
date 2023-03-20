@@ -1,9 +1,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
-#include "debug.h"
 #include "timer.h"
-#include "utils_cuda.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -12,6 +10,7 @@
 #include <vector>
 
 #include "../include/AccRQA_definitions.hpp"
+#include "../include/AccRQA_utilities_error.hpp"
 #include "GPU_scan.cuh"
 #include "GPU_reduction.cuh"
 #include "AccRQA_metrics.cuh"
@@ -25,6 +24,8 @@ public:
 	static const int warp = 32;
 	static const int shared_memory_size = 512;
 };
+
+#define DEBUG_GPU_HST false
 
 #define NTHREADS 256
 #define LAM_NTHREADS 1024
@@ -476,9 +477,9 @@ int GPU_scan_exclusive(unsigned int *d_output, unsigned int *d_input, unsigned i
 	dim3 gridSize(nBlocks_x, nTimeseries, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG) printf("\n");
-	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) printf("\n");
+	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	unsigned int *d_partial_sums;
 	if(nBlocks_x==1) {
@@ -486,8 +487,8 @@ int GPU_scan_exclusive(unsigned int *d_output, unsigned int *d_input, unsigned i
 	}
 	else {
 		int partial_sum_size = nBlocks_x*nTimeseries*sizeof(int);
-		checkCudaErrors(cudaMalloc((void **) &d_partial_sums,  partial_sum_size));
-		checkCudaErrors(cudaMemset(d_partial_sums, 0, partial_sum_size) );
+		cudaMalloc((void **) &d_partial_sums,  partial_sum_size);
+		cudaMemset(d_partial_sums, 0, partial_sum_size);
 	}
 		
 	// ----------------------------------------------->
@@ -517,9 +518,9 @@ int GPU_scan_inclusive(unsigned long long int *d_output, unsigned long long int 
 	dim3 gridSize(nBlocks_x, nTimeseries, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG) printf("\n");
-	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) printf("\n");
+	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	unsigned long long int *d_partial_sums;
 	if(nBlocks_x==1) {
@@ -527,8 +528,8 @@ int GPU_scan_inclusive(unsigned long long int *d_output, unsigned long long int 
 	}
 	else {
 		int partial_sum_size = nBlocks_x*nTimeseries*sizeof(int);
-		checkCudaErrors(cudaMalloc((void **) &d_partial_sums,  partial_sum_size));
-		checkCudaErrors(cudaMemset(d_partial_sums, 0, partial_sum_size) );
+		cudaMalloc((void **) &d_partial_sums,  partial_sum_size);
+		cudaMemset(d_partial_sums, 0, partial_sum_size);
 	}
 		
 	// ----------------------------------------------->
@@ -554,16 +555,16 @@ void RQA_length_histogram_from_timeseries_direct(unsigned long long int *h_lengt
 	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG) printf("Data dimensions: %d;\n", nSamples);
-	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) printf("Data dimensions: %d;\n", nSamples);
+	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	//---------------> GPU Allocations
 	unsigned long long int *d_histogram;
 	size_t histogram_size_in_bytes = (nSamples + 1)*sizeof(unsigned long long int);
 	
-	checkCudaErrors(cudaMalloc((void **) &d_histogram, histogram_size_in_bytes) );
-	checkCudaErrors(cudaMemset(d_histogram, 0, histogram_size_in_bytes) );
+	cudaMalloc((void **) &d_histogram, histogram_size_in_bytes);
+	cudaMemset(d_histogram, 0, histogram_size_in_bytes);
 	//--------------------------------<
 	
 	//------------> GPU kernel
@@ -571,11 +572,11 @@ void RQA_length_histogram_from_timeseries_direct(unsigned long long int *h_lengt
 	//--------------------------------<
 	
 	//------------> Copy data to host
-	checkCudaErrors(cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost));
+	cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	//--------------------------------<
 	
 	//----------> Deallocations
-	checkCudaErrors(cudaFree(d_histogram));
+	cudaFree(d_histogram);
 	//--------------------------------<
 }
 
@@ -591,16 +592,16 @@ void RQA_length_histogram_horizontal_wrapper(
 	int emb, 
 	long int input_size,
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
-	if(*error != ACCRQA_SUCCESS) return;
+	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
 	int devCount;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
 		return;
 	}
 	
@@ -630,22 +631,22 @@ void RQA_length_histogram_horizontal_wrapper(
 	
 	cudaError = cudaMalloc((void **) &d_input, input_size_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_input = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_histogram, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_histogram = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_temporary, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_temporary = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_metric,    histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_metric = NULL;
 	}
 	//--------------------------------<
@@ -657,7 +658,7 @@ void RQA_length_histogram_horizontal_wrapper(
 	cudaMemset(d_metric, 0,    histogram_size_in_bytes);
 	cudaError = cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	
 	//------------> GPU kernel
@@ -669,7 +670,7 @@ void RQA_length_histogram_horizontal_wrapper(
 	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
 	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -679,14 +680,14 @@ void RQA_length_histogram_horizontal_wrapper(
 	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
 	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
 	//------------> Copy data to host
 	cudaError = cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	timer.Stop();
@@ -695,7 +696,7 @@ void RQA_length_histogram_horizontal_wrapper(
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
-		*error = ACCRQA_ERROR_CUDA_KERNEL;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -719,16 +720,16 @@ void RQA_length_histogram_vertical_wrapper(
 	int emb, 
 	long int input_size,
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
-	if(*error != ACCRQA_SUCCESS) return;
+	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
 	int devCount;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
 		return;
 	}
 	
@@ -756,22 +757,22 @@ void RQA_length_histogram_vertical_wrapper(
 	
 	cudaError = cudaMalloc((void **) &d_input, input_size_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_input = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_histogram, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_histogram = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_temporary, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_temporary = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_metric,    histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_metric = NULL;
 	}
 	//--------------------------------<
@@ -783,7 +784,7 @@ void RQA_length_histogram_vertical_wrapper(
 	cudaMemset(d_metric, 0,    histogram_size_in_bytes);
 	cudaError = cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	
 	//------------> GPU kernel
@@ -796,7 +797,7 @@ void RQA_length_histogram_vertical_wrapper(
 	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 
@@ -807,14 +808,14 @@ void RQA_length_histogram_vertical_wrapper(
 	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
 	//------------> Copy data to host
 	cudaError = cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	timer.Stop();
@@ -823,7 +824,7 @@ void RQA_length_histogram_vertical_wrapper(
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
-		*error = ACCRQA_ERROR_CUDA_KERNEL;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -847,16 +848,16 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	int emb, 
 	long int input_size,
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
-	if(*error != ACCRQA_SUCCESS) return;
+	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
 	int devCount;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
 		return;
 	}
 	
@@ -886,22 +887,22 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	
 	cudaError = cudaMalloc((void **) &d_input, input_size_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_input = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_histogram, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_histogram = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_temporary, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_temporary = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_metric,    histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_metric = NULL;
 	}
 	
@@ -912,7 +913,7 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	cudaMemset(d_metric, 0,    histogram_size_in_bytes);
 	cudaError = cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	
 	//------------> GPU kernel
@@ -925,7 +926,7 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -936,14 +937,14 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
 	//------------> Copy data to host
 	cudaError = cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	timer.Stop();
@@ -952,7 +953,7 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
-		*error = ACCRQA_ERROR_CUDA_KERNEL;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -976,16 +977,16 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	int emb, 
 	long int input_size,
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
-	if(*error != ACCRQA_SUCCESS) return;
+	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
 	int devCount;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
 		return;
 	}
 	
@@ -1016,22 +1017,22 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	
 	cudaError = cudaMalloc((void **) &d_input, input_size_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_input = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_histogram, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_histogram = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_temporary, histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_temporary = NULL;
 	}
 	cudaError = cudaMalloc((void **) &d_metric,    histogram_size_in_bytes);
 	if(cudaError != cudaSuccess) { 
-		*error = ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION; 
+		*error = ERR_MEM_ALLOC_FAILURE; 
 		d_metric = NULL;
 	}
 	
@@ -1042,7 +1043,7 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	cudaMemset(d_metric, 0,    histogram_size_in_bytes);
 	cudaError = cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	
 	//------------> GPU kernel
@@ -1056,7 +1057,7 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -1067,14 +1068,14 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
 	//------------> Copy data to host
 	cudaError = cudaMemcpy(h_length_histogram, d_histogram, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_MEMORY_COPY;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	timer.Stop();
@@ -1083,7 +1084,7 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
-		*error = ACCRQA_ERROR_CUDA_KERNEL;
+		*error = ERR_CUDA;
 	}
 	//--------------------------------<
 	
@@ -1122,122 +1123,6 @@ void test_array_reversal(){
 }
 
 
-//---------------------------- L2 WRAPERS -----------------------------
-
-/*
-template<class const_params, typename IOtype>
-int GPU_RQA_length_histogram_horizontal_tp(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, IOtype *h_input, IOtype threshold, int tau, int emb, long int input_size, double *execution_time, int *error){
-	if(*error != ACCRQA_SUCCESS) return;
-	
-	//---------> Initial nVidia stuff
-	int devCount;
-	cudaError_t cudaError;
-	cudaError = cudaGetDeviceCount(&devCount);
-	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
-		return;
-	}
-	
-	//---------> Measurements
-	*execution_time = 0;
-	GpuTimer timer;
-	
-	//---------> GPU Memory allocation
-	long int corrected_size = input_size - (emb - 1)*tau;
-	size_t input_size_bytes = input_size*sizeof(IOtype);
-	IOtype *d_input;
-	checkCudaErrors( cudaMalloc((void **) &d_input, input_size_bytes) );
-	checkCudaErrors( cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice) );
-	
-	//------------- GPU kernel
-	timer.Start();
-	RQA_length_histogram_horizontal_wrapper<const_params>(h_length_histogram, h_scan_histogram, h_metric, d_input, threshold, tau, emb, corrected_size);
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	//------------- GPU kernel
-	
-	checkCudaErrors(cudaFree(d_input));
-	
-	return(0);
-}
-
-
-template<class const_params, typename IOtype>
-int GPU_RQA_length_histogram_vertical_tp(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, IOtype *h_input, IOtype threshold, int tau, int emb, long int input_size, double *execution_time, int *error){
-	if(*error != ACCRQA_SUCCESS) return;
-	
-	//---------> Initial nVidia stuff
-	int devCount;
-	cudaError_t cudaError;
-	cudaError = cudaGetDeviceCount(&devCount);
-	if(cudaError != cudaSuccess) {
-		*error = ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND;
-		return;
-	}
-	
-	//---------> Measurements
-	*execution_time = 0;
-	GpuTimer timer;
-	
-	//---------> GPU Memory allocation
-	long int corrected_size = input_size - (emb - 1)*tau;
-	size_t input_size_bytes = input_size*sizeof(IOtype);
-	IOtype *d_input;
-	checkCudaErrors( cudaMalloc((void **) &d_input, input_size_bytes) );
-	checkCudaErrors( cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice) );
-	
-	//------------- GPU kernel
-	timer.Start();
-	RQA_length_histogram_vertical_wrapper<const_params>(h_length_histogram, h_scan_histogram, h_metric, d_input, threshold, tau, emb, corrected_size);
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	//------------- GPU kernel
-	
-	checkCudaErrors(cudaFree(d_input));
-	
-	return(0);
-}
-
-
-template<class const_params, typename IOtype>
-int GPU_RQA_length_histogram_diagonal_tp(
-	unsigned long long int *h_length_histogram, 
-	unsigned long long int *h_scan_histogram, 
-	unsigned long long int *h_metric, 
-	IOtype *h_input, 
-	IOtype threshold, 
-	int tau, 
-	int emb, 
-	long int input_size, 
-	int device, 
-	double *execution_time
-){
-	
-	//---------> Measurements
-	*execution_time = 0;
-	GpuTimer timer;
-	
-	//---------> GPU Memory allocation
-	long int corrected_size = input_size - (emb - 1)*tau;
-	size_t input_size_bytes = input_size*sizeof(IOtype);
-	IOtype *d_input;
-	checkCudaErrors( cudaMalloc((void **) &d_input, input_size_bytes) );
-	checkCudaErrors( cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice) );
-	
-	//------------- GPU kernel
-	timer.Start();
-	RQA_length_histogram_diagonal_wrapper_mk2<const_params>(h_length_histogram, h_scan_histogram, h_metric, d_input, threshold, tau, emb, corrected_size);
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	//------------- GPU kernel
-	
-	checkCudaErrors(cudaFree(d_input));
-	
-	return(0);
-}
-
-*/
-
 template<class const_params, typename IOtype>
 int GPU_RQA_diagonal_R_matrix_tp(
 	int *h_diagonal_R_matrix, 
@@ -1248,12 +1133,12 @@ int GPU_RQA_diagonal_R_matrix_tp(
 	long int input_size, 
 	int device, 
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
 	//---------> Initial nVidia stuff
 	int devCount;
-	checkCudaErrors(cudaGetDeviceCount(&devCount));
-	if(device<devCount) checkCudaErrors(cudaSetDevice(device));
+	cudaGetDeviceCount(&devCount);
+	if(device<devCount) cudaSetDevice(device);
 	else { printf("Wrong device!\n"); return(1); }
 	
 	//---------> Measurements
@@ -1266,11 +1151,11 @@ int GPU_RQA_diagonal_R_matrix_tp(
 	long int input_size_bytes = input_size*sizeof(IOtype);
 	IOtype *d_input;
 	int *d_diagonal_R_matrix;
-	checkCudaErrors(cudaMalloc((void **) &d_input, input_size_bytes) );
-	checkCudaErrors(cudaMalloc((void **) &d_diagonal_R_matrix, matrix_size) );
+	cudaMalloc((void **) &d_input, input_size_bytes);
+	cudaMalloc((void **) &d_diagonal_R_matrix, matrix_size);
 
 	//---------> Memory copy
-	checkCudaErrors(cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice) );
+	cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
 	
 	//------------- GPU kernel
 	timer.Start();
@@ -1279,9 +1164,9 @@ int GPU_RQA_diagonal_R_matrix_tp(
 	dim3 gridSize(2*corrected_size - 1, 1, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG) printf("Input size: %ld; Time step: %d; Embedding: %d; Corrected size: %ld;\n", input_size, tau, emb, corrected_size);
-	if(DEBUG) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) printf("Input size: %ld; Time step: %d; Embedding: %d; Corrected size: %ld;\n", input_size, tau, emb, corrected_size);
+	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	//------------> GPU kernel
 	GPU_RQA_HST_diagonal_R_matrix<const_params><<< gridSize , blockSize >>>(d_diagonal_R_matrix, d_input, threshold, tau, emb, corrected_size);
@@ -1291,10 +1176,10 @@ int GPU_RQA_diagonal_R_matrix_tp(
 	*execution_time = timer.Elapsed();
 	//------------- GPU kernel
 	
-	checkCudaErrors(cudaMemcpy(h_diagonal_R_matrix, d_diagonal_R_matrix, matrix_size, cudaMemcpyDeviceToHost));
+	cudaMemcpy(h_diagonal_R_matrix, d_diagonal_R_matrix, matrix_size, cudaMemcpyDeviceToHost);
 	
-	checkCudaErrors(cudaFree(d_input));
-	checkCudaErrors(cudaFree(d_diagonal_R_matrix));
+	cudaFree(d_input);
+	cudaFree(d_diagonal_R_matrix);
 	
 	return(0);
 }
@@ -1303,8 +1188,8 @@ int GPU_RQA_diagonal_R_matrix_tp(
 int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, int *h_input, long int nSamples, int device, int nRuns, double *execution_time){
 	//---------> Initial nVidia stuff
 	int devCount;
-	checkCudaErrors(cudaGetDeviceCount(&devCount));
-	if(device<devCount) checkCudaErrors(cudaSetDevice(device));
+	cudaGetDeviceCount(&devCount);
+	if(device<devCount) cudaSetDevice(device);
 	else { printf("Wrong device!\n"); return(1); }
 	
 	//---------> Measurements
@@ -1314,12 +1199,12 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 	//---------> GPU Memory allocation
 	size_t input_size = nSamples*sizeof(int);
 	int *d_input;
-	checkCudaErrors(cudaMalloc((void **) &d_input, input_size) );
+	cudaMalloc((void **) &d_input, input_size);
 
 	//---------> Memory allocation
 	
 	
-	checkCudaErrors(cudaMemcpy(d_input, h_input, input_size, cudaMemcpyHostToDevice));
+	cudaMemcpy(d_input, h_input, input_size, cudaMemcpyHostToDevice);
 	
 	//------------- GPU kernel
 	timer.Start();
@@ -1329,7 +1214,7 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 	*execution_time = timer.Elapsed();
 	//------------- GPU kernel
 	
-	checkCudaErrors(cudaFree(d_input));
+	cudaFree(d_input);
 	
 	return(0);
 }
@@ -1337,27 +1222,27 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 
 //---------------------------- L1 WRAPERS -----------------------------
 
-void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, int *error){
+void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
 }
 
-void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, int *error){
+void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
 }
 
-void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, int *error){
+void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
 }
 
-void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, int *error){
+void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
 }
 
-void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, int *error){
+void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
 }
 
-void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, int *error){
+void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
 }
 
@@ -1371,7 +1256,7 @@ void GPU_RQA_diagonal_R_matrix(
 	int distance_type, 
 	int device, 
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
 	GPU_RQA_diagonal_R_matrix_tp<RQA_ConstParams>(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, device, execution_time, error);
 }
@@ -1386,7 +1271,7 @@ void GPU_RQA_diagonal_R_matrix(
 	int distance_type, 
 	int device, 
 	double *execution_time,
-	int *error
+	Accrqa_Error *error
 ){
 	GPU_RQA_diagonal_R_matrix_tp<RQA_ConstParams>(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, device, execution_time, error);
 }

@@ -1,7 +1,6 @@
 #ifndef _ACCRQA_CPU_FUNCTION
 #define _ACCRQA_CPU_FUNCTION
 
-#include "debug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
