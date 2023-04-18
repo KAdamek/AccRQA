@@ -1,3 +1,5 @@
+#ifdef ACCRQA_R_FOUND
+
 #include <R.h>
 #include "../include/AccRQA_library.hpp"
 
@@ -125,4 +127,6 @@ extern "C" {
 	
 #ifdef __cplusplus
 }
+#endif
+
 #endif
