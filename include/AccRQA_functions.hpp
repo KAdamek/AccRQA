@@ -9,7 +9,7 @@
 #include "AccRQA_config.hpp"
 #include "AccRQA_utilities_error.hpp"
 
-//void accrqa_print_error(Accrqa_Error *error);
+void accrqa_print_error(Accrqa_Error *error);
 
 //==========================================================
 //========================= LAM ============================

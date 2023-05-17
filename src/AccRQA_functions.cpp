@@ -14,7 +14,6 @@
 #include <vector>
 
 
-
 //---> Internal classes?
 //-------------------------------------------->
 template<typename input_type>
@@ -47,6 +46,8 @@ protected:
 		
 		if(metric[0]>0) primary_metric_value = ((double) metric[minimum_length])/((double) metric[0]);
 		else primary_metric_value = NAN;
+		
+		if(ACCRQA_DEBUG_MODE) printf("primary metric: %e = %e/%e;\n", primary_metric_value, (double) metric[minimum_length], (double) metric[0]);
 		
 		return(primary_metric_value);
 	}
@@ -116,6 +117,9 @@ protected:
 	double RR_value() { // ENTR
 		double entr = 0;
 		double RR = ((double) metric[0])/((double) (corrected_size*corrected_size));
+		
+		if(ACCRQA_DEBUG_MODE) printf("RR: %e = %e/%e;\n", RR, (double) metric[0], (double) (corrected_size*corrected_size));
+		
 		return( RR );
 	}
 	
@@ -130,6 +134,7 @@ protected:
 		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
+		printf("LAM-default execution time: %fms;\n", execution_time);
 		char metric[200]; 
 		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
 		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
@@ -147,6 +152,7 @@ protected:
 		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
+		printf("LAM-default execution time: %fms;\n", execution_time);
 		char metric[200]; 
 		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
 		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
@@ -168,7 +174,14 @@ protected:
 		Accrqa_Error error = SUCCESS;
 		GPU_RQA_length_histogram_diagonal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
 		
+		if(ACCRQA_DEBUG_MODE) {
+			for(int f=0; f<10; f++){
+				printf("-->time series: %e; metric: %lld; scan_histogram: %lld; length_histogram: %lld;\n", time_series[f], metric[f], scan_histogram[f], length_histogram[f]);
+			}
+		}
+		
 		#ifdef MONITOR_PERFORMANCE
+		printf("DET-default execution time: %fms;\n", execution_time);
 		char metric[200]; 
 		if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
 		else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
@@ -279,44 +292,50 @@ class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 };
 //--------------------------------------------<
 
-/*
+
 void accrqa_print_error(Accrqa_Error *error){
 	switch(*error) {
 		case SUCCESS:
 			printf("success");
 			break;
-		case ERR_CUDA_NOT_FOUND:
-			printf("CUDA not found");
+		case ERR_RUNTIME:
+			printf("generic runtime error");
 			break;
 		case ERR_INVALID_ARGUMENT:
 			printf("wrong arguments");
 			break;
+		case ERR_DATA_TYPE:
+			printf("unsupported data type");
+			break;
 		case ERR_MEM_ALLOC_FAILURE:
 			printf("array not allocated");
 			break;
-		case ACCRQA_ERROR_WRONG_METRIC_TYPE:
-			printf("wrong metric type");
+		case ERR_MEM_COPY_FAILURE:
+			printf("memory copy failure host<->device");
 			break;
-		case ACCRQA_ERROR_CUDA_DEVICE_NOT_FOUND:
-			printf("CUDA device not found");
+		case ERR_MEM_LOCATION:
+			printf("wrong memory location");
 			break;
-		case ACCRQA_ERROR_CUDA_NOT_ENOUGH_MEMORY:
-			printf("not enough memory on device (GPU)");
+		case ERR_CUDA_NOT_FOUND:
+			printf("CUDA not found");
 			break;
-		case ACCRQA_ERROR_CUDA_MEMORY_ALLOCATION:
-			printf("could not allocate memory on the device (GPU)");
+		case ERR_CUDA_DEVICE_NOT_FOUND:
+			printf("could not locate CUDA device (GPU)");
 			break;
-		case ACCRQA_ERROR_CUDA_MEMORY_COPY:
-			printf("could not copy memory host<->device");
+		case ERR_CUDA_NOT_ENOUGH_MEMORY:
+			printf("not enough memory on the device (GPU)");
 			break;
-		case ACCRQA_ERROR_CUDA_KERNEL:
-			printf("CUDA kernel error");
+		case ERR_CUDA:
+			printf("other CUDA error");
+			break;
+		case ERR_INVALID_METRIC_TYPE:
+			printf("invalid metric selected");
 			break;
 		default:
 			printf("unrecognised AccRQA error");
 	}
 }
-*/
+
 
 //==========================================================
 //========================= LAM ============================
@@ -482,11 +501,57 @@ void calculate_DET_GPU_default(input_type *output, input_type *input_data, size_
 					int lmin = lmin_values[l_id];
 					
 					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + th_id*nLmins + l_id;
-					output[5*pos + 0] = DETresults.DET(lmin);;
+					output[5*pos + 0] = DETresults.DET(lmin);
 					output[5*pos + 1] = DETresults.L(lmin);
 					output[5*pos + 2] = DETresults.Lmax();
 					output[5*pos + 3] = DETresults.ENTR(lmin);
 					output[5*pos + 4] = DETresults.RR();
+				}
+			}
+		}
+	}
+	
+}
+
+template<typename input_type>
+void calculate_DET_GPU_sum(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, int distance_type, Accrqa_Error *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+				for(int l_id = 0; l_id < nLmins; l_id++){
+					int lmin = lmin_values[l_id];
+					
+					input_type h_DET = 0, h_L = 0, h_RR = 0;
+					unsigned long long int h_Lmax = 0;
+					double execution_time = 0;
+					GPU_RQA_length_histogram_diagonal_sum(
+						&h_DET, &h_L, &h_Lmax, &h_RR,
+						input_data,
+						threshold, tau, emb, lmin, 
+						data_size, distance_type, 
+						&execution_time, error
+					);
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + th_id*nLmins + l_id;
+					output[5*pos + 0] = h_DET;
+					output[5*pos + 1] = h_L;
+					output[5*pos + 2] = h_Lmax;
+					output[5*pos + 3] = 0;
+					output[5*pos + 4] = h_RR;
+					
+					#ifdef MONITOR_PERFORMANCE
+					printf("DET-sum execution time: %fms;\n", execution_time);
+					char metric[200]; 
+					if(distance_type == ACCRQA_METRIC_EUCLIDEAN) sprintf(metric, "euclidean");
+					else if(distance_type == ACCRQA_METRIC_MAXIMAL) sprintf(metric, "maximal");
+					std::ofstream FILEOUT;
+					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
+					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
+					FILEOUT.close();
+					#endif
 				}
 			}
 		}
@@ -534,6 +599,7 @@ void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	
 	// Default code
 	calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+	//calculate_DET_GPU_sum(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
 
 	#else
 		*error = ERR_CUDA_NOT_FOUND;

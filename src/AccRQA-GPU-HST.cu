@@ -27,15 +27,6 @@ public:
 
 #define DEBUG_GPU_HST false
 
-#define NTHREADS 256
-#define LAM_NTHREADS 1024
-#define Y_STEPS 4
-#define X_STEPS 4
-#define HALF_WARP 16
-#define NSEEDS 32
-#define WARP 32
-#define BUFFER 32
-
 // ***********************************************************************************
 // ***********************************************************************************
 // ***********************************************************************************
@@ -250,6 +241,29 @@ __device__ void GPU_RQA_HST_create_histogram(unsigned long long int *d_histogram
 	}
 }
 
+__device__ void GPU_RQA_HST_calculate_sum(
+		unsigned long long int *s_S_all, 
+		unsigned long long int *s_S_lmin, 
+		unsigned long long int *s_lmax, 
+		unsigned long long int *s_N_lmin, 
+		int *s_start, 
+		int *s_end, 
+		int end_count, 
+		int lmin
+){
+	if(threadIdx.x<end_count){
+		int line_length = s_end[threadIdx.x] - s_start[threadIdx.x];
+		
+		atomicAdd(s_S_all, line_length);
+		atomicMax(s_lmax, line_length);
+		if(line_length >= lmin) {
+			atomicAdd(s_S_lmin, line_length);
+			atomicAdd(s_N_lmin, 1);
+		}
+	}
+}
+
+
 
 //---------------------------------------------------------------------------------
 //-------------------------- GPU kernels ------------------------------------------
@@ -451,6 +465,71 @@ __global__ void GPU_RQA_HST_length_histogram_diagonal(
 		
 		// Now we can start the loop again
 		if(bl*blockDim.x > blockIdx.x) break;
+	}
+}
+
+template<class const_params, typename IOtype>
+__global__ void GPU_RQA_HST_length_histogram_diagonal_sum(
+		unsigned long long int *d_S_all, 
+		unsigned long long int *d_S_lmin, 
+		unsigned long long int *d_lmax, 
+		unsigned long long int *d_N_lmin, 
+		IOtype const* __restrict__ d_input, 
+		IOtype threshold, 
+		int tau, 
+		int emb, 
+		int lmin, 
+		long int nSamples
+	){
+	__shared__ int s_start[const_params::shared_memory_size];
+	__shared__ int s_end[const_params::shared_memory_size];
+	__shared__ int warp_scan_partial_sums[const_params::warp];
+	__shared__ int start_count;
+	__shared__ int end_count;
+	__shared__ unsigned long long int s_S_all;
+	__shared__ unsigned long long int s_S_lmin; 
+	__shared__ unsigned long long int s_lmax; 
+	__shared__ unsigned long long int s_N_lmin; 
+	
+	if (threadIdx.x==0) {
+		s_S_all = 0;
+		s_S_lmin = 0;
+		s_lmax = 0;
+		s_N_lmin = 0;
+	}
+	
+	// read or create data and store them into shared memory
+	int first, second;
+	int nBlocks = (nSamples/blockDim.x) + 1;
+	
+	
+	GPU_RQA_HST_clean<const_params>(s_start, s_end, &start_count, &end_count);
+	for(int bl=0; bl<nBlocks; bl++){
+		// Generate data for diagonal LAM metric
+		long int gl_index = (long int)(bl*blockDim.x + threadIdx.x) - 1;
+		first  = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index, nSamples);
+		second = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index + 1, nSamples);
+		
+		create_start_end_arrays_compact<const_params>(s_start, s_end, &start_count, &end_count, first, second, bl, nSamples, warp_scan_partial_sums);
+		__syncthreads();
+		
+		// Now we need to process the histogram
+		GPU_RQA_HST_calculate_sum(&s_S_all, &s_S_lmin, &s_lmax, &s_N_lmin, s_start, s_end, end_count, lmin);
+		__syncthreads();
+		// in case the line started in this block but did not end 
+		// the number of starts > number of ends
+		// The histogram will process only closed lines, that is it will use end_count.
+		GPU_RQA_HST_reset_data<const_params>(s_start, s_end, &start_count, &end_count, bl);
+		
+		// Now we can start the loop again
+		if(bl*blockDim.x > blockIdx.x) break;
+	}
+	
+	if(threadIdx.x==0){
+		atomicAdd(&d_S_all[0], s_S_all);
+		atomicAdd(&d_S_lmin[0], s_S_lmin);
+		atomicMax(&d_lmax[0], s_lmax);
+		atomicAdd(&d_N_lmin[0], s_N_lmin);
 	}
 }
 
@@ -1049,12 +1128,12 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	//------------> GPU kernel
 	GPU_RQA_HST_length_histogram_diagonal<const_params><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
 	GPU_RQA_HST_correction_diagonal_half<<< ra_gridSize , ra_blockSize >>>( d_histogram, hst_size );
+	cudaDeviceSynchronize();
 	
 	//------------> Calculation metric
 	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
 	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
 	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
 		*error = ERR_CUDA;
@@ -1065,7 +1144,6 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
 	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
 	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaDeviceSynchronize();
 	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
 	if(cudaError != cudaSuccess) {
 		*error = ERR_CUDA;
@@ -1092,6 +1170,153 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	if(d_histogram!=NULL) cudaFree(d_histogram);
 	if(d_temporary!=NULL) cudaFree(d_temporary);
 	if(d_metric!=NULL) cudaFree(d_metric);
+	if(d_input!=NULL) cudaFree(d_input);
+	//--------------------------------<
+	
+	cudaDeviceSynchronize();
+}
+
+
+// This version will use atomic operations to add contributions from 
+//  individual thread-blocks. Further improvement might be to create
+//  an array and reduce later avoiding atomic operations all together
+template<class const_params, typename IOtype>
+void RQA_length_histogram_diagonal_sum_wrapper(
+	IOtype *h_DET, 
+	IOtype *h_L, 
+	unsigned long long int *h_Lmax, 
+	IOtype *h_RR, 
+	IOtype *h_input, 
+	IOtype threshold, 
+	int tau, 
+	int emb, 
+	int lmin, 
+	size_t input_size,
+	double *execution_time,
+	Accrqa_Error *error
+){
+	if(*error != SUCCESS) return;
+	
+	//---------> Checking that device is present
+	int devCount;
+	cudaError_t cudaError;
+	cudaError = cudaGetDeviceCount(&devCount);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
+		return;
+	}
+	
+	long int corrected_size = input_size - (emb - 1)*tau;
+	int nThreads = 1024;
+	GpuTimer timer;
+	
+	//-----------> Kernel configurations
+	// CUDA grid and block size for length histogram calculation
+	// -1 because diagonal is not used and corrected for later
+	dim3 gridSize(corrected_size - 1, 1, 1);
+	dim3 blockSize(nThreads, 1, 1);
+	
+	//---------> GPU Memory allocation
+	size_t input_size_bytes = input_size*sizeof(IOtype);
+	
+	IOtype *d_input;
+	unsigned long long int *d_S_all;
+	unsigned long long int *d_S_lmin;
+	unsigned long long int *d_lmax;
+	unsigned long long int *d_N_lmin;
+	
+	cudaError = cudaMalloc((void **) &d_input, input_size_bytes);
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_input = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_S_all,  sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_S_all = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_S_lmin, sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_S_lmin = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_lmax,   sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_lmax = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_N_lmin, sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_N_lmin = NULL;
+	}
+	
+	timer.Start();
+	//---------> Memory copy and preparation
+	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
+	cudaMemset(d_S_lmin, 0, sizeof(unsigned long long int));
+	cudaMemset(d_lmax,   0, sizeof(unsigned long long int));
+	cudaMemset(d_N_lmin, 0, sizeof(unsigned long long int));
+	cudaError = cudaMemcpy(d_input, h_input, input_size_bytes, cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	
+	//------------> GPU kernel
+	GPU_RQA_HST_length_histogram_diagonal_sum<const_params><<< gridSize , blockSize >>>(d_S_all, d_S_lmin, d_lmax, d_N_lmin, d_input, threshold, tau, emb, lmin, corrected_size);
+	
+	cudaDeviceSynchronize();
+	//--------------------------------<
+	
+	//------------> Calculation RQA metrics
+	unsigned long long int h_S_all = 0;
+	unsigned long long int h_S_lmin = 0;
+	unsigned long long int h_lmax = 0;
+	unsigned long long int h_N_lmin = 0;
+	
+	cudaError = cudaMemcpy(&h_S_all, d_S_all, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_S_lmin, d_S_lmin, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_lmax, d_lmax, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_N_lmin, d_N_lmin, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	
+	h_S_all  = 2*h_S_all + corrected_size;
+	h_S_lmin = 2*h_S_lmin + corrected_size;
+	h_N_lmin = 2*h_N_lmin + 1;
+	
+	
+	*h_DET  = ((double) h_S_lmin)/((double) h_S_all);
+	*h_L    = ((double) h_S_lmin)/((double) h_N_lmin);
+	*h_Lmax = h_lmax;
+	*h_RR   = ((double) h_S_all)/((double) (corrected_size*corrected_size));
+	//--------------------------------<
+	
+	timer.Stop();
+	*execution_time = timer.Elapsed();
+	
+	//---------> error check
+	cudaError = cudaGetLastError();
+	if(cudaError != cudaSuccess){
+		*error = ERR_CUDA;
+	}
+	//--------------------------------<
+	
+	//----------> Deallocations
+	if(d_S_all!=NULL) cudaFree(d_S_all);
+	if(d_S_lmin!=NULL) cudaFree(d_S_lmin);
+	if(d_lmax!=NULL) cudaFree(d_lmax);
+	if(d_N_lmin!=NULL) cudaFree(d_N_lmin);
 	if(d_input!=NULL) cudaFree(d_input);
 	//--------------------------------<
 }
@@ -1244,6 +1469,14 @@ void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogra
 
 void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+}
+
+void GPU_RQA_length_histogram_diagonal_sum(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+}
+
+void GPU_RQA_length_histogram_diagonal_sum(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
 }
 
 void GPU_RQA_diagonal_R_matrix(
