@@ -12,8 +12,8 @@ import numpy
 # trigger a bug with mock imports. We use this static class instead
 # to hold the library handle.
 
-class Lib:
-    name = "libAccRQA"
+class accrqaLib:
+    name = "libaccrqa"
     env_name = "ACCRQA_LIB_DIR"
     search_dirs = [".", "/usr/local/lib"]
     lib = None
@@ -21,31 +21,31 @@ class Lib:
 
     @staticmethod
     def handle():
-        if not Lib.lib:
-            lib_dir = Lib.find_dir(Lib.search_dirs)
-            Lib.mutex.acquire()
-            if not Lib.lib:
+        if not accrqaLib.lib:
+            lib_dir = accrqaLib.find_dir(accrqaLib.search_dirs)
+            accrqaLib.mutex.acquire()
+            if not accrqaLib.lib:
                 try:
-                    Lib.lib = numpy.ctypeslib.load_library(Lib.name, lib_dir)
+                    accrqaLib.lib = numpy.ctypeslib.load_library(accrqaLib.name, lib_dir)
                 except OSError:
                     pass
-            Lib.mutex.release()
-            if not Lib.lib:
+            accrqaLib.mutex.release()
+            if not accrqaLib.lib:
                 raise RuntimeError(
-                    f"Cannot find {Lib.name} in {Lib.search_dirs}. "
-                    f"Try setting the environment variable {Lib.env_name}"
+                    f"Cannot find {accrqaLib.name} in {accrqaLib.search_dirs}. "
+                    f"Try setting the environment variable {accrqaLib.env_name}"
                 )
-        return Lib.lib
+        return accrqaLib.lib
 
     @staticmethod
     def find_dir(lib_search_dirs):
         # Try to find the shared library in the listed directories.
         lib_dir = ""
-        env_dir = os.environ.get(Lib.env_name)
-        if env_dir and env_dir not in Lib.search_dirs:
+        env_dir = os.environ.get(accrqaLib.env_name)
+        if env_dir and env_dir not in accrqaLib.search_dirs:
             lib_search_dirs.insert(0, env_dir)
         for test_dir in lib_search_dirs:
-            if glob.glob(os.path.join(test_dir, Lib.name) + "*"):
+            if glob.glob(os.path.join(test_dir, accrqaLib.name) + "*"):
                 lib_dir = test_dir
                 break
         return lib_dir

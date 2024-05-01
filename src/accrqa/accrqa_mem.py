@@ -7,10 +7,10 @@ try:
 except ImportError:
     cupy = None
 
-from accrqa_error import Error
-from accrqa_lib import Lib
+from . import accrqaError
+from . import accrqaLib
 
-class Mem:
+class accrqaMem:
     class Handle(ctypes.Structure):
         pass
 
@@ -29,8 +29,8 @@ class Mem:
     def __init__(self, *args):
         self._handle = None
         obj = args[0] if len(args) == 1 else None
-        mem_create_wrapper = Lib.handle().mem_create_wrapper
-        mem_create_wrapper.restype = Mem.handle_type()
+        mem_create_wrapper = accrqaLib.handle().mem_create_wrapper
+        mem_create_wrapper.restype = accrqaMem.handle_type()
         mem_create_wrapper.argtypes = [
             ctypes.c_void_p,
             ctypes.c_int,
@@ -38,11 +38,11 @@ class Mem:
             ctypes.c_int32,
             ctypes.POINTER(ctypes.c_int64),
             ctypes.POINTER(ctypes.c_int64),
-            Error.handle_type()
+            accrqaError.handle_type()
         ]
-        mem_set_read_only = Lib.handle().mem_set_read_only
-        mem_set_read_only.argtypes = [Mem.handle_type(), ctypes.c_int32]
-        error_status = Error()
+        mem_set_read_only = accrqaLib.handle().mem_set_read_only
+        mem_set_read_only.argtypes = [accrqaMem.handle_type(), ctypes.c_int32]
+        error_status = accrqaError()
         if type(obj) == numpy.ndarray:
             if obj.dtype == numpy.int8 or obj.dtype == numpy.byte:
                 mem_type = self.MemType.MEM_CHAR
@@ -105,8 +105,8 @@ class Mem:
 
     def __del__(self):
         if self._handle:
-            mem_free = Lib.handle().mem_free
-            mem_free.argtypes = [Mem.handle_type()]
+            mem_free = accrqaLib.handle().mem_free
+            mem_free.argtypes = [accrqaMem.handle_type()]
             mem_free(self._handle)
 
     def handle(self):
@@ -114,4 +114,4 @@ class Mem:
 
     @staticmethod
     def handle_type():
-        return ctypes.POINTER(Mem.Handle)
+        return ctypes.POINTER(accrqaMem.Handle)

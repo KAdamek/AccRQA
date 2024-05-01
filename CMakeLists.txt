@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
-project(AccRQA LANGUAGES CXX)
+project(accrqa CXX)
 set(ACCRQA_VERSION_ID "0x000001")
 set(ACCRQA_VERSION_MAJOR 0)
 set(ACCRQA_VERSION_MINOR 1)

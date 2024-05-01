@@ -7,10 +7,9 @@ try:
 except ImportError:
     cupy = None
 
-#import numpy.ctypeslib as ctl
-from accrqa_error import Error
-from accrqa_lib import Lib
-from accrqa_mem import Mem
+from . import accrqaError
+from . import accrqaLib
+from . import accrqaMem
 
 def accrqa_RR(input_data, tau_values, emb_values, threshold_values, distance_type):
     nTaus = tau_values.shape[0]
@@ -30,21 +29,21 @@ def accrqa_RR(input_data, tau_values, emb_values, threshold_values, distance_typ
     else:
         raise TypeError("Unknown distance type")
     
-    mem_output = Mem(rqa_metrics)
-    mem_input = Mem(input_data)
-    mem_tau_values = Mem(tau_values)
-    mem_emb_values = Mem(emb_values)
-    mem_threshold_values = Mem(threshold_values)
-    error_status = Error()
-    lib_AccRQA = Lib.handle().py_accrqa_RR
+    mem_output = accrqaMem(rqa_metrics)
+    mem_input = accrqaMem(input_data)
+    mem_tau_values = accrqaMem(tau_values)
+    mem_emb_values = accrqaMem(emb_values)
+    mem_threshold_values = accrqaMem(threshold_values)
+    error_status = accrqaError()
+    lib_AccRQA = accrqaLib.handle().py_accrqa_RR
     lib_AccRQA.argtypes = [
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
         ctypes.c_int,
-        Error.handle_type()
+        accrqaError.handle_type()
     ]
     lib_AccRQA(
         mem_output.handle(),
@@ -85,24 +84,24 @@ def accrqa_DET(input_data, tau_values, emb_values, lmin_values, threshold_values
     else:
         raise TypeError("Invalid value of calculate_ENTR")
     
-    mem_output = Mem(rqa_metrics)
-    mem_input = Mem(input_data)
-    mem_tau_values = Mem(tau_values)
-    mem_emb_values = Mem(emb_values)
-    mem_lmin_values = Mem(lmin_values)
-    mem_threshold_values = Mem(threshold_values)
-    error_status = Error()
-    lib_AccRQA = Lib.handle().py_accrqa_DET
+    mem_output = accrqaMem(rqa_metrics)
+    mem_input = accrqaMem(input_data)
+    mem_tau_values = accrqaMem(tau_values)
+    mem_emb_values = accrqaMem(emb_values)
+    mem_lmin_values = accrqaMem(lmin_values)
+    mem_threshold_values = accrqaMem(threshold_values)
+    error_status = accrqaError()
+    lib_AccRQA = accrqaLib.handle().py_accrqa_DET
     lib_AccRQA.argtypes = [
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
         ctypes.c_int,
         ctypes.c_int,
-        Error.handle_type()
+        accrqaError.handle_type()
     ]
     lib_AccRQA(
         mem_output.handle(),
@@ -145,24 +144,24 @@ def accrqa_LAM(input_data, tau_values, emb_values, vmin_values, threshold_values
     else:
         raise TypeError("Invalid value of calculate_ENTR")
     
-    mem_output = Mem(rqa_metrics)
-    mem_input = Mem(input_data)
-    mem_tau_values = Mem(tau_values)
-    mem_emb_values = Mem(emb_values)
-    mem_vmin_values = Mem(vmin_values)
-    mem_threshold_values = Mem(threshold_values)
-    error_status = Error()
-    lib_AccRQA = Lib.handle().py_accrqa_LAM
+    mem_output = accrqaMem(rqa_metrics)
+    mem_input = accrqaMem(input_data)
+    mem_tau_values = accrqaMem(tau_values)
+    mem_emb_values = accrqaMem(emb_values)
+    mem_vmin_values = accrqaMem(vmin_values)
+    mem_threshold_values = accrqaMem(threshold_values)
+    error_status = accrqaError()
+    lib_AccRQA = accrqaLib.handle().py_accrqa_LAM
     lib_AccRQA.argtypes = [
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
-        Mem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
         ctypes.c_int,
         ctypes.c_int,
-        Error.handle_type()
+        accrqaError.handle_type()
     ]
     lib_AccRQA(
         mem_output.handle(),

@@ -2,7 +2,7 @@
 
 import ctypes
 
-class Error:
+class accrqaError:
     error_codes = {
         0: "No error",
         1: "Generic runtime error",
