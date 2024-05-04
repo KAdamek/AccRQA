@@ -9,9 +9,9 @@ from __future__ import absolute_import
 from accrqa.accrqa_error import accrqaError
 from accrqa.accrqa_lib import accrqaLib
 from accrqa.accrqa_mem import accrqaMem
-from accrqa.accrqa import accrqa_RR
-from accrqa.accrqa import accrqa_DET
-from accrqa.accrqa import accrqa_LAM
+from accrqa.accrqa import RR
+from accrqa.accrqa import DET
+from accrqa.accrqa import LAM
 
 
 

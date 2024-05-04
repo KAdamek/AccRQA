@@ -2,16 +2,27 @@
 
 import ctypes
 import numpy as np
+
 try:
     import cupy
 except ImportError:
     cupy = None
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+    
+
+
 from . import accrqaError
 from . import accrqaLib
 from . import accrqaMem
 
-def accrqa_RR(input_data, tau_values, emb_values, threshold_values, distance_type):
+def RR(input_data, tau_values, emb_values, threshold_values, distance_type, tidy_data=False):
+    if tidy_data == True and pd == None:
+        raise Exception("Error: Pandas required for tidy data format!")
+    
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
     nThresholds = threshold_values.shape[0]
@@ -55,9 +66,30 @@ def accrqa_RR(input_data, tau_values, emb_values, threshold_values, distance_typ
         error_status.handle()
     )
     error_status.check()
-    return(rqa_metrics)
+    
+    if tidy_data == False:
+        return(rqa_metrics)
+    if tidy_data == True:
+        tmplist = []
+        for tau_idx, tau in enumerate(tau_values):
+            for emb_idx, emb in enumerate(emb_values):
+                for thr_idx, thr in enumerate(threshold_values):
+                    RRvalue = rqa_metrics[tau_idx, emb_idx, thr_idx]
+                    d = {
+                        'Delay' : tau,
+                        'Embedding' : emb,
+                        'Threshold' : thr,
+                        'RR' : RRvalue
+                    }
+                    tmplist.append(d)
+        
+        tidy_format_result = pd.DataFrame(tmplist)
+        return(tidy_format_result);
 
-def accrqa_DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type, calculate_ENTR):
+def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type, calculate_ENTR, tidy_data=False):
+    if tidy_data == True and pd == None:
+        raise Exception("Error: Pandas required for tidy data format!")
+    
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
     nLmins = lmin_values.shape[0]
@@ -77,9 +109,9 @@ def accrqa_DET(input_data, tau_values, emb_values, lmin_values, threshold_values
         raise TypeError("Unknown distance type")
     
     int_calc_ENTR = 0;
-    if calculate_ENTR == 'true':
+    if calculate_ENTR == True:
         int_calc_ENTR = 1
-    elif calculate_ENTR == 'false':
+    elif calculate_ENTR == False:
         int_calc_ENTR = 0
     else:
         raise TypeError("Invalid value of calculate_ENTR")
@@ -115,9 +147,40 @@ def accrqa_DET(input_data, tau_values, emb_values, lmin_values, threshold_values
         error_status.handle()
     )
     error_status.check()
-    return(rqa_metrics)
+    
+    if tidy_data == False:
+        return(rqa_metrics)
+    if tidy_data == True:
+        tmplist = []
+        for tau_idx, tau in enumerate(tau_values):
+            for emb_idx, emb in enumerate(emb_values):
+                for lmin_idx, lmin in enumerate(lmin_values):
+                    for thr_idx, thr in enumerate(threshold_values):
+                        DET  = rqa_metrics[tau_idx, emb_idx, lmin_idx, thr_idx, 0]
+                        L    = rqa_metrics[tau_idx, emb_idx, lmin_idx, thr_idx, 1]
+                        Lmax = rqa_metrics[tau_idx, emb_idx, lmin_idx, thr_idx, 2]
+                        ENTR = rqa_metrics[tau_idx, emb_idx, lmin_idx, thr_idx, 3]
+                        RR   = rqa_metrics[tau_idx, emb_idx, lmin_idx, thr_idx, 4]
+                        d = {
+                            'Delay' : tau,
+                            'Embedding' : emb,
+                            'Lmin' : lmin,
+                            'Threshold' : thr,
+                            'DET' : DET,
+                            'L' : L,
+                            'Lmax' : Lmax,
+                            'ENTR' : ENTR,
+                            'RR' : RR
+                        }
+                        tmplist.append(d)
+        
+        tidy_format_result = pd.DataFrame(tmplist)
+        return(tidy_format_result);
 
-def accrqa_LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type, calculate_ENTR):
+def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type, calculate_ENTR, tidy_data=False):
+    if tidy_data == True and pd == None:
+        raise Exception("Error: Pandas required for tidy data format!")
+    
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
     nVmins = vmin_values.shape[0]
@@ -137,9 +200,9 @@ def accrqa_LAM(input_data, tau_values, emb_values, vmin_values, threshold_values
         raise TypeError("Unknown distance type")
     
     int_calc_ENTR = 0;
-    if calculate_ENTR == 'true':
+    if calculate_ENTR == True:
         int_calc_ENTR = 1
-    elif calculate_ENTR == 'false':
+    elif calculate_ENTR == False:
         int_calc_ENTR = 0
     else:
         raise TypeError("Invalid value of calculate_ENTR")
@@ -175,4 +238,32 @@ def accrqa_LAM(input_data, tau_values, emb_values, vmin_values, threshold_values
         error_status.handle()
     )
     error_status.check()
-    return(rqa_metrics)
+    
+    if tidy_data == False:
+        return(rqa_metrics)
+    if tidy_data == True:
+        tmplist = []
+        for tau_idx, tau in enumerate(tau_values):
+            for emb_idx, emb in enumerate(emb_values):
+                for vmin_idx, vmin in enumerate(vmin_values):
+                    for thr_idx, thr in enumerate(threshold_values):
+                        LAM   = rqa_metrics[tau_idx, emb_idx, vmin_idx, thr_idx, 0]
+                        TT    = rqa_metrics[tau_idx, emb_idx, vmin_idx, thr_idx, 1]
+                        TTmax = rqa_metrics[tau_idx, emb_idx, vmin_idx, thr_idx, 2]
+                        ENTR  = rqa_metrics[tau_idx, emb_idx, vmin_idx, thr_idx, 3]
+                        RR    = rqa_metrics[tau_idx, emb_idx, vmin_idx, thr_idx, 4]
+                        d = {
+                            'Delay' : tau,
+                            'Embedding' : emb,
+                            'Vmin' : vmin,
+                            'Threshold' : thr,
+                            'LAM' : LAM,
+                            'TT' : TT,
+                            'TTmax' : TTmax,
+                            'ENTR' : ENTR,
+                            'RR' : RR
+                        }
+                        tmplist.append(d)
+        
+        tidy_format_result = pd.DataFrame(tmplist)
+        return(tidy_format_result);

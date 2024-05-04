@@ -1,5 +1,6 @@
 import numpy as np
 import accrqa as rqa
+import pandas as pd
 
 tau_values = np.array([1,2], dtype=np.intc)
 emb_values = np.array([1,2], dtype=np.intc)
@@ -19,17 +20,19 @@ print("thresholds:")
 print(threshold_values)
 print("Input:")
 print(input_data)
-output_RR = rqa.accrqa_RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal')
+output_RR = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal', tidy_data=False)
 print("output RR:\n")
 print(output_RR)
 print("----------------------------------------------")
 
 print(" ")
+output_RR_pd = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal', tidy_data=True)
+print(output_RR_pd);
 
 print("----------------------------------------------")
 print("lmin:")
 print(lmin_values)
-output_DET = rqa.accrqa_DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type='maximal', calculate_ENTR='true')
+output_DET = rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type='maximal', calculate_ENTR='true')
 print("output DET:\n")
 print(output_DET)
 print("----------------------------------------------")
@@ -39,7 +42,7 @@ print(" ")
 print("----------------------------------------------")
 print("vmin:")
 print(vmin_values)
-output_LAM = rqa.accrqa_LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type='maximal', calculate_ENTR='true')
+output_LAM = rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type='maximal', calculate_ENTR='true')
 print("output LAM:\n")
 print(output_LAM)
 print("----------------------------------------------")
