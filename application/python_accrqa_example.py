@@ -20,33 +20,42 @@ print("thresholds:")
 print(threshold_values)
 print("Input:")
 print(input_data)
-output_RR = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal', tidy_data=False)
+output_RR = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal', tidy_data = False)
 print("output RR:\n")
-print(output_RR)
+#print(output_RR)
 print("----------------------------------------------")
 
 print(" ")
-output_RR_pd = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal', tidy_data=True)
+output_RR_pd = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type='maximal', tidy_data = True)
 print(output_RR_pd);
+print(" ")
 
 print("----------------------------------------------")
 print("lmin:")
 print(lmin_values)
-output_DET = rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type='maximal', calculate_ENTR='true')
+output_DET = rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type='maximal', calculate_ENTR = True, tidy_data = False)
 print("output DET:\n")
-print(output_DET)
+#print(output_DET)
 print("----------------------------------------------")
 
 print(" ")
+output_DET_pd = rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type='maximal', calculate_ENTR = True, tidy_data = True)
+print(output_DET_pd);
+print(" ")
+
 
 print("----------------------------------------------")
 print("vmin:")
 print(vmin_values)
-output_LAM = rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type='maximal', calculate_ENTR='true')
+output_LAM = rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type='maximal', calculate_ENTR = True, tidy_data = False)
 print("output LAM:\n")
-print(output_LAM)
+#print(output_LAM)
 print("----------------------------------------------")
 
+print(" ")
+output_LAM_pd = rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type='maximal', calculate_ENTR = True, tidy_data = True)
+print(output_LAM_pd);
+print(" ")
 
 
 

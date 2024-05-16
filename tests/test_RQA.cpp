@@ -176,7 +176,7 @@ int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_
 	
 	//-------> GPU
 	if(GPU_UNIT_TEST) {
-		accrqa_RR_GPU(GPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+		accrqa_RR(GPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_NV_GPU, &error);
 		if(DEBUG_MODE) {
 			printf("---->ACCRQA Error (accrqa_RR_GPU):");
 			accrqa_print_error(&error);
@@ -185,7 +185,7 @@ int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_
 	}
 	
 	//-------> CPU
-	accrqa_RR_CPU(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+	accrqa_RR(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_CPU, &error);
 	
 	int nErrors = 0;
 	if(CHECK) {
@@ -229,7 +229,7 @@ int test_recurrent_rate_extended(size_t input_size, RQAdp threshold_low, RQAdp t
 	if(DEBUG_MODE) printf("--> RR unit test: data size = %zu; Thresholds=%d; emb=%d; tau=%d;\n", input_size, nThresholds, emb, tau);
 	
 	//-------> CPU
-	accrqa_RR_CPU(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+	accrqa_RR(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_CPU, &error);
 	
 	//-------> GPU LAM
 	{
@@ -240,7 +240,7 @@ int test_recurrent_rate_extended(size_t input_size, RQAdp threshold_low, RQAdp t
 		int calc_ENTR = 1;
 		for(size_t th_idx = 0; th_idx < threshold_list.size(); th_idx++){
 			RQAdp threshold_values = threshold_list[th_idx];
-			accrqa_LAM_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+			accrqa_LAM(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 			GPU_LAM_RR_result[th_idx] = output_GPU[4];
 			if(DEBUG_MODE) {
 				printf("---->ACCRQA Error (accrqa_LAM_GPU):");
@@ -260,7 +260,7 @@ int test_recurrent_rate_extended(size_t input_size, RQAdp threshold_low, RQAdp t
 		int calc_ENTR = 1;
 		for(size_t th_idx = 0; th_idx < threshold_list.size(); th_idx++){
 			RQAdp threshold_values = threshold_list[th_idx];
-			accrqa_DET_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+			accrqa_DET(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 			GPU_DET_RR_result[th_idx] = output_GPU[4];
 			if(DEBUG_MODE) {
 				printf("---->ACCRQA Error (accrqa_DET_GPU):");
@@ -485,7 +485,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	if(GPU_UNIT_TEST) {
 		RQAdp *output_GPU;
 		output_GPU = new RQAdp[output_size];
-		accrqa_DET_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		accrqa_DET(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 		GPU_DET  = output_GPU[0];
 		GPU_L    = output_GPU[1];
 		GPU_Lmax = output_GPU[2];
@@ -498,7 +498,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	{
 		RQAdp *output_CPU;
 		output_CPU = new RQAdp[output_size];
-		accrqa_DET_CPU(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		accrqa_DET(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_CPU, &error);
 		ref_DET  = output_CPU[0];
 		ref_L    = output_CPU[1];
 		ref_Lmax = output_CPU[2];
@@ -639,7 +639,7 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 	if(GPU_UNIT_TEST) {
 		RQAdp *output_GPU;
 		output_GPU = new RQAdp[output_size];
-		accrqa_LAM_GPU(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		accrqa_LAM(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 		GPU_LAM   = output_GPU[0];
 		GPU_TT    = output_GPU[1];
 		GPU_TTmax = output_GPU[2];
@@ -651,7 +651,7 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 	{
 		RQAdp *output_CPU;
 		output_CPU = new RQAdp[output_size];
-		accrqa_LAM_CPU(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+		accrqa_LAM(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_CPU, &error);
 		ref_LAM   = output_CPU[0];
 		ref_TT    = output_CPU[1];
 		ref_TTmax = output_CPU[2];

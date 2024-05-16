@@ -4,10 +4,6 @@
 #include <stdio.h>
 
 
-#define ACCRQA_METRIC_EUCLIDEAN 1
-#define ACCRQA_METRIC_MAXIMAL 2
-
-
 //#define MONITOR_PERFORMANCE
 #define ACCRQA_DEBUG_MODE false
 

@@ -3,9 +3,11 @@
 
 #include "AccRQA_definitions.hpp"
 #include "AccRQA_utilities_error.hpp"
+#include "AccRQA_utilities_comp_platform.hpp"
+#include "AccRQA_utilities_distance.hpp"
 #include "AccRQA_config.hpp"
 #include "AccRQA_functions.hpp"
 #include "AccRQA_utilities_mem.hpp"
-#include "AccRQA_python_bindings.hpp"
+
 
 #endif

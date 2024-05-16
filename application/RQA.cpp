@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
 			int tau_values = tau;
 			int emb_values = emb;
 			Accrqa_Error error;
-			accrqa_RR_GPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+			accrqa_RR(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_NV_GPU, &error);
 			
 			//writing results to disk
 			std::ofstream FILEOUT;
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
 				int calc_ENTR = 1;
 				RQAdp *output;
 				output = new RQAdp[5];
-				accrqa_DET_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				accrqa_DET(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 				result_l2_DET.push_back(output[0]);
 				result_l2_L.push_back(output[1]);
 				result_l2_Lmax.push_back(output[2]);
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
 				int calc_ENTR = 1;
 				RQAdp *output;
 				output = new RQAdp[5];
-				accrqa_LAM_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				accrqa_LAM(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 				result_l2_LAM.push_back(output[0]);
 				result_l2_TT.push_back(output[1]);
 				result_l2_TTmax.push_back(output[2]);
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
 			int tau_values = tau;
 			int emb_values = emb;
 			Accrqa_Error error;
-			accrqa_RR_GPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+			accrqa_RR(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_NV_GPU, &error);
 			
 			
 			if(VERBOSE) printf("--> GPU DET and LAM\n");
@@ -355,9 +355,9 @@ int main(int argc, char* argv[]) {
 				
 				RQAdp LAM, TT, TTmax;
 				
-				accrqa_DET_GPU(output_DET, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				accrqa_DET(output_DET, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 				
-				accrqa_DET_GPU(output_LAM, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, 0, &error);
+				accrqa_LAM(output_LAM, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
 				
 				result_DET.push_back(output_DET[0]);
 				result_L.push_back(output_DET[1]);
@@ -409,7 +409,7 @@ int main(int argc, char* argv[]) {
 			int tau_values = tau;
 			int emb_values = emb;
 			Accrqa_Error error;
-			accrqa_RR_CPU(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, ACCRQA_METRIC_MAXIMAL, &error);
+			accrqa_RR(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_CPU, &error);
 			
 			
 			std::ofstream FILEOUT;
@@ -441,7 +441,7 @@ int main(int argc, char* argv[]) {
 				int calc_ENTR = 0;
 				RQAdp *output;
 				output = new RQAdp[5];
-				accrqa_LAM_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				accrqa_LAM(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_CPU, &error);
 				result_l2_LAM.push_back(output[0]);
 				result_l2_TT.push_back(output[1]);
 				result_l2_TTmax.push_back(output[2]);
@@ -482,7 +482,7 @@ int main(int argc, char* argv[]) {
 				int calc_ENTR = 1;
 				RQAdp *output;
 				output = new RQAdp[5];
-				accrqa_DET_GPU(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, ACCRQA_METRIC_MAXIMAL, calc_ENTR, &error);
+				accrqa_DET(output, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_CPU, &error);
 				result_l2_DET.push_back(output[0]);
 				result_l2_L.push_back(output[1]);
 				result_l2_Lmax.push_back(output[2]);

@@ -1,6 +1,11 @@
 #ifndef _ACCRQA_UTILITIES_ERRORS_H_
 #define _ACCRQA_UTILITIES_ERRORS_H_
 
+/**
+ * @enum Accrqa_Error
+ *
+ * @brief accrqa library error codes.
+ */
 enum Accrqa_Error
 {
 	//! No error.
