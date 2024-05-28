@@ -4,13 +4,13 @@ import ctypes
 
 class accrqaError:
     error_codes = {
-        0: "No error",
-        1: "Generic runtime error",
-        2: "Invalid function argument",
-        3: "Unsupported data type(s)",
-        4: "Memory allocation failure",
-        5: "Memory copy failure",
-        6: "Memory location mismatch"
+        0: "AccRQA: No error",
+        1: "AccRQA: Generic runtime error",
+        2: "AccRQA: Invalid function argument",
+        3: "AccRQA: Unsupported data type(s)",
+        4: "AccRQA: Memory allocation failure",
+        5: "AccRQA: Memory copy failure",
+        6: "AccRQA: Memory location mismatch"
     }
 
     def __init__(self):
@@ -18,7 +18,7 @@ class accrqaError:
 
     def check(self):
         if self._error.value != 0:
-            raise RuntimeError(Error.error_codes[self._error.value])
+            raise RuntimeError(accrqaError.error_codes[self._error.value])
 
     def handle(self):
         return ctypes.byref(self._error)

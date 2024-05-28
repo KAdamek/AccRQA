@@ -8,10 +8,13 @@
  */
 enum Accrqa_CompPlatform
 {
-	//! Euclidean distance.
+	//! No computational platform
+	PLT_ERROR = 0,
+	
+	//! CPUs will be used
 	PLT_CPU = 1,
 	
-	//! Maximal distance .
+	//! NVIDIA GPUs will bbe used
 	PLT_NV_GPU = 1024,
 };
 

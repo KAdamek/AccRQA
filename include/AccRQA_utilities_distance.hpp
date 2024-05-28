@@ -8,10 +8,13 @@
  */
 enum Accrqa_Distance
 {
-	//! Euclidean distance.
+	//! Distance to LoI not defined
+	DST_ERROR = 0,
+	
+	//! Euclidean distance to LoI
 	DST_EUCLIDEAN = 1,
 	
-	//! Maximal distance .
+	//! Maximal distance to LoI
 	DST_MAXIMAL = 2,
 };
 

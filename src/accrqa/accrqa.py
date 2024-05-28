@@ -13,13 +13,14 @@ try:
 except ImportError:
     pd = None
     
-
+#TODO: separate functions for distance and computation platform
+#TODO: improve support for tidy data, preferably directly from C
 
 from . import accrqaError
 from . import accrqaLib
 from . import accrqaMem
 
-def RR(input_data, tau_values, emb_values, threshold_values, distance_type, tidy_data=False):
+def RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform='nv_gpu', tidy_data=False):
     if tidy_data == True and pd == None:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -40,6 +41,14 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, tidy
     else:
         raise TypeError("Unknown distance type")
     
+    int_comp_platform = 0;
+    if comp_platform == 'nv_gpu':
+        int_comp_platform = 1024
+    elif comp_platform == 'cpu':
+        int_comp_platform = 1
+    else:
+        raise TypeError("Unknown compute platform")
+    
     mem_output = accrqaMem(rqa_metrics)
     mem_input = accrqaMem(input_data)
     mem_tau_values = accrqaMem(tau_values)
@@ -54,6 +63,7 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, tidy
         accrqaMem.handle_type(),
         accrqaMem.handle_type(),
         ctypes.c_int,
+        ctypes.c_int,
         accrqaError.handle_type()
     ]
     lib_AccRQA(
@@ -63,6 +73,7 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, tidy
         mem_emb_values.handle(),
         mem_threshold_values.handle(),
         int_distance_type,
+        int_comp_platform,
         error_status.handle()
     )
     error_status.check()
@@ -86,7 +97,7 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, tidy
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type, calculate_ENTR, tidy_data=False):
+def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type, calculate_ENTR, comp_platform='nv_gpu', tidy_data=False):
     if tidy_data == True and pd == None:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -107,6 +118,14 @@ def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, dista
         int_distance_type = 2
     else:
         raise TypeError("Unknown distance type")
+    
+    int_comp_platform = 0;
+    if comp_platform == 'nv_gpu':
+        int_comp_platform = 1024
+    elif comp_platform == 'cpu':
+        int_comp_platform = 1
+    else:
+        raise TypeError("Unknown compute platform")
     
     int_calc_ENTR = 0;
     if calculate_ENTR == True:
@@ -133,6 +152,7 @@ def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, dista
         accrqaMem.handle_type(),
         ctypes.c_int,
         ctypes.c_int,
+        ctypes.c_int,
         accrqaError.handle_type()
     ]
     lib_AccRQA(
@@ -144,6 +164,7 @@ def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, dista
         mem_threshold_values.handle(),
         int_distance_type,
         int_calc_ENTR,
+        int_comp_platform,
         error_status.handle()
     )
     error_status.check()
@@ -177,7 +198,7 @@ def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, dista
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type, calculate_ENTR, tidy_data=False):
+def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type, calculate_ENTR, comp_platform='nv_gpu', tidy_data=False):
     if tidy_data == True and pd == None:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -207,6 +228,14 @@ def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, dista
     else:
         raise TypeError("Invalid value of calculate_ENTR")
     
+    int_comp_platform = 0;
+    if comp_platform == 'nv_gpu':
+        int_comp_platform = 1024
+    elif comp_platform == 'cpu':
+        int_comp_platform = 1
+    else:
+        raise TypeError("Unknown compute platform")
+    
     mem_output = accrqaMem(rqa_metrics)
     mem_input = accrqaMem(input_data)
     mem_tau_values = accrqaMem(tau_values)
@@ -224,6 +253,7 @@ def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, dista
         accrqaMem.handle_type(),
         ctypes.c_int,
         ctypes.c_int,
+        ctypes.c_int,
         accrqaError.handle_type()
     ]
     lib_AccRQA(
@@ -235,6 +265,7 @@ def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, dista
         mem_threshold_values.handle(),
         int_distance_type,
         int_calc_ENTR,
+        int_comp_platform,
         error_status.handle()
     )
     error_status.check()

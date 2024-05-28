@@ -1,3 +1,5 @@
+/* AccRQA_utilities_error.h and AccRQA_utilities_mem.h are based on Error and Mem data structures that were created by Fred Dulwich and are used with his permission */
+
 #ifndef _ACCRQA_UTILITIES_ERRORS_H_
 #define _ACCRQA_UTILITIES_ERRORS_H_
 
