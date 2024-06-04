@@ -2,6 +2,9 @@
 
 import ctypes
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
+from typing import Optional
+from typing import Union
 
 try:
     import cupy
@@ -20,18 +23,46 @@ from . import accrqaError
 from . import accrqaLib
 from . import accrqaMem
 
-def RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform='nv_gpu', tidy_data=False):
+def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: str, comp_platform: Optional[str] = 'nv_gpu', tidy_data: Optional[bool] = False) -> Union[NDArray, pd.DataFrame]:
+    """
+    Calculates RR metric from supplied time-series.
+    https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
+    
+    Args:
+        input_data: The input time-series.
+        tau_values: Array of delays.
+        emb_values: Array of embedding values.
+        threshold_values: Array of threshold values.
+        distance_type: Type of formula used to calculate distance to line of identity.
+        comp_platform: [Optional] Computational platform to be used. Default is cpu.
+        tidy_data: [Optional] Output data in tidy data format. Requires pandas.
+
+    Returns:
+        A numpy NDArray containing of RR values with dimensions [number of delays, 
+        number of embeddings, number of thresholds].
+
+    Raises:
+        TypeError: If number of delays, embedding or thresholds is zero length.
+        TypeError: If input_data is not numpy.ndarray.
+        TypeError: If wrong type of the distance to the line of identity is selected.
+        TypeError: If wrong computational platform is selected.
+        RuntimeError: If AccRQA library encounters a problem.
+    """
+    
     if tidy_data == True and pd == None:
         raise Exception("Error: Pandas required for tidy data format!")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
     nThresholds = threshold_values.shape[0]
+    
+    if nTaus <= 0 or nEmbs <= 0 or nThresholds <= 0:
+        raise TypeError("Number of delays, embedding or thresholds must be greater than zero.")
         
     if type(input_data) == np.ndarray:
         rqa_metrics = np.zeros((nTaus, nEmbs, nThresholds), dtype=input_data.dtype);
     else:
-        raise TypeError("Unknown array type")
+        raise TypeError("Unknown array type of the input_data")
 
     int_distance_type = 0;
     if distance_type == 'euclidean':
@@ -39,7 +70,7 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp
     elif distance_type == 'maximal':
         int_distance_type = 2
     else:
-        raise TypeError("Unknown distance type")
+        raise TypeError("Unknown distance to line of identity type")
     
     int_comp_platform = 0;
     if comp_platform == 'nv_gpu':
@@ -47,7 +78,7 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp
     elif comp_platform == 'cpu':
         int_comp_platform = 1
     else:
-        raise TypeError("Unknown compute platform")
+        raise TypeError("Unknown compute platform selected")
     
     mem_output = accrqaMem(rqa_metrics)
     mem_input = accrqaMem(input_data)
@@ -97,7 +128,33 @@ def RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type, calculate_ENTR, comp_platform='nv_gpu', tidy_data=False):
+def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: str, calculate_ENTR: bool, comp_platform: Optional[str] = 'nv_gpu', tidy_data: Optional[bool] = False) -> Union[NDArray, pd.DataFrame]:
+    """
+    Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
+    https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
+    
+    Args:
+        input_data: The input time-series.
+        tau_values: Array of delays.
+        emb_values: Array of embedding values.
+        lmin_values: Array of minimal lengths.
+        threshold_values: Array of threshold values.
+        distance_type: Type of formula used to calculate distance to line of identity.
+        comp_platform: [Optional] Computational platform to be used. Default is cpu.
+        tidy_data: [Optional] Output data in tidy data format. Requires pandas.
+
+    Returns:
+        A numpy NDArray containing of RR values with dimensions [number of delays, 
+        number of embeddings, number of thresholds].
+
+    Raises:
+        TypeError: If number of delays, embedding, minimal lengths or thresholds is zero length.
+        TypeError: If input_data is not numpy.ndarray.
+        TypeError: If wrong type of the distance to the line of identity is selected.
+        TypeError: If wrong computational platform is selected.
+        RuntimeError: If AccRQA library encounters a problem.
+    """
+    
     if tidy_data == True and pd == None:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -105,6 +162,9 @@ def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, dista
     nEmbs = emb_values.shape[0]
     nLmins = lmin_values.shape[0]
     nThresholds = threshold_values.shape[0]
+    
+    if nTaus <= 0 or nEmbs <= 0 or nLmins <= 0 or nThresholds <= 0:
+        raise TypeError("Number of delays, embedding, minimal lengths or thresholds must be greater than zero.")
     
     if type(input_data) == np.ndarray:
         rqa_metrics = np.zeros((nTaus, nEmbs, nLmins, nThresholds, 5), dtype=input_data.dtype);
@@ -198,7 +258,33 @@ def DET(input_data, tau_values, emb_values, lmin_values, threshold_values, dista
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type, calculate_ENTR, comp_platform='nv_gpu', tidy_data=False):
+def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: str, calculate_ENTR: bool, comp_platform: Optional[str] = 'nv_gpu', tidy_data: Optional[bool] = False) -> Union[NDArray, pd.DataFrame]:
+    """
+    Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
+    https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
+    
+    Args:
+        input_data: The input time-series.
+        tau_values: Array of delays.
+        emb_values: Array of embedding values.
+        vmin_values: Array of minimal lengths.
+        threshold_values: Array of threshold values.
+        distance_type: Type of formula used to calculate distance to line of identity.
+        comp_platform: [Optional] Computational platform to be used. Default is cpu.
+        tidy_data: [Optional] Output data in tidy data format. Requires pandas.
+
+    Returns:
+        A numpy NDArray containing of RR values with dimensions [number of delays, 
+        number of embeddings, number of thresholds].
+
+    Raises:
+        TypeError: If number of delays, embedding, minimal lengths or thresholds is zero length.
+        TypeError: If input_data is not numpy.ndarray.
+        TypeError: If wrong type of the distance to the line of identity is selected.
+        TypeError: If wrong computational platform is selected.
+        RuntimeError: If AccRQA library encounters a problem.
+    """
+    
     if tidy_data == True and pd == None:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -206,6 +292,9 @@ def LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, dista
     nEmbs = emb_values.shape[0]
     nVmins = vmin_values.shape[0]
     nThresholds = threshold_values.shape[0]
+    
+    if nTaus <= 0 or nEmbs <= 0 or nVmins <= 0 or nThresholds <= 0:
+        raise TypeError("Number of delays, embedding, minimal lengths or thresholds must be greater than zero.")
     
     if type(input_data) == np.ndarray:
         rqa_metrics = np.zeros((nTaus, nEmbs, nVmins, nThresholds, 5), dtype=input_data.dtype);
