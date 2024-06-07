@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+.Rproj.user
+*.Rproj
+.Rbuildignore
