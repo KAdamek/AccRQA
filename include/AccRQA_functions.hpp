@@ -12,6 +12,11 @@
 #include "AccRQA_utilities_distance.hpp"
 
 /**
+ * @defgroup rqa_metrics
+ * @{
+ */
+
+/**
  * @brief Prints error messages associated with error status.
  *
  * @param error Error status to print.
