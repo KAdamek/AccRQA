@@ -1,0 +1,50 @@
+name: Generate Sphinx documentation
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' 
+          
+      - name: Set up Doxygen
+        run: brew install doxygen
+        
+      - name: Install dependencies
+        run: |
+          #brew install sphinx-doc
+          pip3 install sphinx
+          pip3 install sphinx-rtd-theme
+          pip3 install breathe
+          pip3 install sphinx-sitemap
+          # Install other dependencies if necessary
+
+      - name: Build Sphinx documentation
+        run: |
+          cd docs
+          make html
+          touch .nojekyll
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html
+          publish_branch: gh-pages
