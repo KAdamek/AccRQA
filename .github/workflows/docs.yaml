@@ -29,7 +29,7 @@ jobs:
         
       - name: Install dependencies
         run: |
-          #brew install sphinx-doc
+          brew install sphinx-doc
           pip3 install sphinx
           pip3 install sphinx-rtd-theme
           pip3 install breathe
