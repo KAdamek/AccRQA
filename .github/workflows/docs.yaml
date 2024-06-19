@@ -28,19 +28,17 @@ jobs:
         run: brew install doxygen
         
       - name: Install dependencies
-        run: |
-          brew install sphinx-doc
-          pip3 install sphinx
-          pip3 install sphinx-rtd-theme
-          pip3 install breathe
-          pip3 install sphinx-sitemap
+        run: brew install sphinx-doc
+          && pip3 install sphinx
+          && pip3 install sphinx-rtd-theme
+          && pip3 install breathe
+          && pip3 install sphinx-sitemap
           # Install other dependencies if necessary
 
       - name: Build Sphinx documentation
-        run: |
-          cd docs
-          make html
-          touch .nojekyll
+        run: cd docs
+          && make html
+          && touch .nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
