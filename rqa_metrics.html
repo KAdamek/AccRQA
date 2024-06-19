@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RQA metrics &mdash; AccRQA  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href=""/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="How to contribute" href="how_to_contribute.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="how_to_contribute.html">How to contribute</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Processing functions</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RQA metrics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#c-c">C/C++</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv418accrqa_print_errorP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_print_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410accrqa_LAMPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_LAM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410accrqa_LAMPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_LAM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv434accrqa_LAM_output_size_in_elementsiiii"><code class="docutils literal notranslate"><span class="pre">accrqa_LAM_output_size_in_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410accrqa_DETPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_DET()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410accrqa_DETPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_DET()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv434accrqa_DET_output_size_in_elementsiiii"><code class="docutils literal notranslate"><span class="pre">accrqa_DET_output_size_in_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49accrqa_RRPfPf6size_tPiiPiiPfi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_RR()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49accrqa_RRPdPd6size_tPiiPiiPdi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error"><code class="docutils literal notranslate"><span class="pre">accrqa_RR()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv433accrqa_RR_output_size_in_elementsiii"><code class="docutils literal notranslate"><span class="pre">accrqa_RR_output_size_in_elements()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#python">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#r">R</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AccRQA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">RQA metrics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rqa-metrics">
+<h1>RQA metrics<a class="headerlink" href="#rqa-metrics" title="Link to this heading"></a></h1>
+<section id="c-c">
+<h2>C/C++<a class="headerlink" href="#c-c" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv418accrqa_print_errorP12Accrqa_Error">
+<span id="_CPPv318accrqa_print_errorP12Accrqa_Error"></span><span id="_CPPv218accrqa_print_errorP12Accrqa_Error"></span><span id="accrqa_print_error__Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1ga6584fd29e514b093c7b7cc3f9c3758b0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_print_error</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv418accrqa_print_errorP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Prints error messages associated with error status. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>error</strong> – Error status to print. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv410accrqa_LAMPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error">
+<span id="_CPPv310accrqa_LAMPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="_CPPv210accrqa_LAMPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="accrqa_LAM__floatP.floatP.s.iP.i.iP.i.iP.i.floatP.i.Accrqa_Distance.i.Accrqa_CompPlatform.Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1ga41692caffe117c5f5a6420c379ce0891"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_LAM</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">output</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">input_data</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">tau_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">emb_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">vmin_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nVmins</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">threshold_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span>, <span class="n"><span class="pre">Accrqa_Distance</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">distance_type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calc_ENTR</span></span>, <span class="n"><span class="pre">Accrqa_CompPlatform</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp_platform</span></span>, <span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410accrqa_LAMPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates LAM, TT, TTmax, ENTR and RR RQA metrics from supplied time-series. (float) </p>
+<p>Array dimensions are as follows, from slowest to fastest varying:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> is 3D data cube containing RR values, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code>, <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code>, <code class="docutils literal notranslate"><span class="pre">nLmins</span></code>, <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> , 5 ].</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_data</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">data_size</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmin_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ]</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> – Multi-dimensional data cube containing RR values. </p></li>
+<li><p><strong>input_data</strong> – Real-valued array of input time-series samples. </p></li>
+<li><p><strong>data_size</strong> – Number of samples (float) of the time-series. </p></li>
+<li><p><strong>tau_values</strong> – Integer array of delay values. </p></li>
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>emb_values</strong> – Integer array of embedding values. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>vmin_values</strong> – Integer array of minimal lengths values. </p></li>
+<li><p><strong>nVmins</strong> – Number of minimal lengths. </p></li>
+<li><p><strong>threshold_values</strong> – Real-valued array (float) of threshold values. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+<li><p><strong>distance_type</strong> – Distance formula used in calculation of distance to the line of identity. </p></li>
+<li><p><strong>calc_ENTR</strong> – Turns calculation of ENTR on (1) and off (0). </p></li>
+<li><p><strong>comp_platform</strong> – Compute platform to use. </p></li>
+<li><p><strong>error</strong> – Error status. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv410accrqa_LAMPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error">
+<span id="_CPPv310accrqa_LAMPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="_CPPv210accrqa_LAMPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="accrqa_LAM__doubleP.doubleP.s.iP.i.iP.i.iP.i.doubleP.i.Accrqa_Distance.i.Accrqa_CompPlatform.Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1ga20cf7d8e05863b8cdc8e9cbef1382813"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_LAM</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">output</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">input_data</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">tau_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">emb_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">vmin_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nVmins</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">threshold_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span>, <span class="n"><span class="pre">Accrqa_Distance</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">distance_type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calc_ENTR</span></span>, <span class="n"><span class="pre">Accrqa_CompPlatform</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp_platform</span></span>, <span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410accrqa_LAMPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates LAM, TT, TTmax, ENTR and RR RQA metrics from supplied time-series. (double) </p>
+<p>Array dimensions are as follows, from slowest to fastest varying:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> is 3D data cube containing RR values, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code>, <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code>, <code class="docutils literal notranslate"><span class="pre">nLmins</span></code>, <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> , 5 ].</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_data</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">data_size</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmin_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ]</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> – Multi-dimensional data cube containing RR values. </p></li>
+<li><p><strong>input_data</strong> – Real-valued array of input time-series samples. </p></li>
+<li><p><strong>data_size</strong> – Number of samples (double) of the time-series. </p></li>
+<li><p><strong>tau_values</strong> – Integer array of delay values. </p></li>
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>emb_values</strong> – Integer array of embedding values. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>vmin_values</strong> – Integer array of minimal lengths values. </p></li>
+<li><p><strong>nVmins</strong> – Number of minimal lengths. </p></li>
+<li><p><strong>threshold_values</strong> – Real-valued array (double) of threshold values. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+<li><p><strong>distance_type</strong> – Distance formula used in calculation of distance to the line of identity. </p></li>
+<li><p><strong>calc_ENTR</strong> – Turns calculation of ENTR on (1) and off (0). </p></li>
+<li><p><strong>comp_platform</strong> – Compute platform to use. </p></li>
+<li><p><strong>error</strong> – Error status. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv434accrqa_LAM_output_size_in_elementsiiii">
+<span id="_CPPv334accrqa_LAM_output_size_in_elementsiiii"></span><span id="_CPPv234accrqa_LAM_output_size_in_elementsiiii"></span><span id="accrqa_LAM_output_size_in_elements__i.i.i.i"></span><span class="target" id="group__rqa__metrics_1ga0b31ec2e514d06fb3d38a1812884a8d0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_LAM_output_size_in_elements</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nVmins</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv434accrqa_LAM_output_size_in_elementsiiii" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates size of LAM output array in number of elements. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>nVmins</strong> – Number of minimal lengths. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv410accrqa_DETPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error">
+<span id="_CPPv310accrqa_DETPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="_CPPv210accrqa_DETPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="accrqa_DET__floatP.floatP.s.iP.i.iP.i.iP.i.floatP.i.Accrqa_Distance.i.Accrqa_CompPlatform.Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1ga8e124d56c1270fd8be25af38bbe87134"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_DET</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">output</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">input_data</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">tau_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">emb_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">lmin_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nLmins</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">threshold_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span>, <span class="n"><span class="pre">Accrqa_Distance</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">distance_type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calc_ENTR</span></span>, <span class="n"><span class="pre">Accrqa_CompPlatform</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp_platform</span></span>, <span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410accrqa_DETPfPf6size_tPiiPiiPiiPfi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates DET, L, Lmax, ENTR and RR RQA metrics from supplied time-series. (float) </p>
+<p>Array dimensions are as follows, from slowest to fastest varying:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> is 3D data cube containing RR values, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code>, <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code>, <code class="docutils literal notranslate"><span class="pre">nLmins</span></code>, <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> , 5 ].</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_data</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">data_size</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmin_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ]</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> – Multi-dimensional data cube containing RR values. </p></li>
+<li><p><strong>input_data</strong> – Real-valued array of input time-series samples. </p></li>
+<li><p><strong>data_size</strong> – Number of samples (float) of the time-series. </p></li>
+<li><p><strong>tau_values</strong> – Integer array of delay values. </p></li>
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>emb_values</strong> – Integer array of embedding values. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>lmin_values</strong> – Integer array of minimal lengths values. </p></li>
+<li><p><strong>nLmins</strong> – Number of minimal lengths. </p></li>
+<li><p><strong>threshold_values</strong> – Real-valued array (float) of threshold values. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+<li><p><strong>distance_type</strong> – Distance formula used in calculation of distance to the line of identity. </p></li>
+<li><p><strong>calc_ENTR</strong> – Turns calculation of ENTR on (1) and off (0). </p></li>
+<li><p><strong>comp_platform</strong> – Compute platform to use. </p></li>
+<li><p><strong>error</strong> – Error status. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv410accrqa_DETPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error">
+<span id="_CPPv310accrqa_DETPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="_CPPv210accrqa_DETPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="accrqa_DET__doubleP.doubleP.s.iP.i.iP.i.iP.i.doubleP.i.Accrqa_Distance.i.Accrqa_CompPlatform.Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1ga68d07e9103d12ad6341583b6aa165fd8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_DET</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">output</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">input_data</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">tau_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">emb_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">lmin_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nLmins</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">threshold_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span>, <span class="n"><span class="pre">Accrqa_Distance</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">distance_type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calc_ENTR</span></span>, <span class="n"><span class="pre">Accrqa_CompPlatform</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp_platform</span></span>, <span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410accrqa_DETPdPd6size_tPiiPiiPiiPdi15Accrqa_Distancei19Accrqa_CompPlatformP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates DET, L, Lmax, ENTR and RR RQA metrics from supplied time-series. (double) </p>
+<p>Array dimensions are as follows, from slowest to fastest varying:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> is 3D data cube containing RR values, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code>, <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code>, <code class="docutils literal notranslate"><span class="pre">nLmins</span></code>, <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> , 5 ].</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_data</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">data_size</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmin_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ]</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> – Multi-dimensional data cube containing RR values. </p></li>
+<li><p><strong>input_data</strong> – Real-valued array of input time-series samples. </p></li>
+<li><p><strong>data_size</strong> – Number of samples (double) of the time-series. </p></li>
+<li><p><strong>tau_values</strong> – Integer array of delay values. </p></li>
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>emb_values</strong> – Integer array of embedding values. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>lmin_values</strong> – Integer array of minimal lengths values. </p></li>
+<li><p><strong>nLmins</strong> – Number of minimal lengths. </p></li>
+<li><p><strong>threshold_values</strong> – Real-valued array (double) of threshold values. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+<li><p><strong>distance_type</strong> – Distance formula used in calculation of distance to the line of identity. </p></li>
+<li><p><strong>calc_ENTR</strong> – Turns calculation of ENTR on (1) and off (0). </p></li>
+<li><p><strong>comp_platform</strong> – Compute platform to use. </p></li>
+<li><p><strong>error</strong> – Error status. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv434accrqa_DET_output_size_in_elementsiiii">
+<span id="_CPPv334accrqa_DET_output_size_in_elementsiiii"></span><span id="_CPPv234accrqa_DET_output_size_in_elementsiiii"></span><span id="accrqa_DET_output_size_in_elements__i.i.i.i"></span><span class="target" id="group__rqa__metrics_1gac51da581484fa3e694868d467a0edd94"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_DET_output_size_in_elements</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nLmins</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv434accrqa_DET_output_size_in_elementsiiii" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates size of DET output array in number of elements. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>nLmins</strong> – Number of minimal lengths. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv49accrqa_RRPfPf6size_tPiiPiiPfi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error">
+<span id="_CPPv39accrqa_RRPfPf6size_tPiiPiiPfi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="_CPPv29accrqa_RRPfPf6size_tPiiPiiPfi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="accrqa_RR__floatP.floatP.s.iP.i.iP.i.floatP.i.Accrqa_Distance.Accrqa_CompPlatform.Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1gadfa8ed97c1f3b14b37aa4b5dc0f38f17"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_RR</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">output</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">input_data</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">tau_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">emb_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">threshold_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span>, <span class="n"><span class="pre">Accrqa_Distance</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">distance_type</span></span>, <span class="n"><span class="pre">Accrqa_CompPlatform</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp_platform</span></span>, <span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49accrqa_RRPfPf6size_tPiiPiiPfi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates RR RQA metric from supplied time-series. (float) </p>
+<p>Array dimensions are as follows, from slowest to fastest varying:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> is 3D data cube containing RR values, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code>, <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code>, <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ].</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_data</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">data_size</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ]</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> – Multi-dimensional data cube containing RR values. </p></li>
+<li><p><strong>input_data</strong> – Real-valued array of input time-series samples. </p></li>
+<li><p><strong>data_size</strong> – Number of samples (float) of the time-series. </p></li>
+<li><p><strong>tau_values</strong> – Integer array of delay values. </p></li>
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>emb_values</strong> – Integer array of embedding values. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>threshold_values</strong> – Real-valued array (float) of threshold values. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+<li><p><strong>distance_type</strong> – Distance formula used in calculation of distance to the line of identity. </p></li>
+<li><p><strong>comp_platform</strong> – Compute platform to use. </p></li>
+<li><p><strong>error</strong> – Error status. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv49accrqa_RRPdPd6size_tPiiPiiPdi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error">
+<span id="_CPPv39accrqa_RRPdPd6size_tPiiPiiPdi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="_CPPv29accrqa_RRPdPd6size_tPiiPiiPdi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error"></span><span id="accrqa_RR__doubleP.doubleP.s.iP.i.iP.i.doubleP.i.Accrqa_Distance.Accrqa_CompPlatform.Accrqa_ErrorP"></span><span class="target" id="group__rqa__metrics_1ga567ea1cf994bb7f0ec686f4b4eb4b91c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_RR</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">output</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">input_data</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">tau_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">emb_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">threshold_values</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span>, <span class="n"><span class="pre">Accrqa_Distance</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">distance_type</span></span>, <span class="n"><span class="pre">Accrqa_CompPlatform</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp_platform</span></span>, <span class="n"><span class="pre">Accrqa_Error</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49accrqa_RRPdPd6size_tPiiPiiPdi15Accrqa_Distance19Accrqa_CompPlatformP12Accrqa_Error" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates RR RQA metric from supplied time-series. (double) </p>
+<p>Array dimensions are as follows, from slowest to fastest varying:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> is 3D data cube containing RR values, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code>, <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code>, <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ].</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_data</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">data_size</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nTaus</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emb_values</span></code> is 1D and integer-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nEmbs</span></code> ]</p></li>
+</ul>
+</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code> is 1D and real-valued, with shape:<ul>
+<li><p>[ <code class="docutils literal notranslate"><span class="pre">nThresholds</span></code> ]</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> – Multi-dimensional data cube containing RR values. </p></li>
+<li><p><strong>input_data</strong> – Real-valued array of input time-series samples. </p></li>
+<li><p><strong>data_size</strong> – Number of samples (double) of the time-series. </p></li>
+<li><p><strong>tau_values</strong> – Integer array of delay values. </p></li>
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>emb_values</strong> – Integer array of embedding values. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>threshold_values</strong> – Real-valued array (double) of threshold values. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+<li><p><strong>distance_type</strong> – Distance formula used in calculation of distance to the line of identity. </p></li>
+<li><p><strong>comp_platform</strong> – Compute platform to use. </p></li>
+<li><p><strong>error</strong> – Error status. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv433accrqa_RR_output_size_in_elementsiii">
+<span id="_CPPv333accrqa_RR_output_size_in_elementsiii"></span><span id="_CPPv233accrqa_RR_output_size_in_elementsiii"></span><span id="accrqa_RR_output_size_in_elements__i.i.i"></span><span class="target" id="group__rqa__metrics_1ga472e5b9fbab805e844bef8e2c6930ef3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">accrqa_RR_output_size_in_elements</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nTaus</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nEmbs</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nThresholds</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv433accrqa_RR_output_size_in_elementsiii" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates size of RR output array in number of elements. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nTaus</strong> – Number of delays. </p></li>
+<li><p><strong>nEmbs</strong> – Number of embeddings. </p></li>
+<li><p><strong>nThresholds</strong> – Number of threshold values. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="python">
+<h2>Python<a class="headerlink" href="#python" title="Link to this heading"></a></h2>
+</section>
+<section id="r">
+<h2>R<a class="headerlink" href="#r" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="how_to_contribute.html" class="btn btn-neutral float-left" title="How to contribute" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Karel Adamek, Jan Novotny, Radim Panis, Norbert Marwan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
