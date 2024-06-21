@@ -69,7 +69,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv433accrqa_RR_output_size_in_elementsiii"><code class="docutils literal notranslate"><span class="pre">accrqa_RR_output_size_in_elements()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#python">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python">Python</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa.RR"><code class="docutils literal notranslate"><span class="pre">RR()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa.LAM"><code class="docutils literal notranslate"><span class="pre">LAM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa.DET"><code class="docutils literal notranslate"><span class="pre">DET()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#r">R</a></li>
 </ul>
 </li>
@@ -473,6 +478,118 @@
 </section>
 <section id="python">
 <h2>Python<a class="headerlink" href="#python" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa.RR">
+<span class="sig-prename descclassname"><span class="pre">accrqa.</span></span><span class="sig-name descname"><span class="pre">RR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nv_gpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa.RR" title="Link to this definition"></a></dt>
+<dd><p>Calculates RR metric from supplied time-series.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Recurrence_quantification_analysis">https://en.wikipedia.org/wiki/Recurrence_quantification_analysis</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – The input time-series.</p></li>
+<li><p><strong>tau_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of delays.</p></li>
+<li><p><strong>emb_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of embedding values.</p></li>
+<li><p><strong>threshold_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of threshold values.</p></li>
+<li><p><strong>distance_type</strong> (<em>str</em>) – Type of formula used to calculate distance to line of identity.</p></li>
+<li><p><strong>comp_platform</strong> (<em>str</em><em> | </em><em>None</em>) – [Optional] Computational platform to be used. Default is cpu.</p></li>
+<li><p><strong>tidy_data</strong> (<em>bool</em><em> | </em><em>None</em>) – [Optional] Output data in tidy data format. Requires pandas.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy NDArray containing of RR values with dimensions [number of delays,
+number of embeddings, number of thresholds].</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – If number of delays, embedding or thresholds is zero length.</p></li>
+<li><p><strong>TypeError</strong> – If input_data is not numpy.ndarray.</p></li>
+<li><p><strong>TypeError</strong> – If wrong type of the distance to the line of identity is selected.</p></li>
+<li><p><strong>TypeError</strong> – If wrong computational platform is selected.</p></li>
+<li><p><strong>RuntimeError</strong> – If AccRQA library encounters a problem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]] | <em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa.LAM">
+<span class="sig-prename descclassname"><span class="pre">accrqa.</span></span><span class="sig-name descname"><span class="pre">LAM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate_ENTR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nv_gpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa.LAM" title="Link to this definition"></a></dt>
+<dd><p>Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Recurrence_quantification_analysis">https://en.wikipedia.org/wiki/Recurrence_quantification_analysis</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – The input time-series.</p></li>
+<li><p><strong>tau_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of delays.</p></li>
+<li><p><strong>emb_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of embedding values.</p></li>
+<li><p><strong>vmin_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of minimal lengths.</p></li>
+<li><p><strong>threshold_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of threshold values.</p></li>
+<li><p><strong>distance_type</strong> (<em>str</em>) – Type of formula used to calculate distance to line of identity.</p></li>
+<li><p><strong>comp_platform</strong> (<em>str</em><em> | </em><em>None</em>) – [Optional] Computational platform to be used. Default is cpu.</p></li>
+<li><p><strong>tidy_data</strong> (<em>bool</em><em> | </em><em>None</em>) – [Optional] Output data in tidy data format. Requires pandas.</p></li>
+<li><p><strong>calculate_ENTR</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy NDArray containing of RR values with dimensions [number of delays,
+number of embeddings, number of thresholds].</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – If number of delays, embedding, minimal lengths or thresholds is zero length.</p></li>
+<li><p><strong>TypeError</strong> – If input_data is not numpy.ndarray.</p></li>
+<li><p><strong>TypeError</strong> – If wrong type of the distance to the line of identity is selected.</p></li>
+<li><p><strong>TypeError</strong> – If wrong computational platform is selected.</p></li>
+<li><p><strong>RuntimeError</strong> – If AccRQA library encounters a problem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]] | <em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa.DET">
+<span class="sig-prename descclassname"><span class="pre">accrqa.</span></span><span class="sig-name descname"><span class="pre">DET</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmin_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate_ENTR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nv_gpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tidy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa.DET" title="Link to this definition"></a></dt>
+<dd><p>Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Recurrence_quantification_analysis">https://en.wikipedia.org/wiki/Recurrence_quantification_analysis</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – The input time-series.</p></li>
+<li><p><strong>tau_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of delays.</p></li>
+<li><p><strong>emb_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of embedding values.</p></li>
+<li><p><strong>lmin_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of minimal lengths.</p></li>
+<li><p><strong>threshold_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of threshold values.</p></li>
+<li><p><strong>distance_type</strong> (<em>str</em>) – Type of formula used to calculate distance to line of identity.</p></li>
+<li><p><strong>comp_platform</strong> (<em>str</em><em> | </em><em>None</em>) – [Optional] Computational platform to be used. Default is cpu.</p></li>
+<li><p><strong>tidy_data</strong> (<em>bool</em><em> | </em><em>None</em>) – [Optional] Output data in tidy data format. Requires pandas.</p></li>
+<li><p><strong>calculate_ENTR</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy NDArray containing of RR values with dimensions [number of delays,
+number of embeddings, number of thresholds].</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – If number of delays, embedding, minimal lengths or thresholds is zero length.</p></li>
+<li><p><strong>TypeError</strong> – If input_data is not numpy.ndarray.</p></li>
+<li><p><strong>TypeError</strong> – If wrong type of the distance to the line of identity is selected.</p></li>
+<li><p><strong>TypeError</strong> – If wrong computational platform is selected.</p></li>
+<li><p><strong>RuntimeError</strong> – If AccRQA library encounters a problem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]] | <em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="r">
 <h2>R<a class="headerlink" href="#r" title="Link to this heading"></a></h2>
