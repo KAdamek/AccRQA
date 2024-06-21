@@ -486,13 +486,13 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – The input time-series.</p></li>
-<li><p><strong>tau_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of delays.</p></li>
-<li><p><strong>emb_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of embedding values.</p></li>
-<li><p><strong>threshold_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of threshold values.</p></li>
-<li><p><strong>distance_type</strong> (<em>str</em>) – Type of formula used to calculate distance to line of identity.</p></li>
-<li><p><strong>comp_platform</strong> (<em>str</em><em> | </em><em>None</em>) – [Optional] Computational platform to be used. Default is cpu.</p></li>
-<li><p><strong>tidy_data</strong> (<em>bool</em><em> | </em><em>None</em>) – [Optional] Output data in tidy data format. Requires pandas.</p></li>
+<li><p><strong>input_data</strong> – The input time-series.</p></li>
+<li><p><strong>tau_values</strong> – Array of delays.</p></li>
+<li><p><strong>emb_values</strong> – Array of embedding values.</p></li>
+<li><p><strong>threshold_values</strong> – Array of threshold values.</p></li>
+<li><p><strong>distance_type</strong> – Type of formula used to calculate distance to line of identity.</p></li>
+<li><p><strong>comp_platform</strong> – [Optional] Computational platform to be used. Default is cpu.</p></li>
+<li><p><strong>tidy_data</strong> – [Optional] Output data in tidy data format. Requires pandas.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -508,9 +508,6 @@ number of embeddings, number of thresholds].</p>
 <li><p><strong>RuntimeError</strong> – If AccRQA library encounters a problem.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]] | <em>DataFrame</em></p>
-</dd>
 </dl>
 </dd></dl>
 
@@ -522,15 +519,14 @@ number of embeddings, number of thresholds].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – The input time-series.</p></li>
-<li><p><strong>tau_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of delays.</p></li>
-<li><p><strong>emb_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of embedding values.</p></li>
-<li><p><strong>vmin_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of minimal lengths.</p></li>
-<li><p><strong>threshold_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of threshold values.</p></li>
-<li><p><strong>distance_type</strong> (<em>str</em>) – Type of formula used to calculate distance to line of identity.</p></li>
-<li><p><strong>comp_platform</strong> (<em>str</em><em> | </em><em>None</em>) – [Optional] Computational platform to be used. Default is cpu.</p></li>
-<li><p><strong>tidy_data</strong> (<em>bool</em><em> | </em><em>None</em>) – [Optional] Output data in tidy data format. Requires pandas.</p></li>
-<li><p><strong>calculate_ENTR</strong> (<em>bool</em>)</p></li>
+<li><p><strong>input_data</strong> – The input time-series.</p></li>
+<li><p><strong>tau_values</strong> – Array of delays.</p></li>
+<li><p><strong>emb_values</strong> – Array of embedding values.</p></li>
+<li><p><strong>vmin_values</strong> – Array of minimal lengths.</p></li>
+<li><p><strong>threshold_values</strong> – Array of threshold values.</p></li>
+<li><p><strong>distance_type</strong> – Type of formula used to calculate distance to line of identity.</p></li>
+<li><p><strong>comp_platform</strong> – [Optional] Computational platform to be used. Default is cpu.</p></li>
+<li><p><strong>tidy_data</strong> – [Optional] Output data in tidy data format. Requires pandas.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -545,9 +541,6 @@ number of embeddings, number of thresholds].</p>
 <li><p><strong>TypeError</strong> – If wrong computational platform is selected.</p></li>
 <li><p><strong>RuntimeError</strong> – If AccRQA library encounters a problem.</p></li>
 </ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]] | <em>DataFrame</em></p>
 </dd>
 </dl>
 </dd></dl>
@@ -560,15 +553,14 @@ number of embeddings, number of thresholds].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – The input time-series.</p></li>
-<li><p><strong>tau_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of delays.</p></li>
-<li><p><strong>emb_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of embedding values.</p></li>
-<li><p><strong>lmin_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of minimal lengths.</p></li>
-<li><p><strong>threshold_values</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>]</em>) – Array of threshold values.</p></li>
-<li><p><strong>distance_type</strong> (<em>str</em>) – Type of formula used to calculate distance to line of identity.</p></li>
-<li><p><strong>comp_platform</strong> (<em>str</em><em> | </em><em>None</em>) – [Optional] Computational platform to be used. Default is cpu.</p></li>
-<li><p><strong>tidy_data</strong> (<em>bool</em><em> | </em><em>None</em>) – [Optional] Output data in tidy data format. Requires pandas.</p></li>
-<li><p><strong>calculate_ENTR</strong> (<em>bool</em>)</p></li>
+<li><p><strong>input_data</strong> – The input time-series.</p></li>
+<li><p><strong>tau_values</strong> – Array of delays.</p></li>
+<li><p><strong>emb_values</strong> – Array of embedding values.</p></li>
+<li><p><strong>lmin_values</strong> – Array of minimal lengths.</p></li>
+<li><p><strong>threshold_values</strong> – Array of threshold values.</p></li>
+<li><p><strong>distance_type</strong> – Type of formula used to calculate distance to line of identity.</p></li>
+<li><p><strong>comp_platform</strong> – [Optional] Computational platform to be used. Default is cpu.</p></li>
+<li><p><strong>tidy_data</strong> – [Optional] Output data in tidy data format. Requires pandas.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -583,9 +575,6 @@ number of embeddings, number of thresholds].</p>
 <li><p><strong>TypeError</strong> – If wrong computational platform is selected.</p></li>
 <li><p><strong>RuntimeError</strong> – If AccRQA library encounters a problem.</p></li>
 </ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]] | <em>DataFrame</em></p>
 </dd>
 </dl>
 </dd></dl>
