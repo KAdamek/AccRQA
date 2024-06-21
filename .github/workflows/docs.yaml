@@ -30,9 +30,14 @@ jobs:
           && pip3 install sphinx-rtd-theme
           && pip3 install breathe
           && pip3 install sphinx-sitemap
+          && pip3 install numpy
+          && pip3 install pandas
 
       - name: Build Sphinx documentation
-        run: cd docs
+        run: cd docs/src
+          && mkdir _static
+          && mkdir _templates
+          && cd ..
           && make html
 
       - name: Deploy to GitHub Pages
