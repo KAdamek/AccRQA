@@ -352,4 +352,5 @@ int accrqa_RR_output_size_in_elements(
 	int nTaus, int nEmbs, int nThresholds
 );
 
+/** @} */ /* End group rqa_metrics. */
 #endif
