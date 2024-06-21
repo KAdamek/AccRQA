@@ -1,7 +1,9 @@
 # AccRQA
 GPU accelerated calculation of RQA metrics using CUDA
 
-
+Documentation
+===
+The documentation is on GitHub [pages](https://kadamek.github.io/AccRQA/index.html). (https://kadamek.github.io/AccRQA/index.html)
 
 Installation and Usage (Linux)
 ===

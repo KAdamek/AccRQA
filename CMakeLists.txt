@@ -47,8 +47,8 @@ if (CUDA_FOUND)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CUDA_CUFFT_LIBRARIES})
     add_definitions( -DCUDA_FOUND )
 else()
-    #add_library(${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SRC})
-    message("CUDA not found! Cannot compile library.")
+    add_library(${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SRC})
+    message("CUDA not found.")
 endif()
 if (NOT DEFINED PYTHON_EXECUTABLE)
     set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
@@ -74,7 +74,7 @@ add_subdirectory(application)
 # Build tests.
 add_subdirectory(tests)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} ${CUDA_CUFFT_LIBRARIES})
+#target_link_libraries(${CMAKE_PROJECT_NAME} ${CUDA_CUFFT_LIBRARIES})
 target_link_libraries(${CMAKE_PROJECT_NAME} OpenMP::OpenMP_CXX)
 
 install(TARGETS ${CMAKE_PROJECT_NAME}
