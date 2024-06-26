@@ -27,7 +27,10 @@ if (NOT ACCRQA_BIN_INSTALL_DIR)
     set(ACCRQA_BIN_INSTALL_DIR "bin")
 endif()
 
-find_package(CUDA 7.0)
+# Dependencies
+if (FIND_CUDA OR NOT DEFINED FIND_CUDA)
+    find_package(CUDA 7.0)
+endif()
 find_package(OpenMP QUIET)
 
 # Set compiler options.
