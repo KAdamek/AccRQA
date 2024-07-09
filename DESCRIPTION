@@ -12,9 +12,10 @@ Description: Package for many-core accelerated Recurrence Quantitative Analysis
 License: MIT + file LICENSE
 URL: https://github.com/KAdamek/AccRQA
 BugReports: https://github.com/KAdamek/AccRQA/issues
+Encoding: UTF-8
 NeedsCompilation: yes
 Author: Karel Adamek (<https://orcid.org/0000-0003-2797-0595>),
 	Jan Novotny (<https.://orcid.org/0000-0002-9667-635X)
 Maintainer: Karel Adamek <karel.adamek@gmail.com>
 Repository: CRAN
-
+RoxygenNote: 7.3.1

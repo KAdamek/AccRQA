@@ -1,0 +1,39 @@
+CXX_STD = CXX17
+
+CUDA_INC  = @CUDA_HOME@/include
+TARGET = accrqa.so
+
+.SUFFIXES: .c .cu .o
+
+R_LIBS = @R_LIBS@
+R_INC     = @R_INCL@ #/usr/share/R/include
+RCPP_INC = @R_CPIC@ #/home/jnovotny/R/x86_64-pccd ..-linux-gnu-library/4.3/Rcpp/include/
+
+NVCC = @NVCC@
+NVCC_ARGS = -arch=sm_70 -gencode=arch=compute_70,code=sm_70
+
+h_srcs    := $(wildcard *.hpp)
+cuh_srcs	:= $(wildcard *.cuh)
+cu_srcs   := $(wildcard *.cu)
+cu_objs   := $(patsubst %.cu, %.o, $(cu_srcs))
+cpp_srcs  := $(wildcard *.cpp)
+cpp_objs  := $(patsubst %.cpp, %.o, $(cpp_srcs))
+
+all_objs = $(cpp_objs) $(cu_objs) #AccRQA_CPU_function.o AccRQA-GPU-HST.o AccRQA_python_bindings.o AccRQA_utilities_mem.o AccRQA_functions.o AccRQA-GPU-RR.o AccRQA_R_bindings.o
+#all_objs := AccRQA_CPU_function.o AccRQA-GPU-HST.o AccRQA_python_bindings.o AccRQA_utilities_mem.o AccRQA_functions.o AccRQA-GPU-RR.o AccRQA_R_bindings.o
+
+#all: AccRQA.so
+all: $(TARGET)
+
+#AccRQA.so: $(all_objs)
+$(TARGET): $(all_objs)
+	$(NVCC) -shared -DCUDA_FOUND -I$(CUDA_INC) -I$(RCPP_INC) $(all_objs) -o $@
+
+%.o: %.cpp $(cpp_srcs) $(h_srcs) 
+	$(CXX) -O3 -fPIC $(R_INC) -DCUDA_FOUND -I$(CUDA_INC) -I$(RCPP_INC) $< -o $@ -c
+
+%.o: %.cu $(cu_srcs) $(cuh_srcs)
+	$(NVCC) -O3 -DCUDA_FOUND -Xcompiler -fPIC -Xcudafe --diag_suppress=code_is_unreachable $(R_INC) -x cu -lR -DGPU  $(NVCC_ARGS) $< -o $@ -c
+
+clean:
+	@rm -rf *.o *.so *.dll

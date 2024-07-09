@@ -1,4 +1,4 @@
-dyn.load("libAccRQA_R.so")
+#dyn.load("libAccRQA_R.so")
 
 accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_values, norm, calc_ENTR)
 {
