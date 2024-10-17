@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <vector>
 
-#define VERBOSE false
+#define VERBOSE true
 
 using namespace std;
 
@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
 			int emb_values = emb;
 			Accrqa_Error error;
 			accrqa_RR(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_NV_GPU, &error);
-			
+			if(VERBOSE) printf("----> Done\n");
 			
 			if(VERBOSE) printf("--> GPU DET and LAM\n");
 			vector<RQAdp> result_DET;
@@ -356,8 +356,10 @@ int main(int argc, char* argv[]) {
 				RQAdp LAM, TT, TTmax;
 				
 				accrqa_DET(output_DET, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
+				if(VERBOSE) printf("----> Done\n");
 				
 				accrqa_LAM(output_LAM, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
+				if(VERBOSE) printf("----> Done\n");
 				
 				result_DET.push_back(output_DET[0]);
 				result_L.push_back(output_DET[1]);
@@ -410,6 +412,7 @@ int main(int argc, char* argv[]) {
 			int emb_values = emb;
 			Accrqa_Error error;
 			accrqa_RR(RR, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_CPU, &error);
+			if(VERBOSE) printf("----> Done\n");
 			
 			
 			std::ofstream FILEOUT;
@@ -426,7 +429,7 @@ int main(int argc, char* argv[]) {
 		
 		//-------------- Laminarity
 		if(CPU_RQA_LAM){
-			printf("--> CPU laminarity\n");
+			if(VERBOSE) printf("--> CPU laminarity\n");
 			std::vector<RQAdp> result_l2_LAM;
 			std::vector<RQAdp> result_l2_TT;
 			std::vector<RQAdp> result_l2_TTmax;
@@ -448,6 +451,7 @@ int main(int argc, char* argv[]) {
 				delete[] output;
 				//=============
 			}
+			if(VERBOSE) printf("----> Done\n");
 			
 			std::ofstream FILEOUT;
 			sprintf(str, "test_CPU_LAM_TT_t%d_e%d_l%d.dat", tau, emb, vmin);
@@ -466,7 +470,7 @@ int main(int argc, char* argv[]) {
 		
 		//-------------- Determinism
 		if(CPU_RQA_DET){
-			printf("--> CPU determinism\n");
+			if(VERBOSE) printf("--> CPU determinism\n");
 			std::vector<RQAdp> result_l2_DET;
 			std::vector<RQAdp> result_l2_L;
 			std::vector<RQAdp> result_l2_Lmax;
@@ -490,6 +494,7 @@ int main(int argc, char* argv[]) {
 				delete[] output;
 				//=============
 			}
+			if(VERBOSE) printf("----> Done\n");
 			
 			std::ofstream FILEOUT;
 			sprintf(str, "test_CPU_DET_L_t%d_e%d_l%d.dat", tau, emb, lmin);
