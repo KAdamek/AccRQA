@@ -16,6 +16,16 @@ void rqa_CPU_RR_metric_ref(
 	int distance_type
 );
 
+template <typename input_type>
+void rqa_CPU_RR_metric_ref_parallel(
+	input_type *output_RR, 
+	input_type *time_series, 
+	unsigned long long int input_size, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	int distance_type
+);
 
 template <typename input_type>
 void rqa_CPU_RR_metric(

@@ -766,7 +766,7 @@ void calculate_RR_CPU_default(
 				input_type RR_value = 0;
 				input_type threshold = threshold_values[th_id];
 				
-				rqa_CPU_RR_metric_ref(
+				rqa_CPU_RR_metric_ref_parallel(
 					&RR_value, 
 					input_data, 
 					(unsigned long long int) input_size, 

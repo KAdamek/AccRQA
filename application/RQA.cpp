@@ -18,12 +18,10 @@ using namespace std;
 
 typedef double RQAdp;
 
-bool UNIT_TESTS = false;
-
-bool CPU_RQA = false;
-bool CPU_RQA_RR = false;
-bool CPU_RQA_DET = false;
-bool CPU_RQA_LAM = false;
+bool CPU_RQA = true;
+bool CPU_RQA_RR = true;
+bool CPU_RQA_DET = true;
+bool CPU_RQA_LAM = true;
 
 bool GPU_RQA = true;
 bool GPU_RQA_RR = false;

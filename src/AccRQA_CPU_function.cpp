@@ -5,6 +5,7 @@
 #include <vector>
 #include <string.h>
 #include <math.h>
+#include <omp.h>
 
 //---------------------- Utilities ------------------------->
 template <typename input_type>
@@ -211,6 +212,34 @@ void rqa_CPU_RR_metric_ref(
 	for(long int i=0; i<corrected_size; i++) {
 		for(long int j=0; j<corrected_size; j++) {
 			sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
+		}
+	}
+	*output_RR = ((input_type) sum)/((input_type) (corrected_size*corrected_size));
+}
+
+template <typename input_type>
+void rqa_CPU_RR_metric_ref_parallel(
+	input_type *output_RR, 
+	input_type *time_series, 
+	unsigned long long int input_size, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	int distance_type
+) {
+	long int corrected_size = input_size - (emb - 1)*tau;
+	
+	unsigned long long int sum = 0;
+	#pragma omp parallel shared(sum) 
+	{
+		//int th_idx = omp_get_thread_num();
+		//int nThreads = omp_get_num_threads();
+		//if(th_idx==0) printf("Using %d omp threads.\n", nThreads);
+		#pragma omp for reduction(+:sum)
+		for(long int i=0; i<corrected_size; i++) {
+			for(long int j=0; j<corrected_size; j++) {
+				sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
+			}
 		}
 	}
 	*output_RR = ((input_type) sum)/((input_type) (corrected_size*corrected_size));
