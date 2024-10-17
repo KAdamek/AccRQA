@@ -359,7 +359,7 @@ void calculate_LAM_GPU_default(input_type *output, input_type *input_data, size_
 				for(int v_id = 0; v_id < nVmins; v_id++){
 					int vmin = vmin_values[v_id];
 					
-					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + th_id*nVmins + v_id;
+					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + v_id*nThresholds + th_id;
 					output[5*pos + 0] = LAMresults.LAM(vmin);
 					output[5*pos + 1] = LAMresults.TT(vmin);
 					output[5*pos + 2] = LAMresults.TTmax();
@@ -388,7 +388,7 @@ void calculate_LAM_CPU_default(input_type *output, input_type *input_data, size_
 				for(int v_id = 0; v_id < nVmins; v_id++){
 					int vmin = vmin_values[v_id];
 					
-					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + th_id*nVmins + v_id;
+					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + v_id*nThresholds + th_id;
 					output[5*pos + 0] = LAMresults.LAM(vmin);
 					output[5*pos + 1] = LAMresults.TT(vmin);
 					output[5*pos + 2] = LAMresults.TTmax();
@@ -493,7 +493,7 @@ void calculate_DET_GPU_default(input_type *output, input_type *input_data, size_
 				for(int l_id = 0; l_id < nLmins; l_id++){
 					int lmin = lmin_values[l_id];
 					
-					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + th_id*nLmins + l_id;
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = DETresults.DET(lmin);
 					output[5*pos + 1] = DETresults.L(lmin);
 					output[5*pos + 2] = DETresults.Lmax();
@@ -528,7 +528,7 @@ void calculate_DET_GPU_sum(input_type *output, input_type *input_data, size_t da
 						data_size, distance_type, 
 						&execution_time, error
 					);
-					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + th_id*nLmins + l_id;
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = h_DET;
 					output[5*pos + 1] = h_L;
 					output[5*pos + 2] = h_Lmax;
