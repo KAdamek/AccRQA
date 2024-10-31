@@ -28,6 +28,9 @@ To compile binding to R, you have to specify R library location using `-DCMAKE_R
 
     cmake -DCMAKE_R_INC_DIR="/usr/share/R/include" -DCMAKE_R_LIB_DIR="/usr/lib/R/lib/libR.so"  ../
 
+To compile tests set `-DBUILD_TESTS=ON`.
+To compile example C/C++ application set `-DBUILD_APPLICATIONS=ON`.
+
 The software can then be compiled using the generated Makefile. To do so, simply type
 
     make

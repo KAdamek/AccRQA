@@ -9,6 +9,9 @@ set(ACCRQA_VERSION_SUFFIX "")
 
 set(CMAKE_CXX_STANDARD 11)
 
+option(BUILD_APPLICATIONS "Build example C/C++ application" OFF)
+option(BUILD_TESTS "Build test program" OFF)
+
 # Add local CMake module path.
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -72,10 +75,14 @@ else()
 endif()
 
 # Build example application.
-add_subdirectory(application)
+if(BUILD_APPLICATIONS)
+    add_subdirectory(application)
+endif()
 
 # Build tests.
-add_subdirectory(tests)
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 #target_link_libraries(${CMAKE_PROJECT_NAME} ${CUDA_CUFFT_LIBRARIES})
 target_link_libraries(${CMAKE_PROJECT_NAME} OpenMP::OpenMP_CXX)

@@ -1,0 +1,51 @@
+[project]
+name = "accrqa"
+version = "0.5.0"
+description = "AccRQA calculates recurrence quantification analysis (RQA)"
+readme = "README.md"
+license = {text = "MIT License"}
+dependencies = [
+    "numpy >= 1.7.0",
+    "pandas >= 1.4.3"
+]
+requires-python = ">= 3.8"
+authors = [
+  {name = "Karel Adamek"},
+  {name = "Jan Novotny"},
+  {name = "Radim Panis"},
+  {name = "Marwan Norbert"},
+]
+keywords = ["rqa", "astronomy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Environment :: GPU :: NVIDIA CUDA :: 7.0",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering"
+]
+
+[project.optional-dependencies]
+cuda = ["cupy-cuda12x >= 12.0.0"]
+
+[project.urls]
+Documentation = "https://kadamek.github.io/AccRQA/index.html"
+Repository = "https://github.com/KAdamek/AccRQA.git"
+Issues = "https://github.com/KAdamek/AccRQA/issues"
+
+[build-system]
+#requires = ["setuptools >= 68.1.0", "wheel"]
+requires = [
+    "setuptools >= 68.1.0",
+    "wheel",
+    "cmake>=3.12",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

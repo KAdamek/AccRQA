@@ -121,27 +121,11 @@ class CMakeBuild(build_ext):
 
 setup(
     name="accrqa",
-    version="0.5.0",
-    description="AccRQA calculates recurrence quantification analysis (RQA) metrics using CUDA",
     ext_modules=[CMakeExtension("accrqa")],
     cmdclass={"build_ext": CMakeBuild},
     packages=setuptools.find_namespace_packages(where="src"),
     package_dir={"": "src"},
     include_package_data=True,
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Environment :: Console",
-        "Environment :: GPU :: NVIDIA CUDA :: 7.0",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Programming Language :: Python :: 3",
-        "Topic :: Scientific/Engineering"
-    ],
-    install_requires=['numpy'],
-    setup_requires=['numpy'],
-    author="Adamek Karel, Novotny Jan, Panis Radim, Marwan Norbert",
-    url="https://github.com/KAdamek/AccRQA",
-    license="MIT"
 )
+
 
