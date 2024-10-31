@@ -93,7 +93,6 @@ void py_accrqa_RR(
 	int int_comp_platform, 
 	Accrqa_Error *error
 ) {
-	printf("in accrqa_RR\n");
 	if(
 		mem_location(mem_output_RR) != MEM_CPU 
 		|| mem_location(mem_input) != MEM_CPU 
@@ -164,7 +163,6 @@ void py_accrqa_RR(
 	int nEmbs = mem_shape_dim(mem_emb_values, 0);
 	
 	if(mem_type(mem_input) == MEM_FLOAT){
-		printf("doing float\n");
 		float *threshold_values = (float *) mem_data(mem_threshold_values);
 		int nThresholds = mem_shape_dim(mem_threshold_values, 0);
 		float *input_data = (float *) mem_data(mem_input);
@@ -174,7 +172,6 @@ void py_accrqa_RR(
 		accrqa_RR(output, input_data, input_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, comp_platform, error);
 	}
 	else if(mem_type(mem_input) == MEM_DOUBLE){
-		printf("doing double\n");
 		double *threshold_values = (double *) mem_data(mem_threshold_values);
 		int nThresholds = mem_shape_dim(mem_threshold_values, 0);
 		double *input_data = (double *) mem_data(mem_input);
@@ -311,7 +308,6 @@ void py_accrqa_DET(
 	int nLmins = mem_shape_dim(mem_lmin_values, 0);
 	
 	if(mem_type(mem_input) == MEM_FLOAT){
-		printf("doing float\n");
 		float *threshold_values = (float *) mem_data(mem_threshold_values);
 		int nThresholds = mem_shape_dim(mem_threshold_values, 0);
 		float *input_data = (float *) mem_data(mem_input);
@@ -321,7 +317,6 @@ void py_accrqa_DET(
 		accrqa_DET(output, input_data, input_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, comp_platform, error);
 	}
 	else if(mem_type(mem_input) == MEM_DOUBLE){
-		printf("doing double\n");
 		double *threshold_values = (double *) mem_data(mem_threshold_values);
 		int nThresholds = mem_shape_dim(mem_threshold_values, 0);
 		double *input_data = (double *) mem_data(mem_input);
@@ -459,7 +454,6 @@ void py_accrqa_LAM(
 	int nVmins = mem_shape_dim(mem_vmin_values, 0);
 	
 	if(mem_type(mem_input) == MEM_FLOAT){
-		printf("doing float\n");
 		float *threshold_values = (float *) mem_data(mem_threshold_values);
 		int nThresholds = mem_shape_dim(mem_threshold_values, 0);
 		float *input_data = (float *) mem_data(mem_input);
@@ -469,7 +463,6 @@ void py_accrqa_LAM(
 		accrqa_LAM(output, input_data, input_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, comp_platform, error);
 	}
 	else if(mem_type(mem_input) == MEM_DOUBLE){
-		printf("doing double\n");
 		double *threshold_values = (double *) mem_data(mem_threshold_values);
 		int nThresholds = mem_shape_dim(mem_threshold_values, 0);
 		double *input_data = (double *) mem_data(mem_input);

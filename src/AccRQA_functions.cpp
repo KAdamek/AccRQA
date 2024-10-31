@@ -434,16 +434,13 @@ void accrqa_LAM_CPU_t(input_type *output, input_type *input_data, size_t data_si
 void accrqa_LAM(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, float *threshold_values, int nThresholds, Accrqa_Distance distance_type, int calc_ENTR, Accrqa_CompPlatform comp_platform, Accrqa_Error *error) {
 	if(comp_platform==PLT_NV_GPU){
 		#ifdef CUDA_FOUND
-			printf("===> Doing GPU!!\n");
 			accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			printf("===> Doing CPU!!\n");
 			accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
 		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
-		printf("===> Doing CPU!!\n");
 		accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -451,17 +448,14 @@ void accrqa_LAM(float *output, float *input_data, size_t data_size, int *tau_val
 void accrqa_LAM(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, double *threshold_values, int nThresholds, Accrqa_Distance distance_type, int calc_ENTR, Accrqa_CompPlatform comp_platform, Accrqa_Error *error) {
 	if(comp_platform==PLT_NV_GPU){
 		#ifdef CUDA_FOUND
-			printf("===> Doing GPU!!\n");
 			accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
 			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
-			printf("===> Doing CPU!!\n");
 			accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
 		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
-		printf("===> Doing CPU!!\n");
 		accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -615,17 +609,14 @@ void accrqa_DET_CPU_t(input_type *output, input_type *input_data, size_t data_si
 void accrqa_DET(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, float *threshold_values, int nThresholds, Accrqa_Distance distance_type, int calc_ENTR, Accrqa_CompPlatform comp_platform, Accrqa_Error *error) {
 	if(comp_platform==PLT_NV_GPU){
 		#ifdef CUDA_FOUND
-			printf("===> Doing GPU!!\n");
 			accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
 			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
-			printf("===> Doing CPU!!\n");
 			accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
 		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
-		printf("===> Doing CPU!!\n");
 		accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -633,17 +624,14 @@ void accrqa_DET(float *output, float *input_data, size_t data_size, int *tau_val
 void accrqa_DET(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, double *threshold_values, int nThresholds, Accrqa_Distance distance_type, int calc_ENTR, Accrqa_CompPlatform comp_platform, Accrqa_Error *error) {
 	if(comp_platform==PLT_NV_GPU){
 		#ifdef CUDA_FOUND
-			printf("===> Doing GPU!!\n");
 			accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
 			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
-			printf("===> Doing CPU!!\n");
 			accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
 		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
-		printf("===> Doing CPU!!\n");
 		accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -874,17 +862,14 @@ void accrqa_RR_CPU_t(input_type *output, input_type *input_data, size_t data_siz
 void accrqa_RR(float *output, float *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, float *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_CompPlatform comp_platform, Accrqa_Error *error) {
 	if(comp_platform==PLT_NV_GPU){
 		#ifdef CUDA_FOUND
-			printf("===> Doing GPU!!\n");
 			accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#else
 			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
-			printf("===> Doing CPU!!\n");
 			accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#endif
 	}
 	else {
 		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
-		printf("===> Doing CPU!!\n");
 		accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 	}
 }
@@ -892,17 +877,14 @@ void accrqa_RR(float *output, float *input_data, size_t data_size, int *tau_valu
 void accrqa_RR(double *output, double *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, double *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_CompPlatform comp_platform, Accrqa_Error *error) {
 	if(comp_platform==PLT_NV_GPU){
 		#ifdef CUDA_FOUND
-			printf("===> Doing GPU!!\n");
 			accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#else
 			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
-			printf("===> Doing CPU!!\n");
 			accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#endif
 	}
 	else {
 		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
-		printf("===> Doing CPU!!\n");
 		accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 	}
 }
