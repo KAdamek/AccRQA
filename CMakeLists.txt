@@ -32,7 +32,12 @@ endif()
 
 # Dependencies
 if (FIND_CUDA OR NOT DEFINED FIND_CUDA)
-    find_package(CUDA 7.0)
+    find_package(CUDAToolkit 7.0)
+endif()
+if (CUDAToolkit_FOUND)
+    enable_language(CUDA)
+    #add_definitions(-DCUDA_FOUND)
+    add_compile_definitions(CUDA_FOUND)
 endif()
 find_package(OpenMP QUIET)
 
@@ -44,18 +49,15 @@ enable_testing()
 add_subdirectory(src)
 
 # Build library using list of source files.
-if (CUDA_FOUND)
+if (CUDAToolkit_FOUND)
     # Add CUDA kernel sources.
     list(APPEND ${CMAKE_PROJECT_NAME}_SRC ${${CMAKE_PROJECT_NAME}_CUDA_SRC})
-    set(CUDA_GENERATED_OUTPUT_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${CMAKE_PROJECT_NAME}.dir/src)
-    cuda_add_library(${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SRC})
-    target_link_libraries(${CMAKE_PROJECT_NAME} ${CUDA_CUFFT_LIBRARIES})
-    add_definitions( -DCUDA_FOUND )
+    add_library(${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SRC})
+    target_link_libraries(${CMAKE_PROJECT_NAME} CUDA::cudart_static)
 else()
     add_library(${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SRC})
-    message("CUDA not found.")
 endif()
+
 if (NOT DEFINED PYTHON_EXECUTABLE)
     set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
         SOVERSION ${ACCRQA_VERSION_ID}
