@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+import sysconfig
 
 import setuptools
 from setuptools import Extension, setup
@@ -17,6 +18,14 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
+
+def path_to_build_folder():
+    """Returns the name of a distutils build directory"""
+    f = "{dirname}.{platform}-{version[0]}.{version[1]}"
+    dir_name = f.format(dirname='lib',
+                    platform=sysconfig.get_platform(),
+                    version=sys.version_info)
+    return os.path.join('build', dir_name, 'accrqa')
 
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
@@ -111,13 +120,20 @@ class CMakeBuild(build_ext):
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-
+        
+        cmake_args += [f"-DCMAKE_INSTALL_PREFIX={extdir}"]
+        print(cmake_args)
         subprocess.check_call(
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp
         )
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
+        subprocess.check_call(
+            ["cmake", "--install", "."] + ["--config", cfg], cwd=self.build_temp
+        )
+        # if windows add install step into path_to_build_folder() and add DLLs
+        # as package_data in the python package.
 
 setup(
     name="accrqa",

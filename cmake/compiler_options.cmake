@@ -4,9 +4,6 @@ macro(APPEND_FLAGS FLAG_VAR)
     endforeach()
 endmacro()
 
-# Set general compiler flags.
-set(BUILD_SHARED_LIBS ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (NOT WIN32)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang.*")
@@ -143,7 +140,7 @@ endif (CUDAToolkit_FOUND)
 # Printing only below this line.
 message("===============================================================================")
 message("-- INFO: CMAKE_CUDA_ARCHITECTURES    ${CMAKE_CUDA_ARCHITECTURES}")
-message("-- INFO: AccRQA version    ${ACCRQA_VERSION_ID}")
+message("-- INFO: AccRQA version    ${ACCRQA_VERSION_STRING}")
 message("-- INFO: Build type        ${CMAKE_BUILD_TYPE}")
 message("-- INFO: Compiler ID       ${CMAKE_C_COMPILER_ID}:${CMAKE_CXX_COMPILER_ID}")
 message("===============================================================================")

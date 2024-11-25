@@ -3,6 +3,7 @@
 import glob
 import os
 import threading
+import sys
 
 import numpy
 
@@ -13,11 +14,14 @@ import numpy
 # to hold the library handle.
 
 class accrqaLib:
-    name = "libaccrqa"
+    if sys.platform == 'win32':
+        name = "accrqa.dll"
+    else:
+        name = "libaccrqa" 
     env_name = "ACCRQA_LIB_DIR"
     this_dir = os.path.dirname(os.path.abspath(__file__))
     package_root = os.path.join(this_dir, "..")
-    search_dirs = [".", package_root, "/usr/local/lib"]
+    search_dirs = [".", package_root, this_dir, "/usr/local/lib"]
     lib = None
     mutex = threading.Lock()
 

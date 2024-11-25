@@ -1,12 +1,12 @@
-#ifndef _ACCRQA_LENGTHHISTOGRAM_HPP
-#define _ACCRQA_LENGTHHISTOGRAM_HPP
+#ifndef _ACCRQA_FUNCTIONS_HPP
+#define _ACCRQA_FUNCTIONS_HPP
 
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <vector>
+#include <set>
 
-#include "AccRQA_config.hpp"
 #include "AccRQA_utilities_error.hpp"
 #include "AccRQA_utilities_comp_platform.hpp"
 #include "AccRQA_utilities_distance.hpp"
