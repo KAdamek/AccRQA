@@ -1,5 +1,4 @@
 include CMakeLists.txt
 include cmake/*.cmake
-recursive-include docs *
 include include/*
 recursive-include src *
