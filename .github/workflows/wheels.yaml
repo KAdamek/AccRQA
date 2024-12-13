@@ -3,7 +3,7 @@ name: Build
 on: [push, pull_request]
 
 env:
-  CIBW_BUILD_VERBOSITY: 2
+  CIBW_BUILD_VERBOSITY: 1
 
 jobs:
   build_linux_wheels:
@@ -13,7 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        cibw_python: ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+        #cibw_python: ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+        cibw_python: ["cp310-*"]
         cibw_manylinux: [manylinux2014]
         cibw_arch: ["x86_64"]
     steps:
@@ -32,7 +33,65 @@ jobs:
           CIBW_SKIP: "*-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.cibw_manylinux }}
           CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.cibw_manylinux }}
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
           path: ./dist/*.whl
+          config-file: "pyproject.toml"
+
+  build_windows_wheels:
+    name: Build ${{ matrix.cibw_python }} ${{ matrix.cibw_arch }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        cibw_arch: ["AMD64"]
+        #cibw_python: ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+        cibw_python: ["cp310-*"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        name: Install Python
+        with:
+          python-version: "3.12"
+
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install cibuildwheel
+
+      - name: Build AMD64 Windows wheels for CPython
+        if: matrix.cibw_arch == 'AMD64'
+        run: |
+          function Invoke-VSDevEnvironment {
+            $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+              $installationPath = & $vswhere -prerelease -legacy -latest -property installationPath
+              $Command = Join-Path $installationPath "Common7\Tools\vsdevcmd.bat"
+            & "${env:COMSPEC}" /s /c "`"$Command`" -arch=amd64 -no_logo && set" | Foreach-Object {
+                  if ($_ -match '^([^=]+)=(.*)') {
+                      [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2])
+                  }
+              }
+          }
+          Invoke-VSDevEnvironment
+          Get-Command rc.exe | Format-Table -AutoSize
+          python -m cibuildwheel --output-dir dist
+        env:
+          # define CC, CXX so meson will use clang-cl instead of MSVC
+          #CC: clang-cl
+          #CXX: clang-cl
+          CIBW_BUILD: ${{ matrix.cibw_python }}
+          CIBW_ARCHS_WINDOWS: ${{ matrix.cibw_arch }}
+          # -Wl,-S equivalent to gcc's -Wl,--strip-debug
+          #LDFLAGS: "-Wl,-S"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
+          path: ./dist/*.whl
+
