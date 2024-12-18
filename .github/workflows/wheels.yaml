@@ -125,6 +125,8 @@ jobs:
       - name: Build wheels for CPython Mac OS
         run: |
           python -m cibuildwheel --output-dir dist
+          export LDFLAGS="-L/usr/local/opt/libomp/lib"
+          export CPPFLAGS="-I/usr/local/opt/libomp/include"
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_ARCHS_MACOS: ${{ matrix.cibw_arch }}
