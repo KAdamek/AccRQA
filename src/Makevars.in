@@ -1,0 +1,40 @@
+CXX = g++
+NVCC = @CUDA_HOME@/bin/nvcc
+
+# Compilation flags
+CXXFLAGS2 := -O3 -Wall -std=c++11 -fPIC @ACCRQA_CXXFLAGS@
+PKG_CXXFLAGS := -I@CUDA_HOME@/include -I@R_HOME@/include @R_INCL@
+PKG_LIBS := -L@CUDA_HOME@/lib64 -lcudart -lcuda -lcublas -lcurand
+NVCC_FLAGS := @NVCC_FLAGS@
+
+# Find all .cpp and .cu files
+CPP_FILES := $(wildcard *.cpp)
+CU_FILES := $(wildcard *.cu)
+
+# Generate object file list
+CPP_OBJECTS := $(CPP_FILES:.cpp=.o)
+CU_OBJECTS := $(CU_FILES:.cu=.o)
+OBJECTS = $(CPP_OBJECTS) 
+OBJECTS += $(CU_OBJECTS)
+
+# Debugging info
+$(info Building with CXXFLAGS: $(CXXFLAGS))
+$(info CPP Files: $(CPP_FILES))
+$(info CU Files: $(CU_OBJECTS))
+$(info Object Files: $(OBJECTS))
+
+# Rule to compile C++ files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS2) $(PKG_CXXFLAGS) -c $< -o $@
+
+# Rule to compile CUDA files
+%.o: %.cu
+	$(NVCC) -O3 -std=c++17 $(NVCC_FLAGS) -c $< -o $@ -Xcompiler "-fPIC"
+
+# Build the shared object library
+AccRQA.so: $(OBJECTS)
+	$(CXX) -shared -o $@ $(OBJECTS) $(PKG_LIBS)
+
+# Clean rule
+clean:
+	rm -f *.o AccRQA.so

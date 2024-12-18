@@ -68,4 +68,4 @@ autom4te.cache/
 .DS_Store
 
 # Custom placeholder
-
+@CUSTOM_IGNORE_RULES@
