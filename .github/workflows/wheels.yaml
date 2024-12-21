@@ -1,7 +1,7 @@
 name: Build
 
-on: [push, pull_request]
-
+on: [workflow_dispatch]
+#To add in the future: https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#running-your-pull_request-workflow-based-on-files-changed-in-a-pull-request
 env:
   CIBW_BUILD_VERBOSITY: 1
 
