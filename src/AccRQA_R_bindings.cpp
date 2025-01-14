@@ -68,15 +68,13 @@ extern "C" {
 	
 		Accrqa_Distance distance_type = check_distance_type2(local_int_distance_type, &error);
 		//std::cout << "Distance type: "<< distance_type << " " << error <<std::endl;
-		if(error != SUCCESS){
-		  return;
-		} 
+		if(error != SUCCESS)  return;
 
 		Accrqa_CompPlatform comp_platform = check_comp_platform2(local_int_comp_platform, &error);
 		//std::cout << "Computation platform: " << comp_platform << " " << error <<std::endl;
 		if(error != SUCCESS) return;
-
-		accrqa_DET(
+    
+    accrqa_DET(
 			output,
 			input,
 			local_input_size,
