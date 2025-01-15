@@ -10,8 +10,8 @@ accrqa_DET(
   emb_values,
   lmin_values,
   threshold_values,
-  norm,
-  calc_ENTR,
+  norm = "euclidean",
+  calc_ENTR = TRUE,
   platform
 )
 }
@@ -35,10 +35,14 @@ accrqa_DET(
 \code{"cpu"}, \code{"nv_gpu"}, etc.}
 }
 \value{
-A list containing:
+A data frame containing:
 \itemize{
+\item \code{Delay}: Specific time delay from the values set in the parameters.
+\item \code{Embedding}: Specific embedding dimension from the values set in the parameters.
+\item \code{Lmin}: Minimal diagonal line lengths set for DET computation.
 \item \code{DET}: The determinism values computed for the given input parameters.
 \item \code{ENTR} (if \code{calc_ENTR = TRUE}): The entropy values corresponding to the DET computations.
+\item \code{RR}: RR values.
 }
 }
 \description{
@@ -71,7 +75,7 @@ results <- accrqa_DET(
   threshold_values = threshold,
   norm = norm_method,
   calc_ENTR = calculate_entropy,
-  platform = comp_platform
+  platform = comp_platform,
 )
 
 }
