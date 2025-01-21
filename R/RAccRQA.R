@@ -142,8 +142,8 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
   )
   metrics <- as.data.frame(matrix(rst$output, ncol = 5, byrow = TRUE))
   colnames(metrics) <- c("DET", "L", "Lmax", "ENTR", "RR")
+  
   result <- cbind(tidy_df, metrics)
-
   return(result)
 }
 
