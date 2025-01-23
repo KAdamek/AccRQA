@@ -122,6 +122,7 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         
         cmake_args += [f"-DCMAKE_INSTALL_PREFIX={extdir}"]
+        cmake_args += [f"-DCUDA_ARCH=ALL"]
         print(cmake_args)
         subprocess.check_call(
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp

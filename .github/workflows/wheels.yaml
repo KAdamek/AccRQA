@@ -1,7 +1,8 @@
-name: Build
+name: Build Python Wheels
 
 on: [workflow_dispatch]
 #To add in the future: https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#running-your-pull_request-workflow-based-on-files-changed-in-a-pull-request
+#https://github.com/actions/runner-images
 env:
   CIBW_BUILD_VERBOSITY: 1
 

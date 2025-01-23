@@ -1,0 +1,50 @@
+name: Build Python Wheels CUDA
+
+on: [workflow_dispatch]
+#To add in the future: https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#running-your-pull_request-workflow-based-on-files-changed-in-a-pull-request
+#https://github.com/actions/runner-images
+env:
+  CIBW_BUILD_VERBOSITY: 1
+
+jobs:
+  build_linux_wheels:
+    name: Build python ${{ matrix.cibw_python }} ${{ matrix.cibw_arch }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        #cibw_python: ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+        cibw_python: ["cp310-*"]
+        cibw_manylinux: [manylinux2014]
+        cibw_arch: ["x86_64"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        name: Install Python
+        with:
+          python-version: "3.12"
+      - uses: Jimver/cuda-toolkit@v0.2.19
+        id: cuda-toolkit
+        with:
+          cuda: '12.5.0'
+      - run: echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+
+      - run: echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+      - run: nvcc -V
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
+      - name: Build the wheel
+        run: python -m cibuildwheel --output-dir dist
+        env:
+          CIBW_BUILD: ${{ matrix.cibw_python }}
+          CIBW_ARCHS_LINUX: ${{ matrix.cibw_arch }}
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.cibw_manylinux }}
+          CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.cibw_manylinux }}
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
+          path: ./dist/*.whl
+          config-file: "pyproject.toml"
