@@ -47,8 +47,16 @@ jobs:
           CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.cibw_manylinux }}
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
           CIBW_BEFORE_ALL: >
+            echo $PATH &&
+            echo $CUDAToolkit_ROOT &&
+            echo $CUDA_HOME &&
             export PATH=$PATH:${{steps.cuda-toolkit.outputs.CUDA_PATH}} &&
-            export CUDAToolkit_ROOT=${{steps.cuda-toolkit.outputs.CUDA_PATH}}
+            export CUDAToolkit_ROOT=${{steps.cuda-toolkit.outputs.CUDA_PATH}} &&
+            echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}" &&
+            echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}" &&
+            echo $PATH &&
+            echo $CUDAToolkit_ROOT &&
+            echo $CUDA_HOME &&
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
