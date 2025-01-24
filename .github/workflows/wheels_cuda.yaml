@@ -37,9 +37,8 @@ jobs:
           export CUDAToolkit_ROOT=${{steps.cuda-toolkit.outputs.CUDA_PATH}}
       - name: Install cibuildwheel
         run: |
-          python -m install pip
-          python -m install pipenv
-          python -m install build
+          python -m pip install pipenv
+          python -m pip install build
       - name: Build the wheel
         run: python -m build --output-dir dist
         env:
