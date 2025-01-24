@@ -8,59 +8,42 @@ env:
 
 jobs:
   build_linux_wheels:
-    name: Build python ${{ matrix.cibw_python }} ${{ matrix.cibw_arch }} wheels on ${{ matrix.os }}
+    name: Build python ${{ matrix.python-version }} ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        #cibw_python: ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
-        cibw_python: ["cp310-*"]
-        cibw_manylinux: [manylinux2014]
-        cibw_arch: ["x86_64"]
+        python-version: [3.12]
+        arch: ["x86_64"]
+        cudaver: ['12.5.0']
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        name: Install Python
+      - name: Code checkout
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - uses: Jimver/cuda-toolkit@v0.2.19
+          python-version: ${{ matrix.python-version }}
+      - name: Install CUDA
+        uses: Jimver/cuda-toolkit@v0.2.19
         id: cuda-toolkit
         with:
-          cuda: '12.5.0'
-      - name: Cuda test
+          cuda: ${{ matrix.cudaver }}
+      - name: CUDA test
         run: |
           echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}"
           echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
           nvcc -V
           export PATH=$PATH:${{steps.cuda-toolkit.outputs.CUDA_PATH}}
           export CUDAToolkit_ROOT=${{steps.cuda-toolkit.outputs.CUDA_PATH}}
-      - name: Install cibuildwheel
+      - name: Install Python dependencies
         run: |
           python -m pip install pipenv
           python -m pip install build
       - name: Build the wheel
         run: python -m build --outdir dist
-        env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}
-          CIBW_ARCHS_LINUX: ${{ matrix.cibw_arch }}
-          CIBW_SKIP: "*-musllinux_*"
-          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.cibw_manylinux }}
-          CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.cibw_manylinux }}
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
-          CIBW_BEFORE_ALL: >
-            echo $PATH &&
-            echo $CUDAToolkit_ROOT &&
-            echo $CUDA_HOME &&
-            export PATH=$PATH:${{steps.cuda-toolkit.outputs.CUDA_PATH}} &&
-            export CUDAToolkit_ROOT=${{steps.cuda-toolkit.outputs.CUDA_PATH}} &&
-            echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}" &&
-            echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}" &&
-            echo $PATH &&
-            echo $CUDAToolkit_ROOT &&
-            echo $CUDA_HOME &&
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-linux-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
+          name: wheels-linux-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
           config-file: "pyproject.toml"
