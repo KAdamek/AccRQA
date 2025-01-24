@@ -40,7 +40,7 @@ jobs:
           python -m pip install pipenv
           python -m pip install build
       - name: Build the wheel
-        run: python -m build --output-dir dist
+        run: python -m build --outdir dist
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_ARCHS_LINUX: ${{ matrix.cibw_arch }}
