@@ -50,7 +50,6 @@ jobs:
           path: ./dist/*.whl
           config-file: "pyproject.toml"
 
-jobs:
   build_windows_cuda_wheels:
     name: Build python ${{ matrix.python-version }} ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
