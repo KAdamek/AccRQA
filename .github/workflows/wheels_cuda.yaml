@@ -75,7 +75,7 @@ jobs:
         id: cuda-toolkit
         with:
           method: 'network'
-          sub-packages: '["nvcc", "visual_studio_integration"]'
+          sub-packages: '["nvcc", "toolkit", "visual_studio_integration"]'
           cuda: ${{ matrix.cudaver }}
       - name: CUDA test
         run: |
