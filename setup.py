@@ -25,6 +25,8 @@ def get_version(version_number):
         suffix = suffix.replace(".", "")
         suffix = "-cu" + suffix[:3]
     version = version_number + suffix
+    f = open("demofile.txt", "r")
+    print(f.read())
     return version
 
 def path_to_build_folder():
