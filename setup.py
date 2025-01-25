@@ -19,7 +19,8 @@ PLAT_TO_CMAKE = {
 }
 
 def get_version(version_number):
-    suffix = os.getenv("ACCRQA_CUDA_VERSION", "")
+    suffix = os.environ.get("ACCRQA_CUDA_VERSION", "")
+    print("Suffix:-"+suffix+"-")
     if suffix != "":
         suffix = suffix.replace(".", "")
         suffix = "-cu" + suffix[:3]
