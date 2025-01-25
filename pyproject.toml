@@ -1,5 +1,6 @@
 [project]
 name = "accrqa"
+dynamic = ["version"]
 description = "AccRQA calculates recurrence quantification analysis (RQA)"
 readme = "README.md"
 license = {text = "MIT License"}
