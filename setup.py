@@ -18,6 +18,13 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
+def get_version(version_number):
+    suffix = os.getenv("ACCRQA_CUDA_VERSION", "")
+    if suffix != "":
+        suffix = suffix.replace(".", "")
+        suffix = "-cu" + suffix[:3]
+    version = version_number + suffix
+    return version
 
 def path_to_build_folder():
     """Returns the name of a distutils build directory"""
@@ -138,7 +145,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="accrqa",
-    version="0.5.4",
+    version=get_version("0.5.5"),
     description="AccRQA calculates recurrence quantification analysis (RQA) metrics using CUDA",
     ext_modules=[CMakeExtension("accrqa")],
     cmdclass={"build_ext": CMakeBuild},
