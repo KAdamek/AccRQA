@@ -107,6 +107,7 @@ jobs:
           }
           Invoke-VSDevEnvironment
           Get-Command rc.exe | Format-Table -AutoSize
+          set ACCRQA_CUDA_VERSION=${{ matrix.cudaver }}
           python -m build --outdir dist
       - uses: actions/upload-artifact@v4
         with:
