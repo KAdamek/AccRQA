@@ -1,6 +1,7 @@
 # Largely from https://github.com/pybind/cmake_example/blob/master/setup.py
 
 import os
+from os import path
 import re
 import subprocess
 import sys
