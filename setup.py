@@ -1,4 +1,5 @@
-# Largely from https://github.com/pybind/cmake_example/blob/master/setup.py
+# Notes on cuda packaging https://pypackaging-native.github.io/key-issues/gpus/
+
 
 import os
 from os import path

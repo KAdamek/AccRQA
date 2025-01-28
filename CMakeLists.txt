@@ -15,7 +15,6 @@ include(CMakePackageConfigHelpers)
 
 # Read version from a file
 file(READ "version.txt" FVERSION)
-message(version="${FVERSION}")
 
 # Separate version into major, minor, patch
 string(REGEX MATCHALL "[^\.]+" FVERSTRINGS ${FVERSION})

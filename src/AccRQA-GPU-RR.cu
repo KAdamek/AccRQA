@@ -1,7 +1,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
-#include "timer.h"
+#include "GPU_timer.h"
 
 #include <stdio.h>
 #include <string.h>

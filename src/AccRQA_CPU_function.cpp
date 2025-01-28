@@ -58,6 +58,46 @@ void get_length_histogram(unsigned long long int *LAM_histogram, input_type *tim
 	}
 }
 
+template <typename input_type>
+void get_length_histogram_DET_inplace(
+	unsigned long long int *length_histogram, 
+	input_type *time_series, 
+	size_t size, 
+	size_t distance_from_diagonal,
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	int distance_type
+){
+	int line_active = 0;
+	size_t line_length = 0;
+	size_t diagonal_length = corrected_size-distance_from_diagonal;
+
+	// upper triangle
+	for(size_t s=0; s<diagonal_length; s++) {
+		long int row = s;
+		long int column = s + distance_from_diagonal;
+		int R_matrix_value = R_matrix_element(time_series, row, column, threshold, tau, emb, distance_type);
+		
+		if (R_matrix_value == 1 && line_active == 0) {
+			line_active = 1;
+			line_length = 1;
+		}
+		if(line_active == 1 && R_matrix_value == 0) {
+			LAM_histogram[line_length]++;
+			line_active = 0;
+		}
+		if(line_active == 1 && R_matrix_value == 1) {
+			line_length++;
+		}
+	}
+
+	// in case diagonal line ends with R_matrix_value = 1
+	if(line_active == 1){
+		LAM_histogram[line_length]++;
+	}
+}
+
 
 template<typename input_type>
 void serialScanInclusive(input_type *result, input_type *h_input, size_t data_size){
@@ -69,15 +109,15 @@ void serialScanInclusive(input_type *result, input_type *h_input, size_t data_si
 	}
 }
 
-/*
-unsigned long long int reduce(unsigned int *histogram, size_t histogram_size){
-	unsigned long long int sum = 0;
-	for(size_t f=1; f<histogram_size; f++){
-		sum = sum + histogram[f];
+
+template<typename input_type>
+void correctDETHistogram(input_type *histogram, unsigned int histogram_size) {
+	for(unsigned int f=0; f<histogram_size; f++){
+		histogram[f] = 2.0*histogram[f];
 	}
-	return(sum);
+	histogram[histogram_size-1];
 }
-*/
+
 
 template<typename input_type>
 void reverseArrayAndMultiply(input_type *destination, input_type *source, unsigned int input_size){
@@ -317,7 +357,7 @@ void rqa_CPU_LAM_metric(
 	long int input_size, 
 	int distance_type
 ) {
-	
+
 }
 //----------------------------------------------------------<
 
@@ -350,6 +390,7 @@ void rqa_CPU_DET_metric_ref(
 	rqa_CPU_R_matrix_ref(R_matrix, time_series, corrected_size, threshold, tau, emb, distance_type);
 	
 	// upper triangle
+	// r is distance from diagonal line
 	for (long int r = corrected_size-1; r>0; r--) {
 		
 		for(long int s=0; s<corrected_size; s++) matrix_line[s] = 0;
@@ -412,7 +453,44 @@ void rqa_CPU_DET_metric(
 	long int input_size, 
 	int distance_type
 ) {
+	int *R_matrix, *matrix_line;
+	unsigned long long int *temp_histogram, *temp_metric;
 	
+	long int corrected_size = input_size - (emb - 1)*tau;
+	
+	// upper triangle
+	// r = distance_from_diagonal
+	for (size_t r = corrected_size-1; r>0; r--) {
+		get_length_histogram_DET_inplace(
+			length_histogram, 
+			time_series, 
+			corrected_size, 
+			r, 
+			threshold, tau, emb, distance_type
+		);
+	}
+	
+	size_t histogram_size = corrected_size + 1;
+	temp_histogram = new unsigned long long int[histogram_size];
+	temp_metric = new unsigned long long int[histogram_size];
+	
+	// Since we have processed only half of the diagonal and omitted central
+	// diagonal line we must add those in.
+	correctDETHistogram(length_histogram, histogram_size);
+	
+	// metric
+	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
+	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
+	reverseArray(metric, temp_metric, histogram_size);
+	
+	// histogram
+	reverseArray(temp_histogram, length_histogram, histogram_size);
+	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
+	reverseArray(scan_histogram, temp_metric, histogram_size);
+
+
+	delete[] temp_histogram;
+	delete[] temp_metric;
 }
 //----------------------------------------------------------<
 
