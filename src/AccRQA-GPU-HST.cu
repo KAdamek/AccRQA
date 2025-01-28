@@ -542,7 +542,6 @@ void RQA_HST_init(){
 	//cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
 	//cudaDeviceSetCacheConfig(cudaFuncCachePreferEqual);
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferEqual);
-	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
 }
 
 //---------------------------- WRAPERS -----------------------------
@@ -687,7 +686,7 @@ void RQA_length_histogram_horizontal_wrapper(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -815,7 +814,7 @@ void RQA_length_histogram_vertical_wrapper(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -943,7 +942,7 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -1072,7 +1071,7 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -1208,7 +1207,7 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	
 	long int corrected_size = input_size - (emb - 1)*tau;
 	int nThreads = 1024;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -1368,7 +1367,7 @@ int GPU_RQA_diagonal_R_matrix_tp(
 	
 	//---------> Measurements
 	*execution_time = 0;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//---------> GPU Memory allocation
 	long int corrected_size = input_size - (emb - 1)*tau;
@@ -1419,7 +1418,7 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 	
 	//---------> Measurements
 	*execution_time = 0;
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	//---------> GPU Memory allocation
 	size_t input_size = nSamples*sizeof(int);

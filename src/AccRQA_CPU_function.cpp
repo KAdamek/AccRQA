@@ -62,7 +62,7 @@ template <typename input_type>
 void get_length_histogram_DET_inplace(
 	unsigned long long int *length_histogram, 
 	input_type *time_series, 
-	size_t size, 
+	size_t corrected_size, 
 	size_t distance_from_diagonal,
 	input_type threshold, 
 	int tau, 
@@ -84,7 +84,7 @@ void get_length_histogram_DET_inplace(
 			line_length = 1;
 		}
 		if(line_active == 1 && R_matrix_value == 0) {
-			LAM_histogram[line_length]++;
+			length_histogram[line_length]++;
 			line_active = 0;
 		}
 		if(line_active == 1 && R_matrix_value == 1) {
@@ -94,7 +94,7 @@ void get_length_histogram_DET_inplace(
 
 	// in case diagonal line ends with R_matrix_value = 1
 	if(line_active == 1){
-		LAM_histogram[line_length]++;
+		length_histogram[line_length]++;
 	}
 }
 
