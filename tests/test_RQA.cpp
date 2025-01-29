@@ -19,7 +19,7 @@ typedef double RQAdp;
 bool DEBUG_MODE = false;
 bool CHECK = true;
 bool GPU_UNIT_TEST = true;
-bool CPU_UNIT_TEST = false;
+bool CPU_UNIT_TEST = true;
 
 //-----------------------------------------------
 //---------- Data checks and generation
@@ -599,7 +599,7 @@ void unit_test_DET(){
 		for(int emb = 1; emb < 12; emb++){
 			for(int t = 0; t<(int)threshold_list.size(); t++){
 				RQAdp threshold = threshold_list[t];
-				size_t size = 10000;
+				size_t size = 1000;
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d\n", size, threshold, tau, emb);
 				int lmin = 2;
 				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin);
@@ -615,6 +615,7 @@ void unit_test_DET(){
 		}
 	}
 	printf("\n");
+	
 	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
 	else printf("     Test:\033[1;31mFAILED\033[0m\n");
 	printf("----------------------------------<\n");

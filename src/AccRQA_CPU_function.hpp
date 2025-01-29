@@ -94,6 +94,31 @@ void rqa_CPU_DET_metric(
 	int distance_type
 );
 
+template<typename input_type>
+void rqa_CPU_DET_metric_parallel_mk1(
+	unsigned long long int *metric, 
+	unsigned long long int *scan_histogram, 
+	unsigned long long int *length_histogram, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	input_type *time_series, 
+	long int input_size, 
+	int distance_type
+);
+
+template<typename input_type>
+void rqa_CPU_DET_metric_parallel_mk2(
+	unsigned long long int *metric, 
+	unsigned long long int *scan_histogram, 
+	unsigned long long int *length_histogram, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	input_type *time_series, 
+	long int input_size, 
+	int distance_type
+);
 #include "AccRQA_CPU_function.cpp"
 
 #endif
