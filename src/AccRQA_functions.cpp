@@ -136,7 +136,22 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
-		rqa_CPU_LAM_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		CPU_Timer cpu_timer;
+		
+		//cpu_timer.Start();
+		//rqa_CPU_LAM_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		//cpu_timer.Stop();
+		//printf("LAM CPU reference execution time: %fms\n", (float) cpu_timer.Elapsed());
+
+		//cpu_timer.Start();
+		//rqa_CPU_LAM_metric(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		//cpu_timer.Stop();
+		//printf("LAM CPU inplace execution time: %fms;\n", (float) cpu_timer.Elapsed());
+		
+		//cpu_timer.Start();
+		rqa_CPU_LAM_metric_parallel(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		//cpu_timer.Stop();
+		//printf("LAM CPU inplace parallel execution time: %fms;\n", (float) cpu_timer.Elapsed());
 	}
 	
 	void calculate_rqa_histogram_horizontal_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity

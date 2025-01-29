@@ -68,6 +68,20 @@ void rqa_CPU_LAM_metric(
 
 
 template<typename input_type>
+void rqa_CPU_LAM_metric_parallel(
+	unsigned long long int *metric, 
+	unsigned long long int *scan_histogram, 
+	unsigned long long int *length_histogram, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	input_type *time_series, 
+	long int input_size, 
+	int distance_type
+);
+
+
+template<typename input_type>
 void rqa_CPU_DET_metric_ref(
 	unsigned long long int *metric, 
 	unsigned long long int *scan_histogram, 

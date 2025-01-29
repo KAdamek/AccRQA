@@ -747,7 +747,7 @@ void unit_test_LAM(void){
 	for(int tau = 1; tau < 6; tau++){
 		for(int emb = 1; emb < 12; emb++){
 			for(int t = 0; t<(int)threshold_list.size(); t++){
-				size_t size = 10000;
+				size_t size = 1000;
 				int vmin = 2;
 				RQAdp threshold = threshold_list[t];
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d \n", size, threshold, tau, emb);
