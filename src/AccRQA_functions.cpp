@@ -613,8 +613,100 @@ void calculate_DET_GPU_sum(input_type *output, input_type *input_data, size_t da
 			}
 		}
 	}
-	
 }
+
+template<typename input_type>
+void calculate_DET_GPU_boxcar(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_Error *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+				for(int l_id = 0; l_id < nLmins; l_id++){
+					int lmin = lmin_values[l_id];
+					
+					input_type h_DET = 0, h_L = 0, h_RR = 0;
+					unsigned long long int h_Lmax = 0;
+					double execution_time = 0;
+					GPU_RQA_diagonal_boxcar(
+						&h_DET, &h_L, &h_Lmax, &h_RR,
+						input_data,
+						threshold, tau, emb, lmin, 
+						data_size, distance_type, 
+						&execution_time, error
+					);
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
+					output[5*pos + 0] = h_DET;
+					output[5*pos + 1] = h_L;
+					output[5*pos + 2] = h_Lmax;
+					output[5*pos + 3] = 0;
+					output[5*pos + 4] = h_RR;
+					
+					#ifdef MONITOR_PERFORMANCE
+					printf("DET-sum execution time: %fms;\n", execution_time);
+					char metric_name[200]; 
+					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
+					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
+					std::ofstream FILEOUT;
+					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
+					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
+					FILEOUT.close();
+					#endif
+				}
+			}
+		}
+	}
+}
+
+
+template<typename input_type>
+void calculate_DET_GPU_boxcar_square(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_Error *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+				for(int l_id = 0; l_id < nLmins; l_id++){
+					int lmin = lmin_values[l_id];
+					
+					input_type h_DET = 0, h_L = 0, h_RR = 0;
+					unsigned long long int h_Lmax = 0;
+					double execution_time = 0;
+					GPU_RQA_diagonal_boxcar_square(
+						&h_DET, &h_L, &h_Lmax, &h_RR,
+						input_data,
+						threshold, tau, emb, lmin, 
+						data_size, distance_type, 
+						&execution_time, error
+					);
+					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
+					output[5*pos + 0] = h_DET;
+					output[5*pos + 1] = h_L;
+					output[5*pos + 2] = h_Lmax;
+					output[5*pos + 3] = 0;
+					output[5*pos + 4] = h_RR;
+					
+					#ifdef MONITOR_PERFORMANCE
+					printf("DET-sum execution time: %fms;\n", execution_time);
+					char metric_name[200]; 
+					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
+					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
+					std::ofstream FILEOUT;
+					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
+					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
+					FILEOUT.close();
+					#endif
+				}
+			}
+		}
+	}
+}
+
+
 
 template<typename input_type>
 void calculate_DET_CPU_default(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *lmin_values, int nLmins, input_type *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_Error *error){
@@ -657,17 +749,32 @@ void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	// Default code
 	GPU_Timer gpu_timer;
 	
-	//gpu_timer.Start();
+	gpu_timer.Start();
 	calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-	//gpu_timer.Stop();
-	//printf("Normal GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-	
+	gpu_timer.Stop();
+	printf("Normal GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+	printf("normal DET=%f;\n", output[0]);
 	/*
 	gpu_timer.Start();
 	calculate_DET_GPU_sum(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
 	gpu_timer.Stop();
 	printf("Sum GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
 	*/
+	
+	
+	gpu_timer.Start();
+	calculate_DET_GPU_boxcar(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+	gpu_timer.Stop();
+	printf("Boxcar GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+	printf("boxcar DET=%f;\n", output[0]);
+	
+	
+	gpu_timer.Start();
+	calculate_DET_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+	gpu_timer.Stop();
+	printf("Boxcar square GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+	printf("boxcar square DET=%f;\n", output[0]);
+
 
 	#else
 		*error = ERR_CUDA_NOT_FOUND;

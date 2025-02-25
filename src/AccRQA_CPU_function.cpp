@@ -51,7 +51,6 @@ void get_length_histogram(unsigned long long int *LAM_histogram, input_type *tim
 			while (time_series[f + line_length]==1 && (f + line_length) < size) {
 				line_length++;
 			}
-			//printf("Adding line_length: %d;\n", line_length);
 			LAM_histogram[line_length]++;
 			f = f + line_length;
 		}
@@ -342,6 +341,7 @@ void rqa_CPU_RR_metric(
 
 
 //------------------------ LAM metric ---------------------->
+
 template<typename input_type>
 void rqa_CPU_LAM_metric_ref(
 	unsigned long long int *metric, 
@@ -367,7 +367,7 @@ void rqa_CPU_LAM_metric_ref(
 	temp_metric = new unsigned long long int[histogram_size];
 	
 	rqa_CPU_R_matrix_ref(R_matrix, time_series, corrected_size, threshold, tau, emb, distance_type);
-
+	
 	for (long int r = 0; r<corrected_size; r++) {
 		get_length_histogram(length_histogram, &R_matrix[r*corrected_size], corrected_size);
 	}

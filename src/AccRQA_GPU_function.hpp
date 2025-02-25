@@ -32,5 +32,10 @@ void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogra
 void GPU_RQA_length_histogram_diagonal_sum(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error);
 void GPU_RQA_length_histogram_diagonal_sum(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error);
 
+void GPU_RQA_diagonal_boxcar(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error);
+void GPU_RQA_diagonal_boxcar(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error);
+
+void GPU_RQA_diagonal_boxcar_square(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error);
+void GPU_RQA_diagonal_boxcar_square(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error);
 
 #endif

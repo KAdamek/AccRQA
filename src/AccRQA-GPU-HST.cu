@@ -8,12 +8,15 @@
 #include <fstream>
 #include <iomanip> 
 #include <vector>
+#include <limits>
 
 #include "../include/AccRQA_definitions.hpp"
 #include "../include/AccRQA_utilities_error.hpp"
 #include "GPU_scan.cuh"
 #include "GPU_reduction.cuh"
 #include "AccRQA_metrics.cuh"
+
+#define DET_FAST_MUL 1
 
 using namespace std;
 
@@ -23,6 +26,7 @@ public:
 	static const int nRows_per_thread = 1;
 	static const int warp = 32;
 	static const int shared_memory_size = 512;
+	static const int width = 32;
 };
 
 #define DEBUG_GPU_HST false
@@ -261,6 +265,20 @@ __device__ void GPU_RQA_HST_calculate_sum(
 			atomicAdd(s_N_lmin, 1);
 		}
 	}
+}
+
+__device__ size_t calculate_k(size_t last_block_end){
+	if(last_block_end <= 0) return (0);
+	double c = -2.0*last_block_end; // always negative
+	double D = 1.0 - 4.0*c;
+	double n1 = (__dsqrt_rd(D)-1.0)/2.0;
+	return( (size_t) n1);
+}
+
+__device__ void calculate_coordinates(size_t *i, size_t *j, size_t pos, size_t corrected_size){
+	size_t pk = calculate_k(pos);
+	*i = pos - (pk*(pk-1))/2 - pk;
+	*j = corrected_size - pk - 1 + *i;
 }
 
 
@@ -531,6 +549,334 @@ __global__ void GPU_RQA_HST_length_histogram_diagonal_sum(
 		atomicMax(&d_lmax[0], s_lmax);
 		atomicAdd(&d_N_lmin[0], s_N_lmin);
 	}
+}
+
+template<class const_params, typename IOtype>
+__global__ void GPU_RQA_DET_boxcar(
+		unsigned long long int *d_S_all, 
+		unsigned long long int *d_S_lmin, 
+		unsigned long long int *d_N_lmin, 
+		IOtype const* __restrict__ d_input, 
+		IOtype threshold, 
+		int tau, 
+		int emb, 
+		int lmin, 
+		size_t corrected_size
+	){
+	extern __shared__ int R_values[];
+	__shared__ int warp_scan_partial_sums[3*const_params::warp];
+	
+	// Populate shared memory with values
+	size_t elements_per_block = DET_FAST_MUL*blockDim.x - lmin;
+	size_t global_pos = blockIdx.x*elements_per_block + threadIdx.x;
+	size_t total_elements = ((corrected_size-1)*corrected_size)/2;
+	int sum_before = 0;
+	for(size_t f=0; f<DET_FAST_MUL; f++){
+		int s_pos = blockDim.x*f + threadIdx.x;
+		size_t i = 0, j = corrected_size-1;
+		if(global_pos < total_elements) {
+			calculate_coordinates(
+				&i, &j, 
+				global_pos + f*blockDim.x, corrected_size
+			);
+		}
+		int R_value = R_element_max(
+			d_input,
+			i, j,
+			threshold, tau, emb, corrected_size
+		);
+		R_values[s_pos] = R_value;
+		if(s_pos > 0 && s_pos < (DET_FAST_MUL*blockDim.x - lmin + 1)) {
+			sum_before += R_value;
+		}
+	}
+	__syncthreads();
+	
+	
+	// ==================> Apply boxcar filter
+	int boxcar[DET_FAST_MUL];
+	for(int f=0; f<DET_FAST_MUL - 1; f++){
+		int s_pos = f*blockDim.x + threadIdx.x;
+		boxcar[f] = R_values[s_pos];
+		for(int l=1; l<lmin; l++){
+			boxcar[f] += R_values[s_pos + l];
+		}
+	}
+	boxcar[DET_FAST_MUL - 1] = 0;
+	if(threadIdx.x <= blockDim.x - lmin){
+		int s_pos = (DET_FAST_MUL - 1)*blockDim.x + threadIdx.x;
+		boxcar[DET_FAST_MUL - 1] = R_values[s_pos];
+		for(int l=1; l<lmin; l++){
+			boxcar[DET_FAST_MUL - 1] += R_values[s_pos + l];
+		}
+	}
+	__syncthreads();
+	for(int f=0; f<DET_FAST_MUL; f++){
+		int s_pos = f*blockDim.x + threadIdx.x;
+		R_values[s_pos] = (int) (boxcar[f]/lmin);
+	}
+	__syncthreads();
+	//======================================<
+	
+	
+	
+	// ==================> Apply correction
+	int first = 0, second = 0;
+	int sum_after = 0, num_lines = 0;
+	for(int f=0; f<DET_FAST_MUL - 1; f++){
+		int s_pos = f*blockDim.x + threadIdx.x;
+		first  = R_values[s_pos];
+		second = R_values[s_pos + 1];
+		if(first == 0 && second == 1) {
+			second = second*lmin;
+			num_lines++;
+		}
+		sum_after += second;
+	}
+	// last iteration is unique because last lmin threads do not participate
+	first = 0; second = 0;
+	if(threadIdx.x <= blockDim.x - lmin){
+		int s_pos = (DET_FAST_MUL - 1)*blockDim.x + threadIdx.x;
+		first  = R_values[s_pos];
+		second = R_values[s_pos + 1];
+		if(first == 0 && second == 1) {
+			second = second*lmin;
+			num_lines++;
+		}
+		sum_after += second;
+	}
+	//======================================<
+	
+	
+	
+	// ==================> Reductions
+	Reduce_WARP(&sum_after);
+	Reduce_WARP(&sum_before);
+	Reduce_WARP(&num_lines);
+	int local_id = threadIdx.x & (const_params::warp - 1);
+	int warp_id = threadIdx.x/const_params::warp;
+	if(local_id == 0){
+		warp_scan_partial_sums[warp_id] = sum_after;
+		warp_scan_partial_sums[warp_id + const_params::warp] = sum_before;
+		warp_scan_partial_sums[warp_id + 2*const_params::warp] = num_lines;
+	}
+	__syncthreads();
+	if(warp_id==0){
+		sum_after = warp_scan_partial_sums[local_id];
+		sum_before = warp_scan_partial_sums[const_params::warp + local_id];
+		num_lines = warp_scan_partial_sums[2*const_params::warp + local_id];
+		Reduce_WARP(&sum_after);
+		Reduce_WARP(&sum_before);
+		Reduce_WARP(&num_lines);
+		if(threadIdx.x==0){
+			atomicAdd(&d_S_all[0], sum_before);
+			atomicAdd(&d_S_lmin[0], sum_after);
+			atomicAdd(&d_N_lmin[0], num_lines);
+		}
+	}
+	//======================================<
+}
+
+
+template<class const_params, typename IOtype>
+__global__ void GPU_RQA_DET_boxcar_square(
+		unsigned long long int *d_S_all, 
+		unsigned long long int *d_S_lmin,  
+		unsigned long long int *d_N_lmin, 
+		IOtype const* __restrict__ d_input, 
+		IOtype threshold, 
+		int tau, 
+		int emb, 
+		int lmin, 
+		size_t corrected_size
+	){
+	__shared__ int R_values[const_params::width*const_params::width];
+	__shared__ int warp_scan_partial_sums[3*const_params::warp];
+	// problem is tau and emb therefore I need larger cache
+	extern __shared__ float cached[];
+	int cache_size = 32 + (emb - 1)*tau;
+	if(blockIdx.y > blockIdx.x) return;
+	
+	// cache data for rows
+	size_t global_pos_x = blockIdx.x*(32 - lmin) + threadIdx.x;
+	size_t global_pos_y = blockIdx.y*(32 - lmin) + threadIdx.x;
+	
+	// This is unececessary I can fix this in R_value generation
+	if(threadIdx.x < cache_size) {
+		size_t input_size = corrected_size + (emb - 1)*tau;
+		if(global_pos_y < input_size){
+			// i-th elements that is row
+			cached[threadIdx.x] = d_input[global_pos_y];
+		}
+		if(global_pos_x < input_size){
+			// j-th elements that is column
+			cached[cache_size + threadIdx.x] = d_input[global_pos_x];
+		}
+		
+		/*
+		if(threadIdx.x==0 && blockIdx.x==1 && blockIdx.y==0){
+			printf("cache y:\n");
+			for(int f=0; f<cache_size; f++){
+				printf("%0.3f ", cached[f]);
+			}
+			printf("cache x:\n");
+			for(int f=0; f<cache_size; f++){
+				printf("%0.3f ", cached[cache_size + f]);
+			}
+		}
+		*/
+	}
+	__syncthreads();
+	
+	// Calculate R values and store them
+	int sum_before = 0;
+	int th_x = threadIdx.x&31;
+	int th_y = threadIdx.x>>5;
+	int i = th_y; // row
+	int j = th_x; // column
+	int R_value = 0;
+	if(
+		i + blockIdx.y*(32 - lmin) < corrected_size &&
+		j + blockIdx.x*(32 - lmin) < corrected_size
+	){
+		R_value = R_element_max_cache(
+			cached,
+			i, j,
+			threshold, tau, emb, cache_size
+		);
+	}
+	int s_pos = th_y*32 + th_x;
+	R_values[s_pos] = R_value;
+	__syncthreads();
+	
+	/*
+	if(threadIdx.x==0 && blockIdx.x==1 && blockIdx.y==0){
+		printf("R values:\n");
+		for(int f_i = 0; f_i < 32; f_i++){
+			for(int f_j = 0; f_j < 32; f_j++){
+				int g_pos_x = blockIdx.x*(32 - lmin) + f_j;
+				int g_pos_y = blockIdx.y*(32 - lmin) + f_i;
+				if( g_pos_y >= g_pos_x){
+					printf("X ");
+				}
+				else {
+					printf("%d ", R_values[f_i*32 + f_j]);
+				}
+			}
+			printf("\n");
+		}
+	}
+	__syncthreads();
+	*/
+	
+	if(
+		th_x > 0 && th_x < (32 - lmin + 1) &&
+		th_y > 0 && th_y < (32 - lmin + 1)
+	) {
+		sum_before += R_value;
+	}
+	__syncthreads();
+	
+	
+	// ==================> Apply boxcar filter
+	int boxcar;
+	s_pos = th_y*32 + th_x;
+	boxcar = R_values[s_pos];
+	// Doing DET
+	for(int l=1; l<lmin; l++){
+		// Calculating new coordinates for boxcar filter
+		// If these overflow it does not matter because of the apron data
+		int new_th_y = (th_y + l)&(const_params::width-1);
+		int new_th_x = (th_x + l)&(const_params::width-1);
+		s_pos = new_th_y*32 + new_th_x;
+		boxcar += R_values[s_pos];
+	}
+	__syncthreads();
+	s_pos = th_y*32 + th_x;
+	R_values[s_pos] = (int) (boxcar/lmin);
+	__syncthreads();
+	
+	/*
+	if(threadIdx.x==0){
+		printf("After boxcar filter:\n");
+		for(int f_i = 0; f_i < 32; f_i++){
+			for(int f_j = 0; f_j < 32; f_j++){
+				printf("%d ", R_values[f_i*32 + f_j]);
+			}
+			printf("\n");
+		}
+	}
+	__syncthreads();
+	*/
+	//======================================<
+	
+	
+	
+	// ==================> Apply correction
+	int first = 0, second = 0;
+	int sum_after = 0, num_lines = 0;
+	if(
+		th_x > 0 && th_x < (32 - lmin + 1) &&
+		th_y > 0 && th_y < (32 - lmin + 1)
+	) {
+		s_pos = th_y*32 + th_x;
+		first  = R_values[(th_y - 1)*32 + (th_x - 1)];
+		second = R_values[s_pos];
+		if(first == 0 && second == 1) {
+			second = second*lmin;
+			num_lines++;
+		}
+		sum_after += second;
+		
+		R_values[s_pos] = second;
+	}
+	/*
+	if(threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0){
+		printf("After correction:\n");
+		for(int f_i = 0; f_i < 32; f_i++){
+			for(int f_j = 0; f_j < 32; f_j++){
+				printf("%d ", R_values[f_i*32 + f_j]);
+			}
+			printf("\n");
+		}
+	}
+	__syncthreads();
+	*/
+	//======================================<
+	
+	int g_pos_x = blockIdx.x*(32 - lmin) + th_x;
+	int g_pos_y = blockIdx.y*(32 - lmin) + th_y;
+	if( g_pos_y >= g_pos_x){
+		sum_before = 0;
+		sum_after = 0;
+		num_lines = 0;
+	}
+	// ==================> Reductions
+	Reduce_WARP(&sum_after);
+	Reduce_WARP(&sum_before);
+	Reduce_WARP(&num_lines);
+	int local_id = threadIdx.x & (const_params::warp - 1);
+	int warp_id = threadIdx.x/const_params::warp;
+	if(local_id == 0){
+		warp_scan_partial_sums[warp_id] = sum_after;
+		warp_scan_partial_sums[warp_id + const_params::warp] = sum_before;
+		warp_scan_partial_sums[warp_id + 2*const_params::warp] = num_lines;
+	}
+	__syncthreads();
+	if(warp_id==0){
+		sum_after = warp_scan_partial_sums[local_id];
+		sum_before = warp_scan_partial_sums[const_params::warp + local_id];
+		num_lines = warp_scan_partial_sums[2*const_params::warp + local_id];
+		Reduce_WARP(&sum_after);
+		Reduce_WARP(&sum_before);
+		Reduce_WARP(&num_lines);
+		if(threadIdx.x==0){
+			atomicAdd(&d_S_all[0], sum_before);
+			atomicAdd(&d_S_lmin[0], sum_after);
+			atomicAdd(&d_N_lmin[0], num_lines);
+		}
+	}
+	//======================================<
 }
 
 //---------------------------------------------------------------------------------
@@ -1321,6 +1667,315 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 }
 
 
+// This version is introduces boxcar filtering and which disregards creating 
+//  length histogram and applies boxcar filter to eliminate lines of 
+//  length < lmin and then correcting for it. It also introduces load balancing
+//  coordinate calculation.
+template<class const_params, typename IOtype>
+void RQA_diagonal_boxcar_wrapper(
+	IOtype *h_DET, 
+	IOtype *h_L, 
+	unsigned long long int *h_Lmax, 
+	IOtype *h_RR, 
+	IOtype *h_input, 
+	IOtype threshold, 
+	int tau, 
+	int emb, 
+	int lmin, 
+	size_t input_size,
+	double *execution_time,
+	Accrqa_Error *error
+){
+	if(*error != SUCCESS) return;
+	GPU_Timer timer;
+	
+	//---------> Checking that device is present
+	int devCount;
+	cudaError_t cudaError;
+	cudaError = cudaGetDeviceCount(&devCount);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
+		return;
+	}
+	
+	//----------> Allocation of input
+	size_t allocation_size = input_size + 1;
+	size_t corrected_size = allocation_size - (emb - 1)*tau;
+	IOtype *d_input;
+	cudaError = cudaMalloc((void **) &d_input, allocation_size*sizeof(IOtype));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_input = NULL;
+	}
+	cudaError = cudaMemcpy(d_input, h_input, input_size*sizeof(IOtype), cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	IOtype extreme_value = std::numeric_limits<IOtype>::max();
+	cudaError = cudaMemcpy(&d_input[input_size], &extreme_value, sizeof(IOtype), cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	
+	
+	//-----------> Kernel configurations
+	// CUDA grid and block size for length histogram calculation
+	// -1 because diagonal is not used and corrected for later
+	
+	//---------> GPU Memory allocation
+	unsigned long long int *d_S_all;
+	unsigned long long int *d_S_lmin;
+	unsigned long long int *d_N_lmin;
+	cudaError = cudaMalloc((void **) &d_S_all,  sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_S_all = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_S_lmin, sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_S_lmin = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_N_lmin, sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_N_lmin = NULL;
+	}
+	
+	
+	timer.Start();
+	//---------> Memory copy and preparation
+	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
+	cudaMemset(d_S_lmin, 0, sizeof(unsigned long long int));
+	cudaMemset(d_N_lmin, 0, sizeof(unsigned long long int));
+
+	
+	//------------> GPU kernel
+	int nThreads = 1024;
+	// lmin because it is  - (lmin - 1 + 1) + 1 is for the leading R value
+	size_t elements_per_block = DET_FAST_MUL*nThreads - lmin;
+	size_t total_elements = ((corrected_size-1)*corrected_size)/2;
+	size_t nBlocks = (total_elements + elements_per_block - 1)/elements_per_block;
+	dim3 gridSize(nBlocks, 1, 1);
+	dim3 blockSize(nThreads, 1, 1);
+	GPU_RQA_DET_boxcar
+		<const_params, IOtype>
+		<<< gridSize , blockSize , DET_FAST_MUL*nThreads*sizeof(int)  >>>(
+			d_S_all, d_S_lmin, d_N_lmin, 
+			d_input, 
+			threshold, tau, emb, lmin, corrected_size
+		);
+	
+	cudaDeviceSynchronize();
+	//--------------------------------<
+	
+	//------------> Calculation RQA metrics
+	unsigned long long int h_S_all = 0;
+	unsigned long long int h_S_lmin = 0;
+	unsigned long long int h_N_lmin = 0;
+	
+	cudaError = cudaMemcpy(&h_S_all, d_S_all, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_S_lmin, d_S_lmin, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_N_lmin, d_N_lmin, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	
+	//printf("\n");
+	//printf("Before correction: h_S_lmin=%llu; h_S_all=%llu; h_N_lmin=%llu\n", h_S_lmin, h_S_all, h_N_lmin);
+	// This is because at the end of the array we have added one element
+	corrected_size = corrected_size - 1;
+	// Correction because we excluding central diagonal line and lower triangle
+	h_S_all  = 2*h_S_all + corrected_size;
+	h_S_lmin = 2*h_S_lmin + corrected_size;
+	h_N_lmin = 2*h_N_lmin + 1;
+	//printf("After correction: h_S_lmin=%llu; h_S_all=%llu; h_N_lmin=%llu\n", h_S_lmin, h_S_all, h_N_lmin);
+	
+	*h_DET  = ((double) h_S_lmin)/((double) h_S_all);
+	*h_L    = ((double) h_S_lmin)/((double) h_N_lmin);
+	*h_Lmax = 0;
+	*h_RR   = ((double) h_S_all)/((double) ((corrected_size-1)*(corrected_size-1)));
+	//--------------------------------<
+	
+	timer.Stop();
+	*execution_time = timer.Elapsed();
+	
+	//---------> error check
+	cudaError = cudaGetLastError();
+	if(cudaError != cudaSuccess){
+		*error = ERR_CUDA;
+	}
+	//--------------------------------<
+	
+	//----------> Deallocations
+	if(d_S_all!=NULL) cudaFree(d_S_all);
+	if(d_S_lmin!=NULL) cudaFree(d_S_lmin);
+	if(d_N_lmin!=NULL) cudaFree(d_N_lmin);
+	if(d_input!=NULL) cudaFree(d_input);
+	//--------------------------------<
+}
+
+
+
+// This version is using the boxcar filtering and related correction but compare 
+//  to the boxcar version, this version is using different split of the R matrix
+//  that allow simultaneous calculation of DET and LAM.
+template<class const_params, typename IOtype>
+void RQA_diagonal_boxcar_square_wrapper(
+	IOtype *h_DET, 
+	IOtype *h_L, 
+	unsigned long long int *h_Lmax, 
+	IOtype *h_RR, 
+	IOtype *h_input, 
+	IOtype threshold, 
+	int tau, 
+	int emb, 
+	int lmin, 
+	size_t input_size,
+	double *execution_time,
+	Accrqa_Error *error
+){
+	if(*error != SUCCESS) return;
+	GPU_Timer timer;
+	
+	//---------> Checking that device is present
+	int devCount;
+	cudaError_t cudaError;
+	cudaError = cudaGetDeviceCount(&devCount);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
+		return;
+	}
+	
+	//----------> Allocation of input
+	size_t allocation_size = input_size + 1;
+	size_t corrected_size = allocation_size - (emb - 1)*tau;
+	IOtype *d_input;
+	cudaError = cudaMalloc((void **) &d_input, allocation_size*sizeof(IOtype));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_input = NULL;
+	}
+	cudaError = cudaMemcpy(d_input + 1, h_input, input_size*sizeof(IOtype), cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	IOtype extreme_value = std::numeric_limits<IOtype>::max();
+	cudaError = cudaMemcpy(&d_input[0], &extreme_value, sizeof(IOtype), cudaMemcpyHostToDevice);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	
+	//-----------> Kernel configurations
+	// CUDA grid and block size for length histogram calculation
+	// -1 because diagonal is not used and corrected for later
+	
+	//---------> GPU Memory allocation
+	unsigned long long int *d_S_all;
+	unsigned long long int *d_S_lmin;
+	unsigned long long int *d_N_lmin;
+	cudaError = cudaMalloc((void **) &d_S_all,  sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_S_all = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_S_lmin, sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_S_lmin = NULL;
+	}
+	cudaError = cudaMalloc((void **) &d_N_lmin, sizeof(unsigned long long int));
+	if(cudaError != cudaSuccess) { 
+		*error = ERR_MEM_ALLOC_FAILURE; 
+		d_N_lmin = NULL;
+	}
+	
+	
+	timer.Start();
+	//---------> Memory copy and preparation
+	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
+	cudaMemset(d_S_lmin, 0, sizeof(unsigned long long int));
+	cudaMemset(d_N_lmin, 0, sizeof(unsigned long long int));
+
+	
+	//------------> GPU kernel
+	int nThreads = 1024;
+	int width = 32;
+	int usefull_part = width - lmin;
+	// lmin because it is  - (lmin - 1 + 1) + 1 is for the leading R value
+	size_t nBlocks_x = (corrected_size + usefull_part - 1)/usefull_part;
+	size_t nBlocks_y = (corrected_size + usefull_part - 1)/usefull_part;
+
+	dim3 gridSize(nBlocks_x, nBlocks_y, 1);
+	dim3 blockSize(nThreads, 1, 1);
+	int cache_size = 32 + (emb - 1)*tau;
+	GPU_RQA_DET_boxcar_square
+		<const_params>
+		<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+			d_S_all, d_S_lmin, d_N_lmin, 
+			d_input, 
+			threshold, tau, emb, lmin, corrected_size
+		);
+	
+	cudaDeviceSynchronize();
+	//--------------------------------<
+	
+	//------------> Calculation RQA metrics
+	unsigned long long int h_S_all = 0;
+	unsigned long long int h_S_lmin = 0;
+	unsigned long long int h_N_lmin = 0;
+	
+	cudaError = cudaMemcpy(&h_S_all, d_S_all, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_S_lmin, d_S_lmin, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	cudaError = cudaMemcpy(&h_N_lmin, d_N_lmin, sizeof(unsigned long long int), cudaMemcpyDeviceToHost);
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA;
+	}
+	
+	// This is because at the end of the array we have added one element
+	corrected_size = corrected_size - 1;
+	h_S_all  = 2*h_S_all + corrected_size;
+	h_S_lmin = 2*h_S_lmin + corrected_size;
+	h_N_lmin = 2*h_N_lmin + 1;
+	
+	*h_DET  = ((double) h_S_lmin)/((double) h_S_all);
+	*h_L    = ((double) h_S_lmin)/((double) h_N_lmin);
+	*h_Lmax = 0;
+	*h_RR   = ((double) h_S_all)/((double) ((corrected_size-1)*(corrected_size-1)));
+	//--------------------------------<
+	
+	timer.Stop();
+	*execution_time = timer.Elapsed();
+	
+	//---------> error check
+	cudaError = cudaGetLastError();
+	if(cudaError != cudaSuccess){
+		*error = ERR_CUDA;
+	}
+	//--------------------------------<
+	
+	//----------> Deallocations
+	if(d_S_all!=NULL) cudaFree(d_S_all);
+	if(d_S_lmin!=NULL) cudaFree(d_S_lmin);
+	if(d_N_lmin!=NULL) cudaFree(d_N_lmin);
+	if(d_input!=NULL) cudaFree(d_input);
+	//--------------------------------<
+}
+
+
+
 
 void test_array_reversal(){
 	int *input, *output;
@@ -1477,6 +2132,23 @@ void GPU_RQA_length_histogram_diagonal_sum(double *h_DET, double *h_L, unsigned 
 void GPU_RQA_length_histogram_diagonal_sum(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
 }
+
+void GPU_RQA_diagonal_boxcar(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+}
+
+void GPU_RQA_diagonal_boxcar(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+}
+
+void GPU_RQA_diagonal_boxcar_square(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+}
+
+void GPU_RQA_diagonal_boxcar_square(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+}
+
 
 void GPU_RQA_diagonal_R_matrix(
 	int *h_diagonal_R_matrix, 

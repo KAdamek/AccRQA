@@ -16,12 +16,11 @@ __inline__ __device__ int R_element_max(
 		unsigned long long int i, 
 		unsigned long long int j, 
 		IOtype threshold, 
-		int tau, 
-		int emb, 
+		unsigned long long int tau, 
+		unsigned long long int emb, 
 		unsigned long long int matrix_size
 	){
 	IOtype max = 0;
-	//if( i > matrix_size || i < 0 || j > matrix_size || j < 0 ) return (0);
 	for(int m = 0; m < emb; m++){
 		IOtype A = input[i + m*tau];
 		IOtype B = input[j + m*tau];
@@ -31,6 +30,24 @@ __inline__ __device__ int R_element_max(
 	return ( ( (threshold-max)>=0 ? 1 : 0 ) );
 }
 
+__inline__ __device__ int R_element_max_cache(
+		float *s_input, 
+		int i, 
+		int j, 
+		float threshold, 
+		int tau, 
+		int emb,
+		int cache_size
+	){
+	float max = 0;
+	for(int m = 0; m < emb; m++){
+		float A = s_input[i + m*tau];
+		float B = s_input[cache_size + j + m*tau];
+		float dist = fabsf(A - B);
+		if(dist > max) max = dist;
+	}
+	return ( ( (threshold-max)>=0 ? 1 : 0 ) );
+}
 
 template<typename IOtype>
 __inline__ __device__ int R_element_euc(
@@ -38,8 +55,8 @@ __inline__ __device__ int R_element_euc(
 		unsigned long long int i, 
 		unsigned long long int j, 
 		IOtype threshold, 
-		int tau, 
-		int emb, 
+		unsigned long long int tau, 
+		unsigned long long int emb, 
 		unsigned long long int matrix_size
 	){
 	IOtype sum = 0;
