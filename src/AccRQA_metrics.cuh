@@ -30,20 +30,21 @@ __inline__ __device__ int R_element_max(
 	return ( ( (threshold-max)>=0 ? 1 : 0 ) );
 }
 
+template<typename IOtype>
 __inline__ __device__ int R_element_max_cache(
-		float *s_input, 
+		IOtype *s_input, 
 		int i, 
 		int j, 
-		float threshold, 
+		IOtype threshold, 
 		int tau, 
 		int emb,
 		int cache_size
 	){
-	float max = 0;
+	IOtype max = 0;
 	for(int m = 0; m < emb; m++){
-		float A = s_input[i + m*tau];
-		float B = s_input[cache_size + j + m*tau];
-		float dist = fabsf(A - B);
+		IOtype A = s_input[i + m*tau];
+		IOtype B = s_input[cache_size + j + m*tau];
+		IOtype dist = fabsf(A - B);
 		if(dist > max) max = dist;
 	}
 	return ( ( (threshold-max)>=0 ? 1 : 0 ) );

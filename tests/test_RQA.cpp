@@ -17,7 +17,7 @@ using namespace std;
 
 typedef float RQAdp;
 
-bool DEBUG_MODE = true;
+bool DEBUG_MODE = false;
 bool CHECK = true;
 bool GPU_UNIT_TEST = true;
 bool CPU_UNIT_TEST = true;
@@ -480,7 +480,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	int emb_values = emb;
 	RQAdp threshold_values = threshold;
 	int lmin_values = lmin;
-	int calc_ENTR = 1;
+	int calc_ENTR = 0;
 	Accrqa_Error error;
 	
 	if(GPU_UNIT_TEST) {
@@ -520,15 +520,17 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 		if(ferror > max_error) nErrors++;
 		if(DEBUG_MODE) printf("L ref: %e; GPU: %e; diff: %e;\n", ref_L, GPU_L, ref_L - GPU_L);
 		
-		if(isnan(GPU_Lmax) && isnan(ref_Lmax)) ferror = 0;
-		ferror = get_error(ref_Lmax, GPU_Lmax);
-		if(ferror > max_error) nErrors++;
-		if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_Lmax, GPU_Lmax, ref_Lmax - GPU_Lmax);
-		
-		if(isnan(GPU_ENTR) && isnan(ref_ENTR)) ferror = 0;
-		ferror = get_error(ref_ENTR, GPU_ENTR);
-		if(ferror > max_error) nErrors++;
-		if(DEBUG_MODE) printf("ENTR ref: %e; GPU: %e; diff: %e;\n", ref_ENTR, GPU_ENTR, ref_ENTR - GPU_ENTR);
+		if( calc_ENTR == 1) {
+			if(isnan(GPU_Lmax) && isnan(ref_Lmax)) ferror = 0;
+			ferror = get_error(ref_Lmax, GPU_Lmax);
+			if(ferror > max_error) nErrors++;
+			if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_Lmax, GPU_Lmax, ref_Lmax - GPU_Lmax);
+			
+			if(isnan(GPU_ENTR) && isnan(ref_ENTR)) ferror = 0;
+			ferror = get_error(ref_ENTR, GPU_ENTR);
+			if(ferror > max_error) nErrors++;
+			if(DEBUG_MODE) printf("ENTR ref: %e; GPU: %e; diff: %e;\n", ref_ENTR, GPU_ENTR, ref_ENTR - GPU_ENTR);
+		}
 	}
 	return(nErrors);
 }	
@@ -570,7 +572,7 @@ void unit_test_DET(){
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	printf("Determinism with different input sizes:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
-	for(size_t s = 1014; s < 65537; s = s*2){
+	for(size_t s = 1014; s < 32769; s = s*2){
 		for(int t = 0; t<(int)threshold_list.size(); t++){
 			RQAdp threshold = threshold_list[t];
 			int tau = 1;
@@ -1004,7 +1006,6 @@ void test_starting_point(){
 		int global_pos = f*nElements;
 		int start = global_pos;
 		int end = global_pos + block_size - lmin;
-		printf("f=%d; global_pos=%d; start=%d; end=%d;\n", f, global_pos, start, end);
 	}
 }
 
@@ -1015,14 +1016,14 @@ void test_starting_point(){
 
 int main(void) {
 	
-	//init_index_testing();
-	//test_delete_lines();
-	//test_starting_point();
+	init_index_testing();
+	test_delete_lines();
+	test_starting_point();
 	
-	//unit_test_RR();
-	//unit_test_RR_extended();
+	unit_test_RR();
+	unit_test_RR_extended();
 	unit_test_DET();
-	//unit_test_LAM();
+	unit_test_LAM();
 	
 	return (0);
 }

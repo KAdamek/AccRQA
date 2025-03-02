@@ -749,32 +749,32 @@ void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	// Default code
 	GPU_Timer gpu_timer;
 	
-	gpu_timer.Start();
-	calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-	gpu_timer.Stop();
-	printf("Normal GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-	printf("normal DET=%f;\n", output[0]);
-	/*
-	gpu_timer.Start();
-	calculate_DET_GPU_sum(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-	gpu_timer.Stop();
-	printf("Sum GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-	*/
+	if(calc_ENTR == 1){
+		gpu_timer.Start();
+		calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+		gpu_timer.Stop();
+		//printf("Normal GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+	}
+	else {
+		/*
+		gpu_timer.Start();
+		calculate_DET_GPU_sum(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+		gpu_timer.Stop();
+		printf("Sum GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+		*/
+		
+		/*
+		gpu_timer.Start();
+		calculate_DET_GPU_boxcar(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+		gpu_timer.Stop();
+		printf("Boxcar GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+		*/
 	
-	
-	gpu_timer.Start();
-	calculate_DET_GPU_boxcar(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-	gpu_timer.Stop();
-	printf("Boxcar GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-	printf("boxcar DET=%f;\n", output[0]);
-	
-	
-	gpu_timer.Start();
-	calculate_DET_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-	gpu_timer.Stop();
-	printf("Boxcar square GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-	printf("boxcar square DET=%f;\n", output[0]);
-
+		gpu_timer.Start();
+		calculate_DET_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
+		gpu_timer.Stop();
+		//printf("Boxcar square GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
+	}
 
 	#else
 		*error = ERR_CUDA_NOT_FOUND;
