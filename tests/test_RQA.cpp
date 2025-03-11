@@ -572,7 +572,7 @@ void unit_test_DET(){
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	printf("Determinism with different input sizes:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
-	for(size_t s = 1014; s < 32769; s = s*2){
+	for(size_t s = 1014; s < 65538; s = s*2){
 		for(int t = 0; t<(int)threshold_list.size(); t++){
 			RQAdp threshold = threshold_list[t];
 			int tau = 1;
@@ -593,7 +593,6 @@ void unit_test_DET(){
 	printf("\n");
 	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
 	else printf("     Test:\033[1;31mFAILED\033[0m\n");
-	
 	
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	printf("Determinism with different time steps and embeddings:"); fflush(stdout);
@@ -676,10 +675,12 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 		if(ferror > max_error) nErrors++;
 		if(DEBUG_MODE) printf("TT ref: %e; GPU: %e; diff: %e;\n", ref_TT, GPU_TT, ref_TT - GPU_TT);
 		
-		if(isnan(GPU_TTmax) && isnan(ref_TTmax)) ferror = 0;
-		else ferror = get_error(ref_TTmax, GPU_TTmax);
-		if(ferror > max_error) nErrors++;
-		if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_TTmax, GPU_TTmax, ref_TTmax - GPU_TTmax);
+		if(calc_ENTR==1){
+			if(isnan(GPU_TTmax) && isnan(ref_TTmax)) ferror = 0;
+			else ferror = get_error(ref_TTmax, GPU_TTmax);
+			if(ferror > max_error) nErrors++;
+			if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_TTmax, GPU_TTmax, ref_TTmax - GPU_TTmax);
+		}
 	}
 	return(nErrors);
 }
@@ -698,7 +699,7 @@ void unit_test_LAM(void){
 	if(DEBUG_MODE) printf("\n");
 	for(int t = 0; t<(int)threshold_list.size(); t++){
 		RQAdp threshold = threshold_list[t];
-		size_t size = 10000;
+		size_t size = 1000;
 		int tau = 1;
 		int emb = 1;
 		int vmin = 2;

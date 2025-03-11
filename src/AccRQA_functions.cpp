@@ -443,6 +443,52 @@ void calculate_LAM_GPU_default(input_type *output, input_type *input_data, size_
 }
 
 template<typename input_type>
+void calculate_LAM_GPU_boxcar_square(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, input_type *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_Error *error){
+	
+	for(int tau_id = 0; tau_id < nTaus; tau_id++){
+		int tau = tau_values[tau_id];
+		for(int emb_id = 0; emb_id < nEmbs; emb_id++){
+			int emb = emb_values[emb_id];
+			for(int th_id = 0; th_id < nThresholds; th_id++){
+				input_type threshold = threshold_values[th_id];
+				for(int v_id = 0; v_id < nVmins; v_id++){
+					int vmin = vmin_values[v_id];
+					
+					input_type h_LAM = 0, h_TT = 0, h_RR = 0;
+					unsigned long long int h_TTmax = 0;
+					double execution_time = 0;
+					GPU_RQA_horizontal_boxcar_square(
+						&h_LAM, &h_TT, &h_TTmax, &h_RR,
+						input_data,
+						threshold, tau, emb, vmin, 
+						data_size, distance_type, 
+						&execution_time, error
+					);
+					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + v_id*nThresholds + th_id;
+					output[5*pos + 0] = h_LAM;
+					output[5*pos + 1] = h_TT;
+					output[5*pos + 2] = h_TTmax;
+					output[5*pos + 3] = 0;
+					output[5*pos + 4] = h_RR;
+					
+					#ifdef MONITOR_PERFORMANCE
+					printf("LAM-sum execution time: %fms;\n", execution_time);
+					char metric_name[200]; 
+					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
+					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
+					std::ofstream FILEOUT;
+					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
+					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
+					FILEOUT.close();
+					#endif
+				}
+			}
+		}
+	}
+	
+}
+
+template<typename input_type>
 void calculate_LAM_CPU_default(input_type *output, input_type *input_data, size_t data_size, int *tau_values, int nTaus, int *emb_values, int nEmbs, int *vmin_values, int nVmins, input_type *threshold_values, int nThresholds, Accrqa_Distance distance_type, Accrqa_Error *error){
 	
 	for(int tau_id = 0; tau_id < nTaus; tau_id++){
@@ -482,7 +528,20 @@ void accrqa_LAM_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	if(*error!=SUCCESS) return;
 	
 	// Default code
-	calculate_LAM_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
+	GPU_Timer gpu_timer;
+	
+	// Default code
+	if(calc_ENTR == 1){
+		gpu_timer.Start();
+		calculate_LAM_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
+		gpu_timer.Stop();
+	}
+	else {
+		gpu_timer.Start();
+		calculate_LAM_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
+		gpu_timer.Stop();
+		//printf("Boxcar square GPU LAM execution time: %fms;\n", gpu_timer.Elapsed());
+	}
 
 	#else
 		*error = ERR_CUDA_NOT_FOUND;

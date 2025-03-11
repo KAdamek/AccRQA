@@ -141,7 +141,7 @@ void get_length_histogram_LAM_inplace(
 
 template<typename input_type>
 void serialScanInclusive(input_type *result, input_type *h_input, size_t data_size){
-	int running_sum = 0;
+	size_t running_sum = 0;
 	
 	for(size_t f=0; f<data_size; f++){
 		running_sum = running_sum + h_input[f];
@@ -151,8 +151,8 @@ void serialScanInclusive(input_type *result, input_type *h_input, size_t data_si
 
 
 template<typename input_type>
-void correctDETHistogram(input_type *histogram, unsigned int histogram_size) {
-	for(unsigned int f=0; f<histogram_size; f++){
+void correctDETHistogram(input_type *histogram, unsigned long long int histogram_size) {
+	for(unsigned long long int f=0; f<histogram_size; f++){
 		histogram[f] = 2.0*histogram[f];
 	}
 	histogram[histogram_size-1]++;
@@ -160,17 +160,17 @@ void correctDETHistogram(input_type *histogram, unsigned int histogram_size) {
 
 
 template<typename input_type>
-void reverseArrayAndMultiply(input_type *destination, input_type *source, unsigned int input_size){
-	for(unsigned int f=0; f<input_size; f++){
-		unsigned long long int pos = input_size - 1 - f;
+void reverseArrayAndMultiply(input_type *destination, input_type *source, size_t input_size){
+	for(size_t f=0; f<input_size; f++){
+		size_t pos = input_size - 1 - f;
 		destination[f] = pos*source[pos];
 	}
 }
 
 
 template<typename input_type>
-void reverseArray(input_type *destination, input_type *source, unsigned int input_size){
-	for(unsigned int f=0; f<input_size; f++){
+void reverseArray(input_type *destination, input_type *source, size_t input_size){
+	for(size_t f=0; f<input_size; f++){
 		destination[f] = source[input_size - 1 - f];
 	}
 }
@@ -627,7 +627,7 @@ void rqa_CPU_DET_metric_parallel_mk1(
 	long int input_size, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	size_t corrected_size = input_size - (emb - 1)*tau;
 	size_t histogram_size = corrected_size + 1;
 
 	// upper triangle
