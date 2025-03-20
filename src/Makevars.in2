@@ -1,0 +1,35 @@
+# Compiler settings
+CXX = g++
+CUDA_HOME = @CUDA_HOME@
+NVCC = $(CUDA_HOME)/bin/nvcc
+
+# Optimization and warning flags
+CXX_STD = CXX14
+CXXFLAGS = -O3 -Wall -fopenmp -fPIC -DACCRQA_R_FOUND
+PKG_CXXFLAGS = -I@R_HOME@/include -I$(CUDA_HOME)/include
+PKG_LIBS = -L$(CUDA_HOME)/lib64 -lcudart -lcuda -lcublas -lcurand -lR #-L@R_HOME@/lib
+
+# Collect all .cpp and .cu files in src/
+CPP_FILES = $(wildcard *.cpp)
+CU_FILES = $(wildcard *.cu)
+
+# Corresponding object files
+OBJ_FILES = $(CPP_FILES:.cpp=.o)
+# $(CPP_FILES:.cpp=.o) $(CU_FILES:.cu=.o)
+
+
+# Rule to build .o files from .cpp files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(PKG_CXXFLAGS) -c $< -o $@
+
+# Rule to build .o files from .cu files
+%.o: %.cu
+	$(NVCC) -O3 -std=c++14 -c $< -o $@ -x cu -Xcompiler "$(CXXFLAGS)"
+
+# Create the shared library
+AccRQA.so: $(OBJ_FILES)
+	$(CXX) -shared -o $@ $(OBJ_FILES) $(PKG_LIBS)
+
+# Cleanup
+clean:
+	rm -f *.o AccRQA.so

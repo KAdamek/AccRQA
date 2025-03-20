@@ -312,7 +312,7 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
 #' print(result)
 #'
 #' @export
-accRQA_RR <- function(input, tau_values, emb_values, threshold_values, norm = "euclidean", platform)
+accrqa_RR <- function(input, tau_values, emb_values, threshold_values, norm = "euclidean", platform)
 {
   variables <- list(input = input, tau = tau_values, emb = emb_values, threshold = threshold_values)
   empty_vars <- names(variables)[sapply(variables, function(x) length(x) == 0)]

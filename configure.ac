@@ -9,10 +9,29 @@ else
 	AC_MSG_RESULT(using CUDA_HOME=${CUDA_HOME})
 fi
 
+AC_PATH_PROG([R_EXEC], [R], [no])
+if test "$R_EXEC" = "no"; then
+  AC_MSG_ERROR([R is not found. Will not include R part to the library])
+else
+  AC_MSG_NOTICE([Found R at $R_EXEC. Adding to compile R bindings.])
+  ACCRQA_CXXFLAGS="-DACCRQA_R_FOUND"
+  ## look for Rscript, but use the one found via R_HOME to allow for multiple installations
+  # Detect R home
+  R_HOME=$(R RHOME)
+  R_INCL=$(R CMD config --cppflags)
+  R_LIB=$(R CMD config --ldflags)
+  AC_SUBST(R_HOME)
+
+  AC_SUBST(CUDA_HOME)
+  AC_SUBST(R_INCL)
+  AC_SUBST(R_LIB)
+fi
+
+
 AC_CHECK_FILE([${CUDA_HOME}/bin/nvcc], [HAS_NVCC="yes"])
 if test "$HAS_NVCC" != "no"; then
-    AC_MSG_RESULT([Adding to compile R bindings with cuda])
-    ACCRQA_CXXFLAGS="-DACCRQA_R_FOUND"
+    AC_MSG_RESULT([Adding to compile R bindings with CUDA])
+    ACCRQA_CXXFLAGS="$ACCRQA_CXXFLAGS -DCUDA_FOUND"
 else
     AC_MSG_RESULT([not found])
     ACCRQA_CXXFLAGS=""
@@ -34,29 +53,19 @@ AC_MSG_RESULT([$NVCC_FLAGS])
 AC_SUBST(NVCC_FLAGS)
 
 
-## look for Rscript, but use the one found via R_HOME to allow for multiple installations
-# Detect R home
-R_HOME=$(R RHOME)
-R_INCL=$(R CMD config --cppflags)
-R_LIB=$(R CMD config --ldflags)
-AC_SUBST(R_HOME)
-
-AC_SUBST(CUDA_HOME)
-AC_SUBST(R_INCL)
-AC_SUBST(R_LIB)
 AC_CONFIG_FILES([src/Makevars])
 
 # Generate .gitignore from .gitignore.in
-AC_SUBST([CUSTOM_IGNORE_RULES], [
+#AC_SUBST([CUSTOM_IGNORE_RULES], [
 # Additional ignore rules
-*.log
-*.tmp
-build/
-])
+#*.log
+#*.tmp
+#build/
+#])
 
-AC_CONFIG_FILES([
-.gitignore
-])
+#AC_CONFIG_FILES([
+#.gitignore
+#])
 AC_OUTPUT
 
 

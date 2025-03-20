@@ -615,13 +615,13 @@ PACKAGE_URL=''
 ac_unique_file="src/"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-CUSTOM_IGNORE_RULES
+NVCC_FLAGS
+ACCRQA_CXXFLAGS
 R_LIB
 R_INCL
 CUDA_HOME
 R_HOME
-NVCC_FLAGS
-ACCRQA_CXXFLAGS
+R_EXEC
 target_alias
 host_alias
 build_alias
@@ -1736,6 +1736,71 @@ else
 printf "%s\n" "using CUDA_HOME=${CUDA_HOME}" >&6; }
 fi
 
+# Extract the first word of "R", so it can be a program name with args.
+set dummy R; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_R_EXEC+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $R_EXEC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_R_EXEC="$R_EXEC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_R_EXEC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_R_EXEC" && ac_cv_path_R_EXEC="no"
+  ;;
+esac
+fi
+R_EXEC=$ac_cv_path_R_EXEC
+if test -n "$R_EXEC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $R_EXEC" >&5
+printf "%s\n" "$R_EXEC" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+if test "$R_EXEC" = "no"; then
+  as_fn_error $? "R is not found. Will not include R part to the library" "$LINENO" 5
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Found R at $R_EXEC. Adding to compile R bindings." >&5
+printf "%s\n" "$as_me: Found R at $R_EXEC. Adding to compile R bindings." >&6;}
+  ACCRQA_CXXFLAGS="-DACCRQA_R_FOUND"
+  ## look for Rscript, but use the one found via R_HOME to allow for multiple installations
+  # Detect R home
+  R_HOME=$(R RHOME)
+  R_INCL=$(R CMD config --cppflags)
+  R_LIB=$(R CMD config --ldflags)
+
+
+
+
+
+fi
+
+
 as_ac_File=`printf "%s\n" "ac_cv_file_${CUDA_HOME}/bin/nvcc" | $as_tr_sh`
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ${CUDA_HOME}/bin/nvcc" >&5
 printf %s "checking for ${CUDA_HOME}/bin/nvcc... " >&6; }
@@ -1760,9 +1825,9 @@ then :
 fi
 
 if test "$HAS_NVCC" != "no"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Adding to compile R bindings with cuda" >&5
-printf "%s\n" "Adding to compile R bindings with cuda" >&6; }
-    ACCRQA_CXXFLAGS="-DACCRQA_R_FOUND"
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Adding to compile R bindings with CUDA" >&5
+printf "%s\n" "Adding to compile R bindings with CUDA" >&6; }
+    ACCRQA_CXXFLAGS="$ACCRQA_CXXFLAGS -DCUDA_FOUND"
 else
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 printf "%s\n" "not found" >&6; }
@@ -1787,30 +1852,20 @@ printf "%s\n" "$NVCC_FLAGS" >&6; }
 
 
 
-## look for Rscript, but use the one found via R_HOME to allow for multiple installations
-# Detect R home
-R_HOME=$(R RHOME)
-R_INCL=$(R CMD config --cppflags)
-R_LIB=$(R CMD config --ldflags)
-
-
-
-
-
 ac_config_files="$ac_config_files src/Makevars"
 
 
 # Generate .gitignore from .gitignore.in
-CUSTOM_IGNORE_RULES=
+#AC_SUBST([CUSTOM_IGNORE_RULES], [
 # Additional ignore rules
-*.log
-*.tmp
-build/
+#*.log
+#*.tmp
+#build/
+#])
 
-
-
-ac_config_files="$ac_config_files .gitignore"
-
+#AC_CONFIG_FILES([
+#.gitignore
+#])
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -2512,7 +2567,6 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "src/Makevars") CONFIG_FILES="$CONFIG_FILES src/Makevars" ;;
-    ".gitignore") CONFIG_FILES="$CONFIG_FILES .gitignore" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

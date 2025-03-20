@@ -2,7 +2,7 @@ CXX = g++
 NVCC = /usr/local/cuda-12.0/bin/nvcc
 
 # Compilation flags
-CXXFLAGS2 := -O3 -Wall -std=c++11 -fPIC -DACCRQA_R_FOUND
+CXXFLAGS2 := -O3 -Wall -std=c++11 -fPIC -DACCRQA_R_FOUND -DCUDA_FOUND
 PKG_CXXFLAGS := -I/usr/local/cuda-12.0/include -I/usr/lib/R/include -I/usr/share/R/include
 PKG_LIBS := -L/usr/local/cuda-12.0/lib64 -lcudart -lcuda -lcublas -lcurand
 NVCC_FLAGS := -arch=sm_70
