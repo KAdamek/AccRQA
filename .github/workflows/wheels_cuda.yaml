@@ -1,0 +1,116 @@
+name: Build Python Wheels CUDA
+
+on: [workflow_dispatch]
+#To add in the future: https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#running-your-pull_request-workflow-based-on-files-changed-in-a-pull-request
+#https://github.com/actions/runner-images
+env:
+  CIBW_BUILD_VERBOSITY: 1
+
+jobs:
+  build_linux_cuda_wheels:
+    name: Build python ${{ matrix.python-version }} ${{ matrix.arch }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.12]
+        arch: ["x86_64"]
+        cudaver: ['12.5.0']
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install CUDA
+        uses: Jimver/cuda-toolkit@v0.2.19
+        id: cuda-toolkit
+        with:
+          method: 'network'
+          sub-packages: '["nvcc"]'
+          cuda: ${{ matrix.cudaver }}
+      - name: CUDA test
+        run: |
+          echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+          echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          nvcc -V
+          export PATH=$PATH:${{steps.cuda-toolkit.outputs.CUDA_PATH}}
+          export CUDAToolkit_ROOT=${{steps.cuda-toolkit.outputs.CUDA_PATH}}
+          export ACCRQA_CUDA_VERSION=${{ matrix.cudaver }}
+      - name: Install Python dependencies
+        run: |
+          python -m pip install pipenv
+          python -m pip install build
+      - name: Build the wheel
+        run: |
+          export ACCRQA_CUDA_VERSION=${{ matrix.cudaver }}
+          python -m build --outdir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./dist/*.whl
+          config-file: "pyproject.toml"
+
+
+# cuda MS visual studio integration is slow better to use ninja
+# this needs to be tried
+# https://github.com/seanmiddleditch/gha-setup-ninja
+  build_windows_cuda_wheels:
+    name: Build python ${{ matrix.python-version }} ${{ matrix.arch }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        python-version: [3.12]
+        arch: ["AMD64"]
+        cudaver: ['12.5.0']
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install CUDA
+        uses: Jimver/cuda-toolkit@v0.2.19
+        id: cuda-toolkit
+        with:
+          cuda: ${{ matrix.cudaver }}
+      - name: CUDA test
+        run: |
+          echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+          echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          nvcc -V
+          set CUDA_CUDART="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.0"
+          set CUDAToolkit_ROOT="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.0"
+          set ACCRQA_CUDA_VERSION=${{ matrix.cudaver }}
+          echo %ACCRQA_CUDA_VERSION%
+      - name: Install Python dependencies
+        run: |
+          python -m pip install pipenv
+          python -m pip install build
+      - name: Build AMD64 Windows wheels for CPython
+        if: matrix.arch == 'AMD64'
+        run: |
+          function Invoke-VSDevEnvironment {
+            $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+              $installationPath = & $vswhere -prerelease -legacy -latest -property installationPath
+              $Command = Join-Path $installationPath "Common7\Tools\vsdevcmd.bat"
+            & "${env:COMSPEC}" /s /c "`"$Command`" -arch=amd64 -no_logo && set" | Foreach-Object {
+                  if ($_ -match '^([^=]+)=(.*)') {
+                      [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2])
+                  }
+              }
+          }
+          Invoke-VSDevEnvironment
+          Get-Command rc.exe | Format-Table -AutoSize
+          set ACCRQA_CUDA_VERSION=${{ matrix.cudaver }}
+          python -m build --outdir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./dist/*.whl
+          config-file: "pyproject.toml"

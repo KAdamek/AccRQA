@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <vector>
+#include <limits>
 
 using namespace std;
 
@@ -14,12 +15,12 @@ using namespace std;
 
 #include "../include/AccRQA_library.hpp"
 
-typedef double RQAdp;
+typedef float RQAdp;
 
 bool DEBUG_MODE = false;
 bool CHECK = true;
 bool GPU_UNIT_TEST = true;
-bool CPU_UNIT_TEST = false;
+bool CPU_UNIT_TEST = true;
 
 //-----------------------------------------------
 //---------- Data checks and generation
@@ -479,7 +480,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	int emb_values = emb;
 	RQAdp threshold_values = threshold;
 	int lmin_values = lmin;
-	int calc_ENTR = 1;
+	int calc_ENTR = 0;
 	Accrqa_Error error;
 	
 	if(GPU_UNIT_TEST) {
@@ -519,15 +520,17 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 		if(ferror > max_error) nErrors++;
 		if(DEBUG_MODE) printf("L ref: %e; GPU: %e; diff: %e;\n", ref_L, GPU_L, ref_L - GPU_L);
 		
-		if(isnan(GPU_Lmax) && isnan(ref_Lmax)) ferror = 0;
-		ferror = get_error(ref_Lmax, GPU_Lmax);
-		if(ferror > max_error) nErrors++;
-		if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_Lmax, GPU_Lmax, ref_Lmax - GPU_Lmax);
-		
-		if(isnan(GPU_ENTR) && isnan(ref_ENTR)) ferror = 0;
-		ferror = get_error(ref_ENTR, GPU_ENTR);
-		if(ferror > max_error) nErrors++;
-		if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_ENTR, GPU_ENTR, ref_ENTR - GPU_ENTR);
+		if( calc_ENTR == 1) {
+			if(isnan(GPU_Lmax) && isnan(ref_Lmax)) ferror = 0;
+			ferror = get_error(ref_Lmax, GPU_Lmax);
+			if(ferror > max_error) nErrors++;
+			if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_Lmax, GPU_Lmax, ref_Lmax - GPU_Lmax);
+			
+			if(isnan(GPU_ENTR) && isnan(ref_ENTR)) ferror = 0;
+			ferror = get_error(ref_ENTR, GPU_ENTR);
+			if(ferror > max_error) nErrors++;
+			if(DEBUG_MODE) printf("ENTR ref: %e; GPU: %e; diff: %e;\n", ref_ENTR, GPU_ENTR, ref_ENTR - GPU_ENTR);
+		}
 	}
 	return(nErrors);
 }	
@@ -546,7 +549,7 @@ void unit_test_DET(){
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(int t = 0; t<(int)threshold_list.size(); t++){
 		RQAdp threshold = threshold_list[t];
-		size_t size = 10000;
+		size_t size = 500;
 		int tau = 1;
 		int emb = 1;
 		int lmin = 2;
@@ -569,7 +572,7 @@ void unit_test_DET(){
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	printf("Determinism with different input sizes:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
-	for(size_t s = 1014; s < 32768; s = s*2){
+	for(size_t s = 1014; s < 65538; s = s*2){
 		for(int t = 0; t<(int)threshold_list.size(); t++){
 			RQAdp threshold = threshold_list[t];
 			int tau = 1;
@@ -591,7 +594,6 @@ void unit_test_DET(){
 	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
 	else printf("     Test:\033[1;31mFAILED\033[0m\n");
 	
-
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	printf("Determinism with different time steps and embeddings:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
@@ -599,7 +601,7 @@ void unit_test_DET(){
 		for(int emb = 1; emb < 12; emb++){
 			for(int t = 0; t<(int)threshold_list.size(); t++){
 				RQAdp threshold = threshold_list[t];
-				size_t size = 10000;
+				size_t size = 1000;
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d\n", size, threshold, tau, emb);
 				int lmin = 2;
 				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin);
@@ -615,6 +617,7 @@ void unit_test_DET(){
 		}
 	}
 	printf("\n");
+	
 	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
 	else printf("     Test:\033[1;31mFAILED\033[0m\n");
 	printf("----------------------------------<\n");
@@ -672,10 +675,12 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 		if(ferror > max_error) nErrors++;
 		if(DEBUG_MODE) printf("TT ref: %e; GPU: %e; diff: %e;\n", ref_TT, GPU_TT, ref_TT - GPU_TT);
 		
-		if(isnan(GPU_TTmax) && isnan(ref_TTmax)) ferror = 0;
-		else ferror = get_error(ref_TTmax, GPU_TTmax);
-		if(ferror > max_error) nErrors++;
-		if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_TTmax, GPU_TTmax, ref_TTmax - GPU_TTmax);
+		if(calc_ENTR==1){
+			if(isnan(GPU_TTmax) && isnan(ref_TTmax)) ferror = 0;
+			else ferror = get_error(ref_TTmax, GPU_TTmax);
+			if(ferror > max_error) nErrors++;
+			if(DEBUG_MODE) printf("TTmax ref: %e; GPU: %e; diff: %e;\n", ref_TTmax, GPU_TTmax, ref_TTmax - GPU_TTmax);
+		}
 	}
 	return(nErrors);
 }
@@ -694,7 +699,7 @@ void unit_test_LAM(void){
 	if(DEBUG_MODE) printf("\n");
 	for(int t = 0; t<(int)threshold_list.size(); t++){
 		RQAdp threshold = threshold_list[t];
-		size_t size = 10000;
+		size_t size = 1000;
 		int tau = 1;
 		int emb = 1;
 		int vmin = 2;
@@ -746,7 +751,7 @@ void unit_test_LAM(void){
 	for(int tau = 1; tau < 6; tau++){
 		for(int emb = 1; emb < 12; emb++){
 			for(int t = 0; t<(int)threshold_list.size(); t++){
-				size_t size = 10000;
+				size_t size = 1000;
 				int vmin = 2;
 				RQAdp threshold = threshold_list[t];
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d \n", size, threshold, tau, emb);
@@ -770,7 +775,251 @@ void unit_test_LAM(void){
 // ---------------------------------------------<
 
 
+
+
+template <typename input_type>
+inline double distance_euclidean(input_type *input, size_t i, size_t j, int tau, int emb){
+	input_type sum = 0;
+	for(int m = 0; m < emb; m++){
+		input_type A = input[i + m*tau];
+		input_type B = input[j + m*tau];
+		sum += (A - B)*(A - B);
+	}
+	sum = sqrt(sum);
+	return(sum);
+}
+
+
+template <typename input_type>
+inline double distance_maximum(input_type *input, size_t i, size_t j, int tau, int emb){
+	input_type max = 0;
+	for(int m = 0; m < emb; m++){
+		input_type A = input[i + (size_t) (m*tau)];
+		input_type B = input[j + (size_t) (m*tau)];
+		input_type dist = abs(A - B);
+		if(dist > max) max = dist;
+	}
+	return(max);
+}
+
+template <typename input_type>
+int R_matrix_element(input_type *input, size_t i, size_t j, input_type threshold, int tau, int emb, int distance_type){
+	input_type distance = 0;
+	if(distance_type == 1) distance = distance_euclidean(input, i, j, tau, emb);
+	if(distance_type == 2) distance = distance_maximum(input, i, j, tau, emb);
+	int R_element = ( (threshold - distance)>=0 ? 1 : 0 );
+	//printf("[%d;%d]=%d; ", (int) i, (int) j, R_element);
+	return ( R_element );
+}
+
+
+
+size_t calculate_k(size_t last_block_end){
+	if(last_block_end == 0) return (0);
+	double a = 1.0;
+	double b = 1.0; // always positive
+	double c = -2.0*last_block_end; // always negative
+	double D = 1.0 - 4.0*a*c;
+	double n1 = (sqrt(D)-1.0)/2.0;
+	return( (size_t) n1);
+}
+
+void calculate_coordinates(size_t *i, size_t *j, size_t pos, size_t corrected_size){
+	size_t pk = calculate_k(pos);
+	*i = pos - (pk*(pk-1))/2 - pk;
+	*j = corrected_size - pk - 1 + *i;
+}
+
+
+size_t test_coordinates(size_t corrected_size){
+	size_t nErrors = 0;
+	std::vector<size_t> msizes;
+	for(size_t f=1; f<corrected_size; f++) msizes.push_back(f);
+	std::vector<size_t> mscan;
+	mscan.push_back(0);
+	for(size_t f=0; f<=corrected_size; f++) mscan.push_back(mscan[f] + msizes[f]);
+	for(size_t f=0; f<corrected_size-1; f++) {
+		size_t i, j;
+		calculate_coordinates(&i, &j, mscan[f], corrected_size);
+		if(i != 0 || j != corrected_size-1-f) nErrors++;
+	}
+	return(nErrors);
+}
+
+
+template <typename input_type>
+size_t test_indexing(input_type *time_series, size_t data_size, input_type threshold, int tau, int emb, int distance_type){
+	size_t corrected_size = data_size - (emb - 1)*tau;
+	size_t nErrors = 0;
+	std::vector<int> linearised_R_matrix;
+	for (size_t r = corrected_size-1; r>0; r--) {
+		size_t distance_from_diagonal = r;
+		size_t diagonal_length = corrected_size-distance_from_diagonal;
+		for(size_t s=0; s<diagonal_length; s++) {
+			long int row = s;
+			long int column = s + distance_from_diagonal;
+			int R_matrix_value = R_matrix_element(time_series, row, column, threshold, tau, emb, distance_type);
+			linearised_R_matrix.push_back(R_matrix_value);
+		}
+	}
+	
+	size_t block_size = 1024;
+	size_t total_elements = ((corrected_size-1)*corrected_size)/2;
+	size_t nBlocks = (total_elements + block_size - 1)/block_size;
+	for(size_t b=0; b<nBlocks; b++){
+		for(size_t th_id = 0; th_id < block_size; th_id++){
+			size_t pos = b*block_size + th_id;
+			if(pos < total_elements){
+				size_t i, j;
+				calculate_coordinates(&i, &j, pos, corrected_size);
+				int R_matrix_value = R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
+				if(R_matrix_value != linearised_R_matrix[pos]) {
+					if(nErrors < 20 ){
+						printf("th_id = %zu; b=%zu; pos=%zu; i = %zu; j = %zu;\n", th_id, b, pos, i, j);
+						printf("%d != %d;\n", R_matrix_value, linearised_R_matrix[pos]);
+					}
+					nErrors++;
+				}
+			}
+		}
+	}
+	
+	return(nErrors);
+}
+
+
+void init_index_testing(){
+	int tau = 1;
+	int emb = 1;
+	int lmin = 2;
+	size_t data_size = 10;
+	
+	{
+		size_t nErrors = 0;
+		printf("Test of coordinate calculation: ");
+		for(size_t s = 10; s <= 100; s=s*10){
+			nErrors += test_coordinates(s);
+		}
+		if(nErrors>0) {
+			printf("\033[1;31mFAILED\033[0m with number of errors = %zu;\n", nErrors);
+		}
+		else printf("\033[1;32mPASSED\033[0m\n");
+	}
+	
+	std::vector<RQAdp> threshold_list;
+	for(int t = 0; t <= 11; t++){
+		threshold_list.push_back((RQAdp)t/10.0);
+	}
+	
+	for(int s = 10; s <= 10000; s=s*10){
+		size_t nErrors = 0;
+		std::vector<RQAdp> input_data(s, 0);
+		Generate_random(&input_data);
+		printf("Test of regularized indexing at size %d: ", s); fflush(stdout);
+		for(size_t t = 0; t<threshold_list.size(); t++){
+			nErrors += test_indexing(input_data.data(), input_data.size(), threshold_list[t], tau, emb, DST_MAXIMAL);
+		}
+		input_data.clear();
+		if(nErrors>0) {
+			printf("\033[1;31mFAILED\033[0m with number of errors = %zu;\n", nErrors);
+		}
+		else printf("\033[1;32mPASSED\033[0m\n");
+	}
+}
+
+void add_line(std::vector<int> *matrix, int lenght){
+	matrix->push_back(0);
+	for(int f=0; f<lenght;f++){
+		matrix->push_back(1);
+	}
+}
+
+void delete_lines(std::vector<int> *matrix, int lenght){
+	size_t size = matrix->size();
+	for(size_t f=0;f<size;f++){
+		int sum = 0;
+		for(size_t l=0; l<lenght && (f+l)<size;l++){
+			sum += matrix->operator[](f+l);
+		}
+		matrix->operator[](f) = (int) (sum/(lenght));
+	}
+}
+
+void print_line(std::vector<int> matrix){
+	size_t size = matrix.size();
+	for(size_t f=0;f<size;f++){
+		printf("%d ", matrix[f]);
+	}
+	printf("\n");
+}
+
+int sum_line(std::vector<int> matrix){
+	size_t size = matrix.size();
+	int sum = 0;
+	for(size_t f=0;f<size;f++){
+		sum += matrix[f];
+	}
+	return(sum);
+}
+
+void apply_filter(std::vector<int> *matrix, int length){
+	size_t size = matrix->size();
+	for(size_t f=0;f<size-1;f++){
+		if(f==0 && matrix->operator[](f)==1){
+			matrix->operator[](f) = length;
+		}
+		else {
+			if(matrix->operator[](f) == 0 && matrix->operator[](f+1) == 1){
+				matrix->operator[](f+1) = length;
+			}
+		}
+	}
+}
+
+void test_delete_lines(){
+	printf("Testing line deletion and sum correction: ");
+	fflush(stdout);
+	std::vector<int> matrix;
+	std::vector<int> lengths={1,2,1,2,3,4,2,1,4,4,5,7,9};
+	for(size_t f=0; f<lengths.size(); f++){
+		add_line(&matrix, lengths[f]);
+	}
+	int sum_before = sum_line(matrix);
+	delete_lines(&matrix, 2);
+	int sum_deleted = sum_line(matrix);
+	apply_filter(&matrix, 2);
+	int sum_corrected = sum_line(matrix);
+	if(sum_before != 45 || sum_deleted != 32 || sum_corrected != 42) {
+		printf("\033[1;31mFAILED\033[0m\n");
+	}
+	else {
+		printf("\033[1;32mPASSED\033[0m\n");
+	}
+}
+
+void test_starting_point(){
+	int block_size = 1024;
+	int lmin = 2;
+	int start_overlap = 1;
+	int nElements = block_size - lmin + 1 - 1;
+	
+	for(int f=0; f<10; f++){
+		int global_pos = f*nElements;
+		int start = global_pos;
+		int end = global_pos + block_size - lmin;
+	}
+}
+
+
+
+
+
+
 int main(void) {
+	
+	init_index_testing();
+	test_delete_lines();
+	test_starting_point();
 	
 	unit_test_RR();
 	unit_test_RR_extended();

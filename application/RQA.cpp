@@ -123,6 +123,7 @@ int main(int argc, char* argv[]) {
 		vmin = strtol(argv[6],&pEnd,10);
 	}
 	else {
+		accrqa_version();
 		printf("Parameters error!\n");
 		printf("Input parameters are as follows:\n");
 		printf(" 1) filename of the file which contains a time-series to process \n");

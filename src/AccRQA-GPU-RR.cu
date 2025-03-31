@@ -1,7 +1,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
-#include "timer.h"
+#include "GPU_timer.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -147,7 +147,6 @@ __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
 void RQA_R_init(){
 	//---------> Specific nVidia stuff
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-	cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeFourByte);
 }
 
 template<class const_params, typename IOtype>
@@ -161,7 +160,7 @@ int RQA_RR_GPU_sharedmemory_metric(
 		int emb, 
 		double *exec_time
 	){
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(NTHREADS, 1, 1);
@@ -187,7 +186,7 @@ int RQA_R_GPU(
 		int emb, 
 		double *exec_time
 	){
-	GpuTimer timer;
+	GPU_Timer timer;
 	
 	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(NTHREADS, 1, 1);

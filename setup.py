@@ -1,6 +1,8 @@
-# Largely from https://github.com/pybind/cmake_example/blob/master/setup.py
+# Notes on cuda packaging https://pypackaging-native.github.io/key-issues/gpus/
+
 
 import os
+from os import path
 import re
 import subprocess
 import sys
@@ -18,6 +20,19 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
+def get_version_with_cuda(version_number):
+    suffix = os.environ.get("ACCRQA_CUDA_VERSION", "")
+    print("Suffix:-"+suffix+"-")
+    if suffix != "":
+        suffix = suffix.replace(".", "")
+        suffix = "-cu" + suffix[:3]
+    version = version_number + suffix
+    return version_number
+    
+def get_version():
+    init_py_path = path.join(path.abspath(path.dirname(__file__)), "version.txt")
+    version = open(init_py_path, "r").readlines()
+    return version[0]
 
 def path_to_build_folder():
     """Returns the name of a distutils build directory"""
@@ -122,6 +137,7 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         
         cmake_args += [f"-DCMAKE_INSTALL_PREFIX={extdir}"]
+        cmake_args += [f"-DCUDA_ARCH=ALL"]
         print(cmake_args)
         subprocess.check_call(
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp
@@ -137,7 +153,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="accrqa",
-    version="0.5.4",
+    version=get_version(),
     description="AccRQA calculates recurrence quantification analysis (RQA) metrics using CUDA",
     ext_modules=[CMakeExtension("accrqa")],
     cmdclass={"build_ext": CMakeBuild},

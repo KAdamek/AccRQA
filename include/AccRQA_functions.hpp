@@ -23,6 +23,14 @@
  */
 void accrqa_print_error(Accrqa_Error *error);
 
+/**
+ * @brief Prints accrqa version.
+ */
+void accrqa_version(){
+	printf("accrqa version: %d.%d.%d\n", ACCRQA_VER_MAJOR, ACCRQA_VER_MINOR, ACCRQA_VER_PATCH);
+};
+
+
 //==========================================================
 //========================= LAM ============================
 //==========================================================

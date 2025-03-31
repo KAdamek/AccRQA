@@ -13,12 +13,22 @@ include(CMakePackageConfigHelpers)
 # A fancy way of exporting only function that should be visible from outside
 #include(GenerateExportHeader) 
 
-set(ACCRQA_VERSION_ID "0x000001")
-set(ACCRQA_VERSION_MAJOR 0)
-set(ACCRQA_VERSION_MINOR 1)
-set(ACCRQA_VERSION_PATCH 0)
-set(ACCRQA_VERSION_STRING ${ACCRQA_VERSION_MAJOR}.${ACCRQA_VERSION_MINOR}.${ACCRQA_VERSION_PATCH})
+# Read version from a file
+file(READ "version.txt" FVERSION)
 
+# Separate version into major, minor, patch
+string(REGEX MATCHALL "[^\.]+" FVERSTRINGS ${FVERSION})
+list(GET FVERSTRINGS 0 F_VER_MAJOR)
+list(GET FVERSTRINGS 1 F_VER_MINOR)
+list(GET FVERSTRINGS 2 F_VER_PATCH)
+
+set(ACCRQA_VERSION_MAJOR ${F_VER_MAJOR})
+set(ACCRQA_VERSION_MINOR ${F_VER_MINOR})
+set(ACCRQA_VERSION_PATCH ${F_VER_PATCH})
+set(ACCRQA_VERSION_STRING ${ACCRQA_VERSION_MAJOR}.${ACCRQA_VERSION_MINOR}.${ACCRQA_VERSION_PATCH})
+add_compile_definitions(ACCRQA_VER_MAJOR=${ACCRQA_VERSION_MAJOR})
+add_compile_definitions(ACCRQA_VER_MINOR=${ACCRQA_VERSION_MINOR})
+add_compile_definitions(ACCRQA_VER_PATCH=${ACCRQA_VERSION_PATCH})
 
 
 # Add local location of cmake modules.

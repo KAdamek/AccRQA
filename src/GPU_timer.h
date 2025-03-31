@@ -3,30 +3,35 @@
 
 #include <cuda_runtime.h>
 
-struct GpuTimer
+struct GPU_Timer
 {
   cudaEvent_t start;
   cudaEvent_t stop;
 
-  GpuTimer() {
+  GPU_Timer()
+  {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
   }
 
-  ~GpuTimer() {
+  ~GPU_Timer()
+  {
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
   }
 
-  void Start() {
+  void Start()
+  {
     cudaEventRecord(start, 0);
   }
 
-  void Stop() {
+  void Stop()
+  {
     cudaEventRecord(stop, 0);
   }
 
-  float Elapsed() {
+  float Elapsed()
+  {
     float elapsed;
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapsed, start, stop);
