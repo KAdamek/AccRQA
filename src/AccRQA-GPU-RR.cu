@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "../include/AccRQA_definitions.hpp"
+#include "../include/AccRQA_utilities_distance.hpp"
 #include "../include/AccRQA_utilities_error.hpp"
 #include "GPU_reduction.cuh"
 #include "AccRQA_metrics.cuh"
@@ -18,14 +19,6 @@
 #define DEBUG_GPU_RR false
 
 using namespace std;
-
-
-class RQA_ConstParams {
-public:
-	static const int nRows_per_thread = 1;
-	static const int warp = 32;
-	static const int shared_memory_size = 513;
-};
 
 #define NTHREADS 256
 #define LAM_NTHREADS 1024
@@ -51,8 +44,9 @@ __global__ void GPU_RQA_R_kernel(
 	unsigned long long int seed_value_pos = blockIdx.y;
 	unsigned long long int pos_x = (blockIdx.x*NTHREADS + threadIdx.x);
 
-	int result = R_element_max(d_input, seed_value_pos, pos_x, threshold, tau, emb, matrix_size);
-
+	//int result = R_element_max(d_input, seed_value_pos, pos_x, threshold, tau, emb, matrix_size);
+	int result = get_RP_element<const_params>(d_input, seed_value_pos, pos_x, threshold, tau, emb);
+	
 	size_t matrix_pos_x = (blockIdx.x*NTHREADS + threadIdx.x);
 	if(matrix_pos_x<matrix_size){
 		d_R_matrix[matrix_pos_x + blockIdx.y*matrix_size] = result;
@@ -108,13 +102,15 @@ __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
 				// this contribution is added twice since lower triangle is the same
 				if( pos_y<pos_x && pos_y<size ) {
 					//int result = R_element_cartesian(s_seeds[f], elements, threshold); 
-					int result = R_element_max(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
+					//int result = R_element_max(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
+					int result = get_RP_element<const_params>(d_input, s_seeds[f], pos_x, threshold, tau, emb);
 					//int result = R_element_equ(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
 					sum = sum + 2*result;
 				}
 				else if( pos_y == pos_x ){ // diagonal
 					//int result = R_element_cartesian(d_input[pos_y], d_input[pos_x], threshold);
-					int result = R_element_max(d_input, pos_y, pos_x, threshold, tau, emb, size);
+					//int result = R_element_max(d_input, pos_y, pos_x, threshold, tau, emb, size);
+					int result = get_RP_element<const_params>(d_input, pos_y, pos_x, threshold, tau, emb);
 					//int result = R_element_equ(d_input, pos_y, pos_x, threshold, tau, emb, size);
 					sum = sum + result;
 				}
@@ -149,58 +145,70 @@ void RQA_R_init(){
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
 }
 
-template<class const_params, typename IOtype>
-int RQA_RR_GPU_sharedmemory_metric(
-		unsigned long long int *d_RR_metric_integers, 
-		IOtype *d_input, 
-		unsigned long long int corrected_size, 
-		IOtype *threshold_list, 
-		int nThresholds, 
-		int tau, 
-		int emb, 
-		double *exec_time
-	){
-	GPU_Timer timer;
-	
-	dim3 gridSize(1, 1, 1);
-	dim3 blockSize(NTHREADS, 1, 1);
-	gridSize.x = (corrected_size + NTHREADS - 1)/(NTHREADS);
-	gridSize.y = (corrected_size + NSEEDS - 1)/(NSEEDS);
-	
-	timer.Start();
-	RQA_R_init();
-	GPU_RQA_RR_seedsSM_improved_reduction_kernel<const_params><<< gridSize , blockSize, nThresholds*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, threshold_list, nThresholds, tau, emb);
-	timer.Stop();
-	*exec_time += timer.Elapsed();
-	
-	return(0);
-}
+//template<typename IOtype>
+//int RQA_RR_GPU_sharedmemory_metric(
+//		unsigned long long int *d_RR_metric_integers, 
+//		IOtype *d_input, 
+//		unsigned long long int corrected_size, 
+//		IOtype *threshold_list, 
+//		int nThresholds, 
+//		int tau, 
+//		int emb, 
+//		double *exec_time
+//	){
+//	GPU_Timer timer;
+//	
+//	dim3 gridSize(1, 1, 1);
+//	dim3 blockSize(NTHREADS, 1, 1);
+//	gridSize.x = (corrected_size + NTHREADS - 1)/(NTHREADS);
+//	gridSize.y = (corrected_size + NSEEDS - 1)/(NSEEDS);
+//	
+//	timer.Start();
+//	RQA_R_init();
+//	GPU_RQA_RR_seedsSM_improved_reduction_kernel<const_params><<< gridSize , blockSize, nThresholds*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, threshold_list, nThresholds, tau, emb);
+//	timer.Stop();
+//	*exec_time += timer.Elapsed();
+//	
+//	return(0);
+//}
 
-template<class const_params, typename IOtype>
-int RQA_R_GPU(
-		int *d_R_matrix, 
-		IOtype *d_input, 
-		unsigned long long int size, 
-		IOtype threshold, 
-		int tau, 
-		int emb, 
-		double *exec_time
-	){
-	GPU_Timer timer;
-	
-	dim3 gridSize(1, 1, 1);
-	dim3 blockSize(NTHREADS, 1, 1);
-	gridSize.x = (size + NTHREADS - 1)/(NTHREADS);
-	gridSize.y = (size);
-	
-	timer.Start();
-	RQA_R_init();
-	GPU_RQA_R_kernel<const_params><<< gridSize , blockSize >>>(d_R_matrix, d_input, size, threshold, tau, emb);
-	timer.Stop();
-	*exec_time += timer.Elapsed();
-
-	return(0);
-}
+//template<typename IOtype>
+//int RQA_R_GPU(
+//		int *d_R_matrix, 
+//		IOtype *d_input, 
+//		unsigned long long int size, 
+//		IOtype threshold, 
+//		int tau, 
+//		int emb, 
+//		int distance_type, 
+//		double *exec_time
+//	){
+//	GPU_Timer timer;
+//	
+//	dim3 gridSize(1, 1, 1);
+//	dim3 blockSize(NTHREADS, 1, 1);
+//	gridSize.x = (size + NTHREADS - 1)/(NTHREADS);
+//	gridSize.y = (size);
+//	
+//	timer.Start();
+//	RQA_R_init();
+//	switch(distance_type) {
+//		case DST_EUCLIDEAN:
+//			GPU_RQA_R_kernel<RQA_euc><<< gridSize , blockSize >>>(d_R_matrix, d_input, size, threshold, tau, emb);
+//			break;
+//		case DST_MAXIMAL:
+//			GPU_RQA_R_kernel<RQA_max><<< gridSize , blockSize >>>(d_R_matrix, d_input, size, threshold, tau, emb);
+//			break;
+//		default :
+//			*error = ERR_INVALID_ARGUMENT;
+//			break;
+//	}
+//	
+//	timer.Stop();
+//	*exec_time += timer.Elapsed();
+//
+//	return(0);
+//}
 
 
 int check_memory(size_t total_size, float multiple){
@@ -215,7 +223,7 @@ int check_memory(size_t total_size, float multiple){
 }
 
 
-template<class const_params, typename IOtype>
+template<typename IOtype>
 void GPU_RQA_R_matrix_tp(
 		int *h_R_matrix, 
 		IOtype *h_input, 
@@ -223,11 +231,12 @@ void GPU_RQA_R_matrix_tp(
 		IOtype threshold, 
 		int tau, 
 		int emb, 
-		int device, 
+		int distance_type, 
 		double *execution_time,
 		Accrqa_Error *error
 	){
 	if(*error != SUCCESS) return;
+	GPU_Timer timer;
 	
 	//---------> Initial nVidia stuff
 	int devCount;
@@ -271,7 +280,28 @@ void GPU_RQA_R_matrix_tp(
 		
 	//-----> Compute distance matrix
 	if(*error == SUCCESS) {
-		RQA_R_GPU<RQA_ConstParams, IOtype>(d_R_matrix, d_input, size, threshold, tau, emb, execution_time);
+		dim3 gridSize(1, 1, 1);
+		dim3 blockSize(NTHREADS, 1, 1);
+		gridSize.x = (size + NTHREADS - 1)/(NTHREADS);
+		gridSize.y = (size);
+		
+		*execution_time = 0;
+		timer.Start();
+		RQA_R_init();
+		switch(distance_type) {
+			case DST_EUCLIDEAN:
+				GPU_RQA_R_kernel<RQA_euc><<< gridSize , blockSize >>>(d_R_matrix, d_input, size, threshold, tau, emb);
+				break;
+			case DST_MAXIMAL:
+				GPU_RQA_R_kernel<RQA_max><<< gridSize , blockSize >>>(d_R_matrix, d_input, size, threshold, tau, emb);
+				break;
+			default :
+				*error = ERR_INVALID_ARGUMENT;
+				break;
+		}
+		
+		timer.Stop();
+		*execution_time += timer.Elapsed();
 	}
 
 	if(DEBUG_GPU_RR) printf("RQA R matrix: %fms;\n", *execution_time);
@@ -294,7 +324,7 @@ void GPU_RQA_R_matrix_tp(
 }
 
 
-template<class const_params, typename IOtype>
+template<typename IOtype>
 void GPU_RQA_RR_metric_tp(
 		unsigned long long int *h_RR_metric_integer, 
 		IOtype *h_input, 
@@ -303,10 +333,12 @@ void GPU_RQA_RR_metric_tp(
 		int nThresholds, 
 		int tau, 
 		int emb, 
+		int distance_type, 
 		double *execution_time, 
 		Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
+	GPU_Timer timer;
 	
 	//---------> Initial nVidia stuff
 	int devCount;
@@ -364,7 +396,27 @@ void GPU_RQA_RR_metric_tp(
 		
 	//-----> Compute RR
 	if(*error == SUCCESS){
-		RQA_RR_GPU_sharedmemory_metric<RQA_ConstParams>(d_RR_metric_integers, d_input, corrected_size, d_threshold_list, nThresholds, tau, emb, execution_time);
+		dim3 gridSize(1, 1, 1);
+		dim3 blockSize(NTHREADS, 1, 1);
+		gridSize.x = (corrected_size + NTHREADS - 1)/(NTHREADS);
+		gridSize.y = (corrected_size + NSEEDS - 1)/(NSEEDS);
+		
+		*execution_time = 0;
+		timer.Start();
+		RQA_R_init();
+		switch(distance_type) {
+			case DST_EUCLIDEAN:
+				GPU_RQA_RR_seedsSM_improved_reduction_kernel<RQA_euc><<< gridSize , blockSize, nThresholds*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, d_threshold_list, nThresholds, tau, emb);
+				break;
+			case DST_MAXIMAL:
+				GPU_RQA_RR_seedsSM_improved_reduction_kernel<RQA_max><<< gridSize , blockSize, nThresholds*sizeof(int)>>>(d_RR_metric_integers, d_input, corrected_size, d_threshold_list, nThresholds, tau, emb);
+				break;
+			default :
+				*error = ERR_INVALID_ARGUMENT;
+				break;
+		}
+		timer.Stop();
+		*execution_time += timer.Elapsed();
 	}
 	
 	if(DEBUG_GPU_RR) printf("RQA recurrent rate: %f;\n", *execution_time);
@@ -396,6 +448,7 @@ void RQA_GPU_RR_metric_batch_runner(
 		int nThresholds, 
 		int tau, 
 		int emb, 
+		int distance_type, 
 		double *total_execution_time,
 		Accrqa_Error *error
 ){
@@ -423,7 +476,7 @@ void RQA_GPU_RR_metric_batch_runner(
 		// calculate RR
 		double execution_time = 0;
 		*total_execution_time = 0;
-		GPU_RQA_RR_metric_tp<const_params,IOtype>(
+		GPU_RQA_RR_metric_tp<IOtype>(
 				temp_rr_count, // 
 				h_input, 
 				input_size, 
@@ -431,6 +484,7 @@ void RQA_GPU_RR_metric_batch_runner(
 				th_chunks[f] + 1, 
 				tau, 
 				emb, 
+				distance_type, 
 				&execution_time,
 				error
 			);
@@ -446,21 +500,21 @@ void RQA_GPU_RR_metric_batch_runner(
 //-------------------------------------------------->
 //------------ Wrappers for templating 
 
-void GPU_RQA_R_matrix(int *h_R_matrix, double *h_input, unsigned long long int size, double threshold, int tau, int emb, int device, int distance_type, double *execution_time, Accrqa_Error *error){
-	GPU_RQA_R_matrix_tp<RQA_ConstParams, double>(h_R_matrix, h_input, size, threshold, tau, emb, device, execution_time, error);
+void GPU_RQA_R_matrix(int *h_R_matrix, double *h_input, unsigned long long int size, double threshold, int tau, int emb, int distance_type, double *execution_time, Accrqa_Error *error){
+	GPU_RQA_R_matrix_tp<double>(h_R_matrix, h_input, size, threshold, tau, emb, distance_type, execution_time, error);
 }
 
-void GPU_RQA_R_matrix(int *h_R_matrix, float *h_input, unsigned long long int size, float threshold, int tau, int emb, int device, int distance_type, double *execution_time, Accrqa_Error *error){
-	GPU_RQA_R_matrix_tp<RQA_ConstParams, float>(h_R_matrix, h_input, size, threshold, tau, emb, device, execution_time, error);
+void GPU_RQA_R_matrix(int *h_R_matrix, float *h_input, unsigned long long int size, float threshold, int tau, int emb, int distance_type, double *execution_time, Accrqa_Error *error){
+	GPU_RQA_R_matrix_tp<float>(h_R_matrix, h_input, size, threshold, tau, emb, distance_type, execution_time, error);
 }
 
 
 void GPU_RQA_RR_metric_integer(unsigned long long int *h_RR_metric_integer, double *h_input, size_t input_size, double *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, double>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, execution_time, error);
+	RQA_GPU_RR_metric_batch_runner<double>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, distance_type, execution_time, error);
 }
 
 void GPU_RQA_RR_metric_integer(unsigned long long int *h_RR_metric_integer, float *h_input, size_t input_size, float *h_threshold_list, int nThresholds, int tau, int emb, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_GPU_RR_metric_batch_runner<RQA_ConstParams, float>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, execution_time, error);
+	RQA_GPU_RR_metric_batch_runner<float>(h_RR_metric_integer, h_input, input_size, h_threshold_list, nThresholds, tau, emb, distance_type, execution_time, error);
 }
 
 //---------------------------------------------------<

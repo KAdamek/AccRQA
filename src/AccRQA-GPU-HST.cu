@@ -11,6 +11,7 @@
 #include <limits>
 
 #include "../include/AccRQA_definitions.hpp"
+#include "../include/AccRQA_utilities_distance.hpp"
 #include "../include/AccRQA_utilities_error.hpp"
 #include "GPU_scan.cuh"
 #include "GPU_reduction.cuh"
@@ -21,19 +22,12 @@
 using namespace std;
 
 
-class RQA_ConstParams {
-public:
-	static const int nRows_per_thread = 1;
-	static const int warp = 32;
-	static const int shared_memory_size = 512;
-	static const int width = 32;
-};
-
 #define DEBUG_GPU_HST false
 
 // ***********************************************************************************
 // ***********************************************************************************
 // ***********************************************************************************
+
 
 template<class const_params>
 __inline__ __device__ void create_start_end_arrays_compact(int *s_start, int *s_end, int *start_count, int *end_count, int first, int second, int block, long int nSamples, int *warp_scan_partial_sums){
@@ -100,7 +94,7 @@ __inline__ __device__ void GPU_RQA_HST_load_data(int *first, int *second, int co
 	}
 }
 
-template<typename IOtype>
+template<class const_params, typename IOtype>
 __inline__ __device__ void GPU_RQA_HST_get_R_matrix_element_horizontal(
 		int *first, 
 		int *second, 
@@ -118,7 +112,7 @@ __inline__ __device__ void GPU_RQA_HST_get_R_matrix_element_horizontal(
 	// -------------------- first ---------------------	
 	if( gl_index >= 0 && gl_index < corrected_size ) {
 		//(*first) = R_element_cartesian(seed, d_input[gl_index], threshold);
-		(*first) = R_element_max(d_input, blockIdx.x, gl_index, threshold, tau, emb, corrected_size);
+		(*first) = get_RP_element<const_params>(d_input, blockIdx.x, gl_index, threshold, tau, emb);
 	}
 	else {
 		(*first)= 0;
@@ -127,14 +121,14 @@ __inline__ __device__ void GPU_RQA_HST_get_R_matrix_element_horizontal(
 	// -------------------- second ---------------------
 	if( (gl_index + 1) >= 0 && (gl_index + 1) < corrected_size ) {
 		//(*second) = R_element_cartesian(seed, d_input[gl_index + 1], threshold);
-		(*second) = R_element_max(d_input, blockIdx.x, gl_index + 1, threshold, tau, emb, corrected_size);
+		(*second) = get_RP_element<const_params>(d_input, blockIdx.x, gl_index + 1, threshold, tau, emb);
 	}	
 	else {
 		(*second) = 0;
 	}
 }
 
-template<typename IOtype>
+template<class const_params, typename IOtype>
 __inline__ __device__ void GPU_RQA_HST_get_R_matrix_element_vertical(int *first, int *second, IOtype const* __restrict__ d_input, IOtype threshold, int tau, int emb, int block, long int corrected_size){
 	long int gl_index = (long int)(block*blockDim.x + threadIdx.x) - 1;
 	//float seed = d_input[blockIdx.y];
@@ -142,8 +136,7 @@ __inline__ __device__ void GPU_RQA_HST_get_R_matrix_element_vertical(int *first,
 	// loading data like this avoids border case at the beginning
 	// -------------------- first ---------------------	
 	if( gl_index >= 0 && gl_index < corrected_size ) {
-		//(*first) = R_element_cartesian(d_input[gl_index], seed, threshold);
-		(*first) = R_element_max(d_input, gl_index, blockIdx.x, threshold, tau, emb, corrected_size);
+		(*first) = get_RP_element<const_params>(d_input, gl_index, blockIdx.x, threshold, tau, emb);
 	}
 	else {
 		(*first)= 0;
@@ -152,44 +145,44 @@ __inline__ __device__ void GPU_RQA_HST_get_R_matrix_element_vertical(int *first,
 	// -------------------- second ---------------------
 	if( (gl_index + 1) >= 0 && (gl_index + 1) < corrected_size ) {
 		//(*second) = R_element_cartesian(d_input[gl_index + 1], seed, threshold);
-		(*second) = R_element_max(d_input, gl_index + 1, blockIdx.x, threshold, tau, emb, corrected_size);
-	}	
+		(*second) = get_RP_element<const_params>(d_input, gl_index + 1, blockIdx.x, threshold, tau, emb);
+	}
 	else {
 		(*second) = 0;
 	}
 }
 
-template<typename IOtype>
-__inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const* __restrict__ d_input, IOtype threshold, int tau, int emb, int block, long int gl_index, long int corrected_size){
+template<class const_params, typename IOtype>
+__inline__ __device__ int GPU_RQA_HST_get_R_matrix_element_diagonal(IOtype const* __restrict__ d_input, IOtype threshold, int tau, int emb, int block, long long int gl_index, long long int corrected_size){
 	long int block_y  = (long int) (blockIdx.x) - corrected_size + 1;
 	
 	// This is stored first as blockIdx.x < size
 	// it is stored as blockIdx.x = 0 => row 0 
 	if(block_y<0){
-		long int row = gl_index;
-		long int column = gl_index - block_y; //block_y is negative thus it is like + block_y
+		long long int row = gl_index;
+		long long int column = gl_index - block_y; //block_y is negative thus it is like + block_y
 		if(row >= 0 && row < corrected_size && column  >= 0 && column < corrected_size) {
-			int value = R_element_max(d_input, row, column, threshold, tau, emb, corrected_size);
+			int value = get_RP_element<const_params>(d_input, row, column, threshold, tau, emb);
 			return(value);
 		}
 		else return(0);
 	}
 	
 	if(block_y>0){
-		long int row = gl_index + block_y;
-		long int column = gl_index;
+		long long int row = gl_index + block_y;
+		long long int column = gl_index;
 		if(row >= 0 && row < corrected_size && column  >= 0 && column < corrected_size) {
-			int value = R_element_max(d_input, row, column, threshold, tau, emb, corrected_size);
+			int value = get_RP_element<const_params>(d_input, row, column, threshold, tau, emb);
 			return(value);
 		}
 		else return(0);
 	}
 	
 	if(block_y==0){ // diagonal
-		long int row = gl_index;
-		long int column = gl_index;
+		long long int row = gl_index;
+		long long int column = gl_index;
 		if(row >= 0 && row < corrected_size && column  >= 0 && column < corrected_size) {
-			int value = R_element_max(d_input, row, column, threshold, tau, emb, corrected_size);
+			int value = get_RP_element<const_params>(d_input, row, column, threshold, tau, emb);
 			return(value);
 		}
 	}
@@ -321,7 +314,7 @@ __global__ void GPU_RQA_generate_diagonal_R_matrix_kernel(int *d_diagonal_R_matr
 	int nBlocks = (corrected_size/blockDim.x) + 1;
 	for(int bl=0; bl<nBlocks; bl++){
 		long int gl_index = (long int)(bl*blockDim.x + threadIdx.x) - 1;
-		int value = GPU_RQA_HST_get_R_matrix_element_diagonal( d_input, threshold, tau, emb, bl, gl_index, corrected_size);
+		int value = GPU_RQA_HST_get_R_matrix_element_diagonal<const_params>( d_input, threshold, tau, emb, bl, gl_index, corrected_size);
 	
 		if(gl_index>=0 && gl_index<corrected_size) {
 			d_diagonal_R_matrix[blockIdx.x*corrected_size + gl_index] = value;
@@ -386,7 +379,7 @@ __global__ void GPU_RQA_HST_length_histogram_horizontal(
 	GPU_RQA_HST_clean<const_params>(s_start, s_end, &start_count, &end_count);
 	
 	for(int bl=0; bl<nBlocks; bl++){
-		GPU_RQA_HST_get_R_matrix_element_horizontal(&first, &second, d_input, threshold, tau, emb, bl, nSamples);	
+		GPU_RQA_HST_get_R_matrix_element_horizontal<const_params>(&first, &second, d_input, threshold, tau, emb, bl, nSamples);
 		
 		create_start_end_arrays_compact<const_params>(s_start, s_end, &start_count, &end_count, first, second, bl, nSamples, warp_scan_partial_sums);
 		__syncthreads();
@@ -425,7 +418,7 @@ __global__ void GPU_RQA_HST_length_histogram_vertical(
 	GPU_RQA_HST_clean<const_params>(s_start, s_end, &start_count, &end_count);
 	
 	for(int bl=0; bl<nBlocks; bl++){
-		GPU_RQA_HST_get_R_matrix_element_vertical(&first, &second, d_input, threshold, tau, emb, bl, nSamples);	
+		GPU_RQA_HST_get_R_matrix_element_vertical<const_params>(&first, &second, d_input, threshold, tau, emb, bl, nSamples);
 		
 		create_start_end_arrays_compact<const_params>(s_start, s_end, &start_count, &end_count, first, second, bl, nSamples, warp_scan_partial_sums);
 		__syncthreads();
@@ -465,8 +458,8 @@ __global__ void GPU_RQA_HST_length_histogram_diagonal(
 	for(int bl=0; bl<nBlocks; bl++){
 		// Generate data for diagonal LAM metric
 		long int gl_index = (long int)(bl*blockDim.x + threadIdx.x) - 1;
-		first  = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index, nSamples);
-		second = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index + 1, nSamples);
+		first  = GPU_RQA_HST_get_R_matrix_element_diagonal<const_params>(d_input, threshold, tau, emb, bl, gl_index, nSamples);
+		second = GPU_RQA_HST_get_R_matrix_element_diagonal<const_params>(d_input, threshold, tau, emb, bl, gl_index + 1, nSamples);
 		
 		create_start_end_arrays_compact<const_params>(s_start, s_end, &start_count, &end_count, first, second, bl, nSamples, warp_scan_partial_sums);
 		__syncthreads();
@@ -523,8 +516,8 @@ __global__ void GPU_RQA_HST_length_histogram_diagonal_sum(
 	for(int bl=0; bl<nBlocks; bl++){
 		// Generate data for diagonal LAM metric
 		long int gl_index = (long int)(bl*blockDim.x + threadIdx.x) - 1;
-		first  = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index, nSamples);
-		second = GPU_RQA_HST_get_R_matrix_element_diagonal(d_input, threshold, tau, emb, bl, gl_index + 1, nSamples);
+		first  = GPU_RQA_HST_get_R_matrix_element_diagonal<const_params>(d_input, threshold, tau, emb, bl, gl_index, nSamples);
+		second = GPU_RQA_HST_get_R_matrix_element_diagonal<const_params>(d_input, threshold, tau, emb, bl, gl_index + 1, nSamples);
 		
 		create_start_end_arrays_compact<const_params>(s_start, s_end, &start_count, &end_count, first, second, bl, nSamples, warp_scan_partial_sums);
 		__syncthreads();
@@ -578,11 +571,21 @@ __global__ void GPU_RQA_DET_boxcar(
 				global_pos + f*blockDim.x, corrected_size
 			);
 		}
-		int R_value = R_element_max(
-			d_input,
-			i, j,
-			threshold, tau, emb, corrected_size
-		);
+		int R_value;
+		if(const_params::dst_type==DST_EUCLIDEAN){
+			R_value= R_element_euc(
+				d_input,
+				i, j,
+				threshold, tau, emb
+			);
+		}
+		else if(const_params::dst_type==DST_MAXIMAL){
+			R_value= R_element_max(
+				d_input,
+				i, j,
+				threshold, tau, emb
+			);
+		}
 		R_values[s_pos] = R_value;
 		if(s_pos > 0 && s_pos < (DET_FAST_MUL*blockDim.x - lmin + 1)) {
 			sum_before += R_value;
@@ -722,12 +725,24 @@ __global__ void GPU_RQA_DET_boxcar_square_double(
 		th_y + blockIdx.y*(32 - lmin) < corrected_size &&
 		th_x + blockIdx.x*(32 - lmin) < corrected_size
 	){
-		R_value = R_element_max_cache(
-			dcached,
-			th_y, // row
-			th_x, // column
-			threshold, tau, emb, cache_size
-		);
+		R_value = get_RP_element_cache<const_params>(dcached, th_y, th_x, threshold, tau, emb, cache_size);
+		
+		//if(const_params::dst_type==DST_EUCLIDEAN){
+		//	R_value = R_element_euc_cache(
+		//		dcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
+		//else if(const_params::dst_type==DST_MAXIMAL){
+		//	R_value = R_element_max_cache(
+		//		dcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
 	}
 	int s_pos = th_y*32 + th_x;
 	R_values[s_pos] = R_value;
@@ -866,12 +881,24 @@ __global__ void GPU_RQA_DET_boxcar_square_float(
 		th_y + blockIdx.y*(32 - lmin) < corrected_size &&
 		th_x + blockIdx.x*(32 - lmin) < corrected_size
 	){
-		R_value = R_element_max_cache(
-			fcached,
-			th_y, // row
-			th_x, // column
-			threshold, tau, emb, cache_size
-		);
+		R_value = get_RP_element_cache<const_params>(fcached, th_y, th_x, threshold, tau, emb, cache_size);
+		
+		//if(const_params::dst_type==DST_EUCLIDEAN){
+		//	R_value = R_element_euc_cache(
+		//		fcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
+		//else if(const_params::dst_type==DST_MAXIMAL){
+		//	R_value = R_element_max_cache(
+		//		fcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
 	}
 	int s_pos = th_y*32 + th_x;
 	R_values[s_pos] = R_value;
@@ -964,7 +991,6 @@ __global__ void GPU_RQA_DET_boxcar_square_float(
 }
 
 
-
 template<class const_params, typename IOtype>
 __global__ void GPU_RQA_LAM_boxcar_square_double(
 		unsigned long long int *d_S_all, 
@@ -1008,12 +1034,24 @@ __global__ void GPU_RQA_LAM_boxcar_square_double(
 		th_y + blockIdx.y*(32 - vmin) < corrected_size &&
 		th_x + blockIdx.x*(32 - vmin) < corrected_size
 	){
-		R_value = R_element_max_cache(
-			dlcached,
-			th_y, // row
-			th_x, // column
-			threshold, tau, emb, cache_size
-		);
+		R_value = get_RP_element_cache<const_params>(dlcached, th_y, th_x, threshold, tau, emb, cache_size);
+		
+		//if(const_params::dst_type==DST_EUCLIDEAN){
+		//	R_value = R_element_euc_cache(
+		//		dlcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
+		//else if(const_params::dst_type==DST_MAXIMAL){
+		//	R_value = R_element_max_cache(
+		//		dlcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
 	}
 	int s_pos = th_y*32 + th_x;
 	R_values[s_pos] = R_value;
@@ -1140,12 +1178,24 @@ __global__ void GPU_RQA_LAM_boxcar_square_float(
 		th_y + blockIdx.y*(32 - vmin) < corrected_size &&
 		th_x + blockIdx.x*(32 - vmin) < corrected_size
 	){
-		R_value = R_element_max_cache(
-			flcached,
-			th_y, // row
-			th_x, // column
-			threshold, tau, emb, cache_size
-		);
+		R_value = get_RP_element_cache<const_params>(flcached, th_y, th_x, threshold, tau, emb, cache_size);
+		
+		//if(const_params::dst_type==DST_EUCLIDEAN){
+		//	R_value = R_element_euc_cache(
+		//		flcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
+		//else if(const_params::dst_type==DST_MAXIMAL){
+		//	R_value = R_element_max_cache(
+		//		flcached,
+		//		th_y, // row
+		//		th_x, // column
+		//		threshold, tau, emb, cache_size
+		//	);
+		//}
 	}
 	int s_pos = th_y*32 + th_x;
 	R_values[s_pos] = R_value;
@@ -1368,6 +1418,7 @@ void RQA_length_histogram_horizontal_wrapper(
 	int tau, 
 	int emb, 
 	long int input_size,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -1439,7 +1490,17 @@ void RQA_length_histogram_horizontal_wrapper(
 	}
 	
 	//------------> GPU kernel
-	GPU_RQA_HST_length_histogram_horizontal<const_params><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+	switch(distance_type) {
+		case DST_EUCLIDEAN:
+			GPU_RQA_HST_length_histogram_horizontal<RQA_euc><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+			break;
+		case DST_MAXIMAL:
+			GPU_RQA_HST_length_histogram_horizontal<RQA_max><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+			break;
+		default :
+			*error = ERR_INVALID_ARGUMENT;
+			break;
+	}
 	
 	//------------> Calculation metric
 	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
@@ -1495,7 +1556,8 @@ void RQA_length_histogram_vertical_wrapper(
 	IOtype threshold, 
 	int tau, 
 	int emb, 
-	long int input_size,
+	unsigned long long int input_size,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -1565,8 +1627,18 @@ void RQA_length_histogram_vertical_wrapper(
 	}
 	
 	//------------> GPU kernel
-	GPU_RQA_HST_length_histogram_vertical<const_params><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
-
+	switch(distance_type) {
+		case DST_EUCLIDEAN:
+			GPU_RQA_HST_length_histogram_vertical<RQA_euc><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+			break;
+		case DST_MAXIMAL:
+			GPU_RQA_HST_length_histogram_vertical<RQA_max><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+			break;
+		default :
+			*error = ERR_INVALID_ARGUMENT;
+			break;
+	}
+	
 	//------------> Calculation metric
 	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize , 0 , NULL >>>(d_temporary, d_histogram, hst_size);
 	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
@@ -1753,6 +1825,7 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	int tau, 
 	int emb, 
 	long int input_size,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -1824,7 +1897,18 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	}
 	
 	//------------> GPU kernel
-	GPU_RQA_HST_length_histogram_diagonal<const_params><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+	switch(distance_type) {
+		case DST_EUCLIDEAN:
+			GPU_RQA_HST_length_histogram_diagonal<RQA_euc><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+			break;
+		case DST_MAXIMAL:
+			GPU_RQA_HST_length_histogram_diagonal<RQA_max><<< gridSize , blockSize >>>(d_histogram, d_input, threshold, tau, emb, corrected_size);
+			break;
+		default :
+			*error = ERR_INVALID_ARGUMENT;
+			break;
+	}
+	
 	GPU_RQA_HST_correction_diagonal_half<<< ra_gridSize , ra_blockSize >>>( d_histogram, hst_size );
 	cudaDeviceSynchronize();
 	
@@ -1890,6 +1974,7 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	int emb, 
 	int lmin, 
 	size_t input_size,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -1961,7 +2046,17 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	}
 	
 	//------------> GPU kernel
-	GPU_RQA_HST_length_histogram_diagonal_sum<const_params><<< gridSize , blockSize >>>(d_S_all, d_S_lmin, d_lmax, d_N_lmin, d_input, threshold, tau, emb, lmin, corrected_size);
+	switch(distance_type) {
+		case DST_EUCLIDEAN:
+			GPU_RQA_HST_length_histogram_diagonal_sum<RQA_euc><<< gridSize , blockSize >>>(d_S_all, d_S_lmin, d_lmax, d_N_lmin, d_input, threshold, tau, emb, lmin, corrected_size);
+			break;
+		case DST_MAXIMAL:
+			GPU_RQA_HST_length_histogram_diagonal_sum<RQA_max><<< gridSize , blockSize >>>(d_S_all, d_S_lmin, d_lmax, d_N_lmin, d_input, threshold, tau, emb, lmin, corrected_size);
+			break;
+		default :
+			*error = ERR_INVALID_ARGUMENT;
+			break;
+	}
 	
 	cudaDeviceSynchronize();
 	//--------------------------------<
@@ -2036,6 +2131,7 @@ void RQA_diagonal_boxcar_wrapper(
 	int emb, 
 	int lmin, 
 	size_t input_size,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -2111,13 +2207,29 @@ void RQA_diagonal_boxcar_wrapper(
 	size_t nBlocks = (total_elements + elements_per_block - 1)/elements_per_block;
 	dim3 gridSize(nBlocks, 1, 1);
 	dim3 blockSize(nThreads, 1, 1);
-	GPU_RQA_DET_boxcar
-		<const_params, IOtype>
-		<<< gridSize , blockSize , DET_FAST_MUL*nThreads*sizeof(int)  >>>(
-			d_S_all, d_S_lmin, d_N_lmin, 
-			d_input, 
-			threshold, tau, emb, lmin, corrected_size
-		);
+	switch(distance_type) {
+		case DST_EUCLIDEAN:
+			GPU_RQA_DET_boxcar
+				<RQA_euc, IOtype>
+				<<< gridSize , blockSize , DET_FAST_MUL*nThreads*sizeof(int)  >>>(
+					d_S_all, d_S_lmin, d_N_lmin, 
+					d_input, 
+					threshold, tau, emb, lmin, corrected_size
+				);
+			break;
+		case DST_MAXIMAL:
+			GPU_RQA_DET_boxcar
+				<RQA_max, IOtype>
+				<<< gridSize , blockSize , DET_FAST_MUL*nThreads*sizeof(int)  >>>(
+					d_S_all, d_S_lmin, d_N_lmin, 
+					d_input, 
+					threshold, tau, emb, lmin, corrected_size
+				);
+			break;
+		default :
+			*error = ERR_INVALID_ARGUMENT;
+			break;
+	}
 	
 	cudaDeviceSynchronize();
 	//--------------------------------<
@@ -2192,6 +2304,7 @@ void RQA_diagonal_boxcar_square_wrapper(
 	int lmin, 
 	size_t input_size,
 	int input_type,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -2225,10 +2338,6 @@ void RQA_diagonal_boxcar_square_wrapper(
 	if(cudaError != cudaSuccess) {
 		*error = ERR_CUDA;
 	}
-	
-	//-----------> Kernel configurations
-	// CUDA grid and block size for length histogram calculation
-	// -1 because diagonal is not used and corrected for later
 	
 	//---------> GPU Memory allocation
 	unsigned long long int *d_S_all;
@@ -2269,23 +2378,58 @@ void RQA_diagonal_boxcar_square_wrapper(
 	dim3 gridSize(nBlocks_x, nBlocks_y, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	int cache_size = 32 + (emb - 1)*tau;
-	if(input_type==0){
-		GPU_RQA_DET_boxcar_square_float
-			<const_params>
-			<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
-				d_S_all, d_S_lmin, d_N_lmin, 
-				d_input, 
-				threshold, tau, emb, lmin, corrected_size
-			);
+	if(input_type==0 && *error == SUCCESS){
+		switch(distance_type) {
+			case DST_EUCLIDEAN:
+				GPU_RQA_DET_boxcar_square_float
+					<RQA_euc>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_lmin, d_N_lmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			case DST_MAXIMAL:
+				GPU_RQA_DET_boxcar_square_float
+					<RQA_max>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_lmin, d_N_lmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			default :
+				*error = ERR_INVALID_ARGUMENT;
+				break;
+		}
 	}
-	else if(input_type==1){
-		GPU_RQA_DET_boxcar_square_double
-			<const_params>
-			<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
-				d_S_all, d_S_lmin, d_N_lmin, 
-				d_input, 
-				threshold, tau, emb, lmin, corrected_size
-			);
+	else if(input_type==1 && *error == SUCCESS){
+		switch(distance_type) {
+			case DST_EUCLIDEAN:
+				GPU_RQA_DET_boxcar_square_double
+					<RQA_euc>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_lmin, d_N_lmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			case DST_MAXIMAL:
+				GPU_RQA_DET_boxcar_square_double
+					<RQA_max>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_lmin, d_N_lmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			default :
+				*error = ERR_INVALID_ARGUMENT;
+				break;
+		}
+	}
+	else {
+		*error = ERR_INVALID_ARGUMENT;
 	}
 	cudaDeviceSynchronize();
 	//--------------------------------<
@@ -2310,6 +2454,7 @@ void RQA_diagonal_boxcar_square_wrapper(
 	
 	// This is because at the end of the array we have added one element
 	corrected_size = corrected_size - 1;
+	// As we process only the upper triangle we must correct for whole RP
 	h_S_all  = 2*h_S_all + corrected_size;
 	h_S_lmin = 2*h_S_lmin + corrected_size;
 	h_N_lmin = 2*h_N_lmin + 1;
@@ -2358,6 +2503,7 @@ void RQA_horizontal_boxcar_square_wrapper(
 	int lmin, 
 	size_t input_size,
 	int input_type,
+	int distance_type, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
@@ -2435,23 +2581,58 @@ void RQA_horizontal_boxcar_square_wrapper(
 	dim3 gridSize(nBlocks_x, nBlocks_y, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	int cache_size = 32 + (emb - 1)*tau;
-	if(input_type==0){
-		GPU_RQA_LAM_boxcar_square_float
-			<const_params>
-			<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
-				d_S_all, d_S_vmin, d_N_vmin, 
-				d_input, 
-				threshold, tau, emb, lmin, corrected_size
-			);
+	if(input_type==0 && *error == SUCCESS){
+		switch(distance_type) {
+			case DST_EUCLIDEAN:
+				GPU_RQA_LAM_boxcar_square_float
+					<RQA_euc>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_vmin, d_N_vmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			case DST_MAXIMAL:
+				GPU_RQA_LAM_boxcar_square_float
+					<RQA_max>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_vmin, d_N_vmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			default :
+				*error = ERR_INVALID_ARGUMENT;
+				break;
+		}
 	}
-	else if(input_type==1){
-		GPU_RQA_LAM_boxcar_square_double
-			<const_params>
-			<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
-				d_S_all, d_S_vmin, d_N_vmin, 
-				d_input, 
-				threshold, tau, emb, lmin, corrected_size
-			);
+	else if(input_type==1 && *error == SUCCESS){
+		switch(distance_type) {
+			case DST_EUCLIDEAN:
+				GPU_RQA_LAM_boxcar_square_double
+					<RQA_euc>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_vmin, d_N_vmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			case DST_MAXIMAL:
+				GPU_RQA_LAM_boxcar_square_double
+					<RQA_max>
+					<<< gridSize , blockSize , 2*cache_size*sizeof(IOtype) >>>(
+						d_S_all, d_S_vmin, d_N_vmin, 
+						d_input, 
+						threshold, tau, emb, lmin, corrected_size
+					);
+				break;
+			default :
+				*error = ERR_INVALID_ARGUMENT;
+				break;
+		}
+	}
+	else {
+		*error = ERR_INVALID_ARGUMENT;
 	}
 	cudaDeviceSynchronize();
 	//--------------------------------<
@@ -2530,33 +2711,39 @@ void test_array_reversal(){
 	cudaFree(output);
 }
 
-
-template<class const_params, typename IOtype>
-int GPU_RQA_generate_diagonal_R_matrix_wrapper(
+template<typename IOtype>
+void GPU_RQA_generate_diagonal_R_matrix_wrapper(
 	int *h_diagonal_R_matrix, 
 	IOtype *h_input, 
 	IOtype threshold, 
 	int tau, 
 	int emb, 
-	long int input_size, 
+	size_t input_size, 
+	int distance_type, 
 	int device, 
 	double *execution_time,
 	Accrqa_Error *error
 ){
+	if(*error != SUCCESS) return;
+	
 	//---------> Initial nVidia stuff
 	int devCount;
-	cudaGetDeviceCount(&devCount);
+	cudaError_t cudaError;
+	cudaError = cudaGetDeviceCount(&devCount);
 	if(device<devCount) cudaSetDevice(device);
-	else { printf("Wrong device!\n"); return(1); }
+	if(cudaError != cudaSuccess) {
+		*error = ERR_CUDA_DEVICE_NOT_FOUND;
+		return;
+	}
 	
 	//---------> Measurements
 	*execution_time = 0;
 	GPU_Timer timer;
 	
 	//---------> GPU Memory allocation
-	long int corrected_size = input_size - (emb - 1)*tau;
-	long int matrix_size = corrected_size*(2*corrected_size-1)*sizeof(int);
-	long int input_size_bytes = input_size*sizeof(IOtype);
+	size_t corrected_size = input_size - (emb - 1)*tau;
+	size_t matrix_size = corrected_size*(2*corrected_size-1)*sizeof(int);
+	size_t input_size_bytes = input_size*sizeof(IOtype);
 	IOtype *d_input;
 	int *d_diagonal_R_matrix;
 	cudaMalloc((void **) &d_input, input_size_bytes);
@@ -2577,7 +2764,17 @@ int GPU_RQA_generate_diagonal_R_matrix_wrapper(
 	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	//------------> GPU kernel
-	GPU_RQA_generate_diagonal_R_matrix_kernel<const_params><<< gridSize , blockSize >>>(d_diagonal_R_matrix, d_input, threshold, tau, emb, corrected_size);
+	switch(distance_type) {
+		case DST_EUCLIDEAN:
+			GPU_RQA_generate_diagonal_R_matrix_kernel<RQA_euc><<< gridSize , blockSize >>>(d_diagonal_R_matrix, d_input, threshold, tau, emb, corrected_size);
+			break;
+		case DST_MAXIMAL:
+			GPU_RQA_generate_diagonal_R_matrix_kernel<RQA_max><<< gridSize , blockSize >>>(d_diagonal_R_matrix, d_input, threshold, tau, emb, corrected_size);
+			break;
+		default :
+			*error = ERR_INVALID_ARGUMENT;
+			break;
+	}
 	//--------------------------------<
 	
 	timer.Stop();
@@ -2588,8 +2785,6 @@ int GPU_RQA_generate_diagonal_R_matrix_wrapper(
 	
 	cudaFree(d_input);
 	cudaFree(d_diagonal_R_matrix);
-	
-	return(0);
 }
 
 
@@ -2631,75 +2826,79 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 //---------------------------- L1 WRAPERS -----------------------------
 
 void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
 }
 
 void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
 }
 
+
 void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
 }
 
 void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
 }
 
+
 void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
 }
 
 void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, execution_time, error);
+	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
 }
 
+
 void GPU_RQA_length_histogram_diagonal_sum(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
 }
 
 void GPU_RQA_length_histogram_diagonal_sum(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
 }
 
+
 void GPU_RQA_diagonal_boxcar(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
 }
 
 void GPU_RQA_diagonal_boxcar(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, execution_time, error);
+	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
 }
+
 
 void GPU_RQA_diagonal_boxcar_square(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	// 1 means double. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 1, execution_time, error);
+	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 1, distance_type, execution_time, error);
 }
 
 void GPU_RQA_diagonal_boxcar_square(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	// 0 means float. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 0, execution_time, error);
+	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 0, distance_type, execution_time, error);
 }
 
 void GPU_RQA_horizontal_boxcar_square(double *h_LAM, double *h_TT, unsigned long long int *h_TTmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int vmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	// 1 means double. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, double>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 1, execution_time, error);
+	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, double>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 1, distance_type, execution_time, error);
 }
 
 void GPU_RQA_horizontal_boxcar_square(float *h_LAM, float *h_TT, unsigned long long int *h_TTmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int vmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
 	// 0 means float. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, float>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 0, execution_time, error);
+	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, float>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 0, distance_type, execution_time, error);
 }
 
 
-
-void GPU_RQA_generate_diagonal_R_matrix(int *h_diagonal_R_matrix, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time, Accrqa_Error *error
+void GPU_RQA_generate_diagonal_R_matrix(int *h_diagonal_R_matrix, float *h_input, float threshold, int tau, int emb, size_t input_size, int distance_type, int device, double *execution_time, Accrqa_Error *error
 ){
-	GPU_RQA_generate_diagonal_R_matrix_wrapper<RQA_ConstParams>(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, device, execution_time, error);
+	GPU_RQA_generate_diagonal_R_matrix_wrapper(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, distance_type, device, execution_time, error);
 }
 
-void GPU_RQA_generate_diagonal_R_matrix(int *h_diagonal_R_matrix, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time, Accrqa_Error *error
+void GPU_RQA_generate_diagonal_R_matrix(int *h_diagonal_R_matrix, double *h_input, double threshold, int tau, int emb, size_t input_size, int distance_type, int device, double *execution_time, Accrqa_Error *error
 ){
-	GPU_RQA_generate_diagonal_R_matrix_wrapper<RQA_ConstParams>(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, device, execution_time, error);
+	GPU_RQA_generate_diagonal_R_matrix_wrapper(h_diagonal_R_matrix, h_input, threshold, tau, emb, input_size, distance_type, device, execution_time, error);
 }
 
 

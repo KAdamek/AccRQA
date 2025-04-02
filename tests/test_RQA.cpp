@@ -154,7 +154,7 @@ int Generate_random(std::vector<input_type> *input){
 
 
 //---------------- Recurrent rate unit test
-int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_high, RQAdp threshold_step, int tau, int emb){
+int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_high, RQAdp threshold_step, int tau, int emb, Accrqa_Distance distance_type){
 	std::vector<RQAdp> input_data(input_size, 0);
 	Generate_random(&input_data);
 	
@@ -177,7 +177,7 @@ int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_
 	
 	//-------> GPU
 	if(GPU_UNIT_TEST) {
-		accrqa_RR(GPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_NV_GPU, &error);
+		accrqa_RR(GPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, distance_type, PLT_NV_GPU, &error);
 		if(DEBUG_MODE) {
 			printf("---->ACCRQA Error (accrqa_RR_GPU):");
 			accrqa_print_error(&error);
@@ -186,7 +186,7 @@ int test_recurrent_rate(size_t input_size, RQAdp threshold_low, RQAdp threshold_
 	}
 	
 	//-------> CPU
-	accrqa_RR(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, DST_MAXIMAL, PLT_CPU, &error);
+	accrqa_RR(CPU_RR_result, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, threshold_list.data(), nThresholds, distance_type, PLT_CPU, &error);
 	
 	int nErrors = 0;
 	if(CHECK) {
@@ -307,17 +307,18 @@ void unit_test_RR(){
 	printf("\n== Recurrent rate unit test ==\n");
 	int total_GPU_nErrors = 0, GPU_nErrors = 0;
 	
-	printf("Recurrent rate with different number of thresholds:"); fflush(stdout);
+	printf("  Recurrent rate with different number of thresholds:"); fflush(stdout);
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(int exp=1; exp<9; exp++){
 		int nThresholds = (1<<exp);
-		size_t size = 10000;
+		size_t size = 1000;
 		int tau = 1;
 		int emb = 1;
+		Accrqa_Distance distance_type = DST_MAXIMAL;
 		RQAdp threshold_low = 0.0;
 		RQAdp threshold_high = 1.0;
 		RQAdp threshold_step = 1.0/((double) nThresholds);
-		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb);
+		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, distance_type);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -328,22 +329,22 @@ void unit_test_RR(){
 		fflush(stdout);
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
 	
-	printf("\n");
-	printf("Recurrent rate with different sizes:"); fflush(stdout);
+	printf("  Recurrent rate with different sizes:"); fflush(stdout);
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(size_t s = 1014; s < 32768; s = s*2){
 		int nThresholds = 10;
 		size_t size = s;
 		int tau = 1;
 		int emb = 1;
+		Accrqa_Distance distance_type = DST_MAXIMAL;
 		RQAdp threshold_low = 0;
 		RQAdp threshold_high = 1.0;
 		RQAdp threshold_step = 1.0/((double) nThresholds);
-		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb);
+		GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, distance_type);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -354,20 +355,20 @@ void unit_test_RR(){
 		fflush(stdout);
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
-	printf("\n");
-	printf("Recurrent rate with different time steps and embeddings:"); fflush(stdout);
+	printf("  Recurrent rate with different time steps and embeddings:"); fflush(stdout);
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(int tau = 1; tau < 6; tau++){
 		for(int emb = 1; emb < 12; emb++){
 			int nThresholds = 10;
-			size_t size = 10000;
+			size_t size = 1000;
+			Accrqa_Distance distance_type = DST_MAXIMAL;
 			RQAdp threshold_low = 0.1;
 			RQAdp threshold_high = 1.0;
 			RQAdp threshold_step = 1.0/((double) nThresholds);
-			GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb);
+			GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, distance_type);
 			total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 			if(GPU_nErrors==0) {
 				printf("\033[1;32m.\033[0m");
@@ -379,8 +380,37 @@ void unit_test_RR(){
 		}
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
+	
+	printf("  Recurrent rate with different distance types:\n"); fflush(stdout);
+	total_GPU_nErrors = 0; GPU_nErrors = 0;
+	for(int distance_type=1; distance_type<=2; distance_type++){
+		if(distance_type==DST_EUCLIDEAN) printf("    DST_EUCLIDEAN: ");
+		else if(distance_type==DST_MAXIMAL) printf("    DST_MAXIMAL: ");
+		else printf("Unknown metric!\n");
+		for(int tau = 1; tau < 6; tau++){
+			for(int emb = 1; emb < 12; emb++){
+				int nThresholds = 10;
+				size_t size = 1000;
+				RQAdp threshold_low = 0.1;
+				RQAdp threshold_high = 1.0;
+				RQAdp threshold_step = 1.0/((double) nThresholds);
+				GPU_nErrors = test_recurrent_rate(size, threshold_low, threshold_high, threshold_step, tau, emb, (Accrqa_Distance) distance_type);
+				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
+				if(GPU_nErrors==0) {
+					printf("\033[1;32m.\033[0m");
+				}
+				else {
+					printf("\033[1;31m.\033[0m");
+				}
+				fflush(stdout);
+			}
+		}
+		printf("\n");
+	}
+	if(total_GPU_nErrors==0) printf("      Test:\033[1;32mPASSED\033[0m\n");
+	else printf("      Test:\033[1;31mFAILED\033[0m\n");
 	printf("----------------------------------<\n");
 }
 
@@ -388,11 +418,11 @@ void unit_test_RR_extended(){
 	printf("\n== Recurrent rate through DET and LAM unit test ==\n");
 	int total_GPU_nErrors = 0, GPU_nErrors = 0;
 	
-	printf("Recurrent rate DET and LAM with different number of thresholds:"); fflush(stdout);
+	printf("  Recurrent rate DET and LAM with different number of thresholds:"); fflush(stdout);
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(int exp=1; exp<9; exp++){
 		int nThresholds = (1<<exp);
-		size_t size = 10000;
+		size_t size = 1000;
 		int tau = 1;
 		int emb = 1;
 		RQAdp threshold_low = 0.0;
@@ -409,12 +439,11 @@ void unit_test_RR_extended(){
 		fflush(stdout);
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
 	
-	printf("\n");
-	printf("Recurrent rate DET and LAM with different sizes:"); fflush(stdout);
+	printf("  Recurrent rate DET and LAM with different sizes:"); fflush(stdout);
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(size_t s = 1014; s < 32768; s = s*2){
 		int nThresholds = 10;
@@ -435,16 +464,15 @@ void unit_test_RR_extended(){
 		fflush(stdout);
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
-	printf("\n");
-	printf("Recurrent rate using DET and LAM with different time steps and embeddings:"); fflush(stdout);
+	printf("  Recurrent rate using DET and LAM with different time steps and embeddings:"); fflush(stdout);
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(int tau = 1; tau < 6; tau++){
 		for(int emb = 1; emb < 12; emb++){
 			int nThresholds = 10;
-			size_t size = 10000;
+			size_t size = 1000;
 			RQAdp threshold_low = 0.1;
 			RQAdp threshold_high = 1.0;
 			RQAdp threshold_step = 1.0/((double) nThresholds);
@@ -460,15 +488,15 @@ void unit_test_RR_extended(){
 		}
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	printf("----------------------------------<\n");
 }
 // ---------------------------------------------<
 
 
 //---------------- DET and LAM unit test
-int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int lmin){
+int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int lmin, Accrqa_Distance distance_type){
 	std::vector<RQAdp> input_data(input_size, 0);
 	Generate_random(&input_data);
 	
@@ -486,7 +514,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	if(GPU_UNIT_TEST) {
 		RQAdp *output_GPU;
 		output_GPU = new RQAdp[output_size];
-		accrqa_DET(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
+		accrqa_DET(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, distance_type, calc_ENTR, PLT_NV_GPU, &error);
 		GPU_DET  = output_GPU[0];
 		GPU_L    = output_GPU[1];
 		GPU_Lmax = output_GPU[2];
@@ -499,7 +527,7 @@ int test_determinism(long int input_size, RQAdp threshold, int tau, int emb, int
 	{
 		RQAdp *output_CPU;
 		output_CPU = new RQAdp[output_size];
-		accrqa_DET(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_CPU, &error);
+		accrqa_DET(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &lmin_values, 1, &threshold_values, 1, distance_type, calc_ENTR, PLT_CPU, &error);
 		ref_DET  = output_CPU[0];
 		ref_L    = output_CPU[1];
 		ref_Lmax = output_CPU[2];
@@ -543,8 +571,8 @@ void unit_test_DET(){
 	for(int t = 0; t <= 11; t++){
 		threshold_list.push_back((RQAdp)t/10.0);
 	}
-
-	printf("Determinism with different number of thresholds:"); fflush(stdout);
+	
+	printf("  Determinism with different number of thresholds:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
 	for(int t = 0; t<(int)threshold_list.size(); t++){
@@ -553,8 +581,9 @@ void unit_test_DET(){
 		int tau = 1;
 		int emb = 1;
 		int lmin = 2;
+		Accrqa_Distance distance_type = DST_MAXIMAL;
 		if(DEBUG_MODE) printf("Testing with threshold=%f;\n", threshold);
-		GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin);
+		GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin, distance_type);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -565,12 +594,12 @@ void unit_test_DET(){
 		fflush(stdout);
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
 	
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
-	printf("Determinism with different input sizes:"); fflush(stdout);
+	printf("  Determinism with different input sizes:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
 	for(size_t s = 1014; s < 65538; s = s*2){
 		for(int t = 0; t<(int)threshold_list.size(); t++){
@@ -578,8 +607,9 @@ void unit_test_DET(){
 			int tau = 1;
 			int emb = 1;
 			int lmin = 2;
+			Accrqa_Distance distance_type = DST_MAXIMAL;
 			if(DEBUG_MODE) printf("Testing with size=%zu;\n", s);
-			GPU_nErrors = test_determinism(s, threshold, tau, emb, lmin);
+			GPU_nErrors = test_determinism(s, threshold, tau, emb, lmin, distance_type);
 			total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 			if(GPU_nErrors==0) {
 				printf("\033[1;32m.\033[0m");
@@ -591,20 +621,21 @@ void unit_test_DET(){
 		}
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
 	total_GPU_nErrors = 0; GPU_nErrors = 0;
-	printf("Determinism with different time steps and embeddings:"); fflush(stdout);
+	printf("  Determinism with different time steps and embeddings:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
 	for(int tau = 1; tau < 6; tau++){
 		for(int emb = 1; emb < 12; emb++){
 			for(int t = 0; t<(int)threshold_list.size(); t++){
 				RQAdp threshold = threshold_list[t];
 				size_t size = 1000;
+				Accrqa_Distance distance_type = DST_MAXIMAL;
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d\n", size, threshold, tau, emb);
 				int lmin = 2;
-				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin);
+				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin, distance_type);
 				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 				if(GPU_nErrors==0) {
 					printf("\033[1;32m.\033[0m");
@@ -617,16 +648,44 @@ void unit_test_DET(){
 		}
 	}
 	printf("\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	GPU_nErrors = 0; total_GPU_nErrors = 0;
+	printf("  Determinism with different distance types:\n"); fflush(stdout);
+	if(DEBUG_MODE) printf("\n");
+	for(int distance_type=1; distance_type<=2; distance_type++){
+		if(distance_type==DST_EUCLIDEAN) printf("    DST_EUCLIDEAN: ");
+		else if(distance_type==DST_MAXIMAL) printf("    DST_MAXIMAL: ");
+		else printf("Unknown metric!\n");
+		for(int tau = 1; tau < 6; tau++){
+			for(int emb = 1; emb < 12; emb++){
+				RQAdp threshold = threshold_list[5];
+				size_t size = 1000;
+				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d\n", size, threshold, tau, emb);
+				int lmin = 2;
+				GPU_nErrors = test_determinism(size, threshold, tau, emb, lmin, (Accrqa_Distance) distance_type);
+				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
+				if(GPU_nErrors==0) {
+					printf("\033[1;32m.\033[0m");
+				}
+				else {
+					printf("\033[1;31m.\033[0m");
+				}
+				fflush(stdout);
+			}
+		}
+		printf("\n");
+	}
+	if(total_GPU_nErrors==0) printf("      Test:\033[1;32mPASSED\033[0m\n");
+	else printf("      Test:\033[1;31mFAILED\033[0m\n");
 	printf("----------------------------------<\n");
 }
 // ---------------------------------------------<
 
 
 //---------------- DET and LAM unit test
-int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int vmin){
+int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int vmin, Accrqa_Distance distance_type){
 	std::vector<RQAdp> input_data(input_size, 0);
 	Generate_random(&input_data);
 	
@@ -642,7 +701,7 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 	if(GPU_UNIT_TEST) {
 		RQAdp *output_GPU;
 		output_GPU = new RQAdp[output_size];
-		accrqa_LAM(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_NV_GPU, &error);
+		accrqa_LAM(output_GPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, distance_type, calc_ENTR, PLT_NV_GPU, &error);
 		GPU_LAM   = output_GPU[0];
 		GPU_TT    = output_GPU[1];
 		GPU_TTmax = output_GPU[2];
@@ -654,7 +713,7 @@ int test_laminarity(long int input_size, RQAdp threshold, int tau, int emb, int 
 	{
 		RQAdp *output_CPU;
 		output_CPU = new RQAdp[output_size];
-		accrqa_LAM(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, DST_MAXIMAL, calc_ENTR, PLT_CPU, &error);
+		accrqa_LAM(output_CPU, input_data.data(), input_data.size(), &tau_values, 1, &emb_values, 1, &vmin_values, 1, &threshold_values, 1, distance_type, calc_ENTR, PLT_CPU, &error);
 		ref_LAM   = output_CPU[0];
 		ref_TT    = output_CPU[1];
 		ref_TTmax = output_CPU[2];
@@ -695,7 +754,7 @@ void unit_test_LAM(void){
 	}
 	
 	GPU_nErrors = 0; total_GPU_nErrors = 0;
-	printf("Laminarity with different number of thresholds:"); fflush(stdout);
+	printf("  Laminarity with different number of thresholds:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
 	for(int t = 0; t<(int)threshold_list.size(); t++){
 		RQAdp threshold = threshold_list[t];
@@ -703,8 +762,9 @@ void unit_test_LAM(void){
 		int tau = 1;
 		int emb = 1;
 		int vmin = 2;
+		Accrqa_Distance distance_type = DST_MAXIMAL;
 		if(DEBUG_MODE) printf("Testing with threshold=%f;\n", threshold);
-		GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin);
+		GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin, distance_type);
 		total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 		if(GPU_nErrors==0) {
 			printf("\033[1;32m.\033[0m");
@@ -715,12 +775,12 @@ void unit_test_LAM(void){
 		fflush(stdout);
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 	
 	
 	GPU_nErrors = 0; total_GPU_nErrors = 0;
-	printf("Laminarity with different input sizes:"); fflush(stdout);
+	printf("  Laminarity with different input sizes:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
 	for(size_t s = 1014; s < 32768; s = s*2){
 		for(int t = 0; t<(int)threshold_list.size(); t++){
@@ -728,8 +788,9 @@ void unit_test_LAM(void){
 			int tau = 1;
 			int emb = 1;
 			int vmin = 2;
+			Accrqa_Distance distance_type = DST_MAXIMAL;
 			if(DEBUG_MODE) printf("Testing with size=%zu and threshold=%f\n", s, threshold);
-			GPU_nErrors = test_laminarity(s, threshold, tau, emb, vmin);
+			GPU_nErrors = test_laminarity(s, threshold, tau, emb, vmin, distance_type);
 			total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 			if(GPU_nErrors==0) {
 				printf("\033[1;32m.\033[0m");
@@ -741,21 +802,22 @@ void unit_test_LAM(void){
 		}
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
 
 
 	GPU_nErrors = 0; total_GPU_nErrors = 0;
-	printf("Laminarity with different time step and embedding:"); fflush(stdout);
+	printf("  Laminarity with different time step and embedding:"); fflush(stdout);
 	if(DEBUG_MODE) printf("\n");
 	for(int tau = 1; tau < 6; tau++){
 		for(int emb = 1; emb < 12; emb++){
 			for(int t = 0; t<(int)threshold_list.size(); t++){
 				size_t size = 1000;
 				int vmin = 2;
+				Accrqa_Distance distance_type = DST_MAXIMAL;
 				RQAdp threshold = threshold_list[t];
 				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d \n", size, threshold, tau, emb);
-				GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin);
+				GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin, distance_type);
 				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
 				if(GPU_nErrors==0) {
 					printf("\033[1;32m.\033[0m");
@@ -768,8 +830,37 @@ void unit_test_LAM(void){
 		}
 	}
 	printf("\n");
-	if(total_GPU_nErrors==0) printf("     Test:\033[1;32mPASSED\033[0m\n");
-	else printf("     Test:\033[1;31mFAILED\033[0m\n");
+	if(total_GPU_nErrors==0) printf("    Test:\033[1;32mPASSED\033[0m\n");
+	else printf("    Test:\033[1;31mFAILED\033[0m\n");
+	
+	GPU_nErrors = 0; total_GPU_nErrors = 0;
+	printf("  Laminarity with different distance types:\n"); fflush(stdout);
+	if(DEBUG_MODE) printf("\n");
+	for(int distance_type=1; distance_type<=2; distance_type++){
+		if(distance_type==DST_EUCLIDEAN) printf("    DST_EUCLIDEAN: ");
+		else if(distance_type==DST_MAXIMAL) printf("    DST_MAXIMAL: ");
+		else printf("Unknown metric!\n");
+		for(int tau = 1; tau < 6; tau++){
+			for(int emb = 1; emb < 12; emb++){
+				size_t size = 1000;
+				int vmin = 2;
+				RQAdp threshold = threshold_list[5];
+				if(DEBUG_MODE) printf("Testing with size=%zu, threshold=%f, tau=%d and emb=%d \n", size, threshold, tau, emb);
+				GPU_nErrors = test_laminarity(size, threshold, tau, emb, vmin, (Accrqa_Distance) distance_type);
+				total_GPU_nErrors = total_GPU_nErrors + GPU_nErrors;
+				if(GPU_nErrors==0) {
+					printf("\033[1;32m.\033[0m");
+				}
+				else {
+					printf("\033[1;31m.\033[0m");
+				}
+				fflush(stdout);
+			}
+		}
+		printf("\n");
+	}
+	if(total_GPU_nErrors==0) printf("      Test:\033[1;32mPASSED\033[0m\n");
+	else printf("      Test:\033[1;31mFAILED\033[0m\n");
 	printf("----------------------------------<\n");
 }
 // ---------------------------------------------<

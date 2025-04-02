@@ -3,8 +3,8 @@
 
 #include "../include/AccRQA_utilities_error.hpp"
 
-void GPU_RQA_R_matrix(int *R_matrix, float *h_input, unsigned long long int size, float threshold, int tau, int emb, int distance_type, int device, double *execution_time, Accrqa_Error *error);
-void GPU_RQA_R_matrix(int *R_matrix, double *h_input, unsigned long long int size, double threshold, int tau, int emb, int distance_type, int device, double *execution_time, Accrqa_Error *error);
+void GPU_RQA_R_matrix(int *R_matrix, float *h_input, unsigned long long int size, float threshold, int tau, int emb, int distance_type, double *execution_time, Accrqa_Error *error);
+void GPU_RQA_R_matrix(int *R_matrix, double *h_input, unsigned long long int size, double threshold, int tau, int emb, int distance_type, double *execution_time, Accrqa_Error *error);
 
 
 void GPU_RQA_diagonal_R_matrix(int *h_diagonal_R_matrix, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, int device, double *execution_time, Accrqa_Error *error);
