@@ -89,13 +89,13 @@ __inline__ __device__ intype compact(intype *s_array, intype predicate, intype v
 }
 
 template<class const_params, typename intype>
-__global__ void GPU_scan_warp(intype *d_output, intype *d_input, unsigned int nElements, intype *d_partial_sums=NULL) {
+__global__ void GPU_scan_warp(intype *d_output, intype *d_input, size_t nElements, intype *d_partial_sums=NULL) {
 	__shared__ intype warp_scan_partial_sums[const_params::warp];
 	
 	intype value, scan_result;
 	
 	// Loading data
-	unsigned int gl_index = blockIdx.x*blockDim.x + threadIdx.x;
+	size_t gl_index = blockIdx.x*blockDim.x + threadIdx.x;
 	if(gl_index < nElements) value = d_input[blockIdx.y*nElements + gl_index];
 	else value = 0;
 	
