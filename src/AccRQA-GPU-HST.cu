@@ -1336,10 +1336,10 @@ int GPU_scan_exclusive(unsigned int *d_output, unsigned int *d_input, unsigned i
 }
 
 
-int GPU_scan_inclusive(unsigned long long int *d_output, unsigned long long int *d_input, unsigned int nElements, int nTimeseries){
+int GPU_scan_inclusive(unsigned long long int *d_output, unsigned long long int *d_input, size_t nElements, size_t nTimeseries){
 	//---------> Task specific
-	int nThreads = 1024;
-	int nBlocks_x = (nElements + nThreads - 1)/nThreads;
+	size_t nThreads = 1024;
+	size_t nBlocks_x = (nElements + nThreads - 1)/nThreads;
 	
 	//---------> CUDA block and CUDA grid parameters
 	dim3 gridSize(nBlocks_x, nTimeseries, 1);
@@ -1354,7 +1354,7 @@ int GPU_scan_inclusive(unsigned long long int *d_output, unsigned long long int 
 		d_partial_sums = NULL;
 	}
 	else {
-		int partial_sum_size = nBlocks_x*nTimeseries*sizeof(int);
+		size_t partial_sum_size = nBlocks_x*nTimeseries*sizeof(unsigned long long int);
 		cudaMalloc((void **) &d_partial_sums,  partial_sum_size);
 		cudaMemset(d_partial_sums, 0, partial_sum_size);
 	}
