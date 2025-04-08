@@ -68,7 +68,6 @@ __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
 		int emb
 	){
 	// Input data
-	__shared__ int s_seeds[NSEEDS];
 	__shared__ int s_sums[NTHREADS];
 	extern __shared__ int s_local_RR[]; //local recurrent rate
 	unsigned long long int pos_x, pos_y;
@@ -81,15 +80,9 @@ __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
 	if( (blockIdx.y*NSEEDS) > ((blockIdx.x+1)*NTHREADS - 1) ) return;
 	
 	s_sums[threadIdx.x] = 0;
-	if( threadIdx.x < NSEEDS ) s_seeds[threadIdx.x] = 0;
 	if( threadIdx.x < nThresholds ) s_local_RR[threadIdx.x] = 0;
 	pos_x = blockIdx.x*NTHREADS + threadIdx.x;
 	pos_y = blockIdx.y*NSEEDS + threadIdx.x;
-	
-	// i-th row from the R matrix; each thread iterates through these values
-	if( threadIdx.x<NSEEDS && pos_y<size ) {
-		s_seeds[threadIdx.x] = pos_y;
-	}
 	
 	for(int t=0; t<nThresholds; t++) {
 		// for given threshold each thread processes part of the column from R matrix (going through s_seeds)
@@ -101,17 +94,11 @@ __global__ void GPU_RQA_RR_seedsSM_improved_reduction_kernel(
 				// We process only upper triangle of the R matrix which the block may cover partially; 
 				// this contribution is added twice since lower triangle is the same
 				if( pos_y<pos_x && pos_y<size ) {
-					//int result = R_element_cartesian(s_seeds[f], elements, threshold); 
-					//int result = R_element_max(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
-					int result = get_RP_element<const_params>(d_input, s_seeds[f], pos_x, threshold, tau, emb);
-					//int result = R_element_equ(d_input, s_seeds[f], pos_x, threshold, tau, emb, size);
+					int result = get_RP_element<const_params>(d_input, pos_y, pos_x, threshold, tau, emb);
 					sum = sum + 2*result;
 				}
-				else if( pos_y == pos_x ){ // diagonal
-					//int result = R_element_cartesian(d_input[pos_y], d_input[pos_x], threshold);
-					//int result = R_element_max(d_input, pos_y, pos_x, threshold, tau, emb, size);
+				else if( pos_y == pos_x && pos_y<size ){ // diagonal
 					int result = get_RP_element<const_params>(d_input, pos_y, pos_x, threshold, tau, emb);
-					//int result = R_element_equ(d_input, pos_y, pos_x, threshold, tau, emb, size);
 					sum = sum + result;
 				}
 			}
