@@ -16,14 +16,15 @@ try:
 except ImportError:
     pd = None
     
-#TODO: separate functions for distance and computation platform
 #TODO: improve support for tidy data, preferably directly from C
 
 from . import accrqaError
 from . import accrqaLib
 from . import accrqaMem
+from . import accrqaDistance
+from . import accrqaCompPlatform
 
-def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: str, comp_platform: Optional[str] = 'nv_gpu', tidy_data: Optional[bool] = False) -> Union[NDArray, pd.DataFrame]:
+def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates RR metric from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
@@ -33,8 +34,8 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         tau_values: Array of delays.
         emb_values: Array of embedding values.
         threshold_values: Array of threshold values.
-        distance_type: Type of formula used to calculate distance to line of identity.
-        comp_platform: [Optional] Computational platform to be used. Default is cpu.
+        distance_type: Type of formula used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+        comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
 
     Returns:
@@ -63,22 +64,18 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         rqa_metrics = np.zeros((nTaus, nEmbs, nThresholds), dtype=input_data.dtype);
     else:
         raise TypeError("Unknown array type of the input_data")
-
-    int_distance_type = 0;
-    if distance_type == 'euclidean':
-        int_distance_type = 1
-    elif distance_type == 'maximal':
-        int_distance_type = 2
-    else:
-        raise TypeError("Unknown distance to line of identity type")
     
-    int_comp_platform = 0;
-    if comp_platform == 'nv_gpu':
-        int_comp_platform = 1024
-    elif comp_platform == 'cpu':
-        int_comp_platform = 1
-    else:
-        raise TypeError("Unknown compute platform selected")
+    # Checking distance validity
+    if not type(distance_type) is accrqaDistance:
+        raise TypeError("Distance must be an instance of accrqaDistance")
+    int_distance_type = 0
+    int_distance_type = distance_type.get_distance_id()
+    
+    # Checking computational platform validity
+    if not type(comp_platform) is accrqaCompPlatform:
+        raise TypeError("Computational platform must be an instance of accrqaCompPlatform")
+    int_comp_platform = 0
+    int_comp_platform = comp_platform.get_platform_id()
     
     mem_output = accrqaMem(rqa_metrics)
     mem_input = accrqaMem(input_data)
@@ -128,7 +125,7 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: str, calculate_ENTR: bool, comp_platform: Optional[str] = 'nv_gpu', tidy_data: Optional[bool] = False) -> Union[NDArray, pd.DataFrame]:
+def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
@@ -139,8 +136,9 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         emb_values: Array of embedding values.
         lmin_values: Array of minimal lengths.
         threshold_values: Array of threshold values.
-        distance_type: Type of formula used to calculate distance to line of identity.
-        comp_platform: [Optional] Computational platform to be used. Default is cpu.
+        distance_type: Type of formula used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+        calculate_ENTR: [Optional] Enable calculation of Lmax and ENTR. Default True.
+        comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
 
     Returns:
@@ -170,22 +168,18 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         rqa_metrics = np.zeros((nTaus, nEmbs, nLmins, nThresholds, 5), dtype=input_data.dtype);
     else:
         raise TypeError("Unknown array type")
-
-    int_distance_type = 0;
-    if distance_type == 'euclidean':
-        int_distance_type = 1
-    elif distance_type == 'maximal':
-        int_distance_type = 2
-    else:
-        raise TypeError("Unknown distance type")
     
-    int_comp_platform = 0;
-    if comp_platform == 'nv_gpu':
-        int_comp_platform = 1024
-    elif comp_platform == 'cpu':
-        int_comp_platform = 1
-    else:
-        raise TypeError("Unknown compute platform")
+    # Checking distance validity
+    if not type(distance_type) is accrqaDistance:
+        raise TypeError("distance must be an instance of accrqaDistance")
+    int_distance_type = 0
+    int_distance_type = distance_type.get_distance_id()
+    
+    # Checking computational platform validity
+    if not type(comp_platform) is accrqaCompPlatform:
+        raise TypeError("Computational platform must be an instance of accrqaCompPlatform")
+    int_comp_platform = 0
+    int_comp_platform = comp_platform.get_platform_id()
     
     int_calc_ENTR = 0;
     if calculate_ENTR == True:
@@ -258,7 +252,7 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: str, calculate_ENTR: bool, comp_platform: Optional[str] = 'nv_gpu', tidy_data: Optional[bool] = False) -> Union[NDArray, pd.DataFrame]:
+def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
@@ -269,8 +263,9 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         emb_values: Array of embedding values.
         vmin_values: Array of minimal lengths.
         threshold_values: Array of threshold values.
-        distance_type: Type of formula used to calculate distance to line of identity.
-        comp_platform: [Optional] Computational platform to be used. Default is cpu.
+        distance_type: Type of formula used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+        calculate_ENTR: [Optional] Enable calculation of Vmax and ENTR. Default True.
+        comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
 
     Returns:
@@ -300,14 +295,18 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         rqa_metrics = np.zeros((nTaus, nEmbs, nVmins, nThresholds, 5), dtype=input_data.dtype);
     else:
         raise TypeError("Unknown array type")
-
-    int_distance_type = 0;
-    if distance_type == 'euclidean':
-        int_distance_type = 1
-    elif distance_type == 'maximal':
-        int_distance_type = 2
-    else:
-        raise TypeError("Unknown distance type")
+    
+    # Checking distance validity
+    if not type(distance_type) is accrqaDistance:
+        raise TypeError("distance must be an instance of accrqaDistance")
+    int_distance_type = 0
+    int_distance_type = distance_type.get_distance_id()
+    
+    # Checking computational platform validity
+    if not type(comp_platform) is accrqaCompPlatform:
+        raise TypeError("Computational platform must be an instance of accrqaCompPlatform")
+    int_comp_platform = 0
+    int_comp_platform = comp_platform.get_platform_id()
     
     int_calc_ENTR = 0;
     if calculate_ENTR == True:
@@ -316,14 +315,6 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         int_calc_ENTR = 0
     else:
         raise TypeError("Invalid value of calculate_ENTR")
-    
-    int_comp_platform = 0;
-    if comp_platform == 'nv_gpu':
-        int_comp_platform = 1024
-    elif comp_platform == 'cpu':
-        int_comp_platform = 1
-    else:
-        raise TypeError("Unknown compute platform")
     
     mem_output = accrqaMem(rqa_metrics)
     mem_input = accrqaMem(input_data)
