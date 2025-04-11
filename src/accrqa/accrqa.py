@@ -1,5 +1,6 @@
 # See the LICENSE file at the top-level directory of this distribution.
 
+import sys
 import ctypes
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -49,9 +50,12 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         TypeError: If wrong computational platform is selected.
         RuntimeError: If AccRQA library encounters a problem.
     """
-    
-    if tidy_data == True and pd == None:
+    pandas_detected = 'datetime' in sys.modules
+    if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
+    
+    if not type(tidy_data) == bool:
+        raise TypeError("tidy_data must be bool (False or True)")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -153,8 +157,15 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         RuntimeError: If AccRQA library encounters a problem.
     """
     
-    if tidy_data == True and pd == None:
+    pandas_detected = 'datetime' in sys.modules
+    if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
+    
+    if not type(tidy_data) == bool:
+        raise TypeError("tidy_data must be bool (False or True)")
+    
+    if not type(calculate_ENTR) == bool:
+        raise TypeError("calculate_ENTR must be bool (False or True)")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -280,8 +291,15 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         RuntimeError: If AccRQA library encounters a problem.
     """
     
-    if tidy_data == True and pd == None:
+    pandas_detected = 'datetime' in sys.modules
+    if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
+    
+    if not type(tidy_data) == bool:
+        raise TypeError("tidy_data must be bool (False or True)")
+    
+    if not type(calculate_ENTR) == bool:
+        raise TypeError("calculate_ENTR must be bool (False or True)")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
