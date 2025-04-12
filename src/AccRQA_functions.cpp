@@ -4,8 +4,6 @@
 #include "../include/AccRQA_utilities_distance.hpp"
 #include "AccRQA_GPU_function.hpp"
 #include "AccRQA_CPU_function.hpp"
-#include "CPU_timer.h"
-#include "GPU_timer.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -136,8 +134,6 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
-		CPU_Timer cpu_timer;
-		
 		//cpu_timer.Start();
 		//rqa_CPU_LAM_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
 		//cpu_timer.Stop();
@@ -190,9 +186,7 @@ protected:
 		#endif
 	}
 	
-	void calculate_rqa_histogram_diagonal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Determinism
-		CPU_Timer cpu_timer;
-
+	void calculate_rqa_histogram_diagonal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Determinism 
 		/*
 		cpu_timer.Start();
 		rqa_CPU_DET_metric_ref(
@@ -528,19 +522,11 @@ void accrqa_LAM_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	if(*error!=SUCCESS) return;
 	
 	// Default code
-	GPU_Timer gpu_timer;
-	
-	// Default code
 	if(calc_ENTR == 1){
-		gpu_timer.Start();
 		calculate_LAM_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
-		gpu_timer.Stop();
 	}
 	else {
-		gpu_timer.Start();
 		calculate_LAM_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
-		gpu_timer.Stop();
-		//printf("Boxcar square GPU LAM execution time: %fms;\n", gpu_timer.Elapsed());
 	}
 
 	#else
@@ -806,13 +792,8 @@ void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	if(*error!=SUCCESS) return;
 	
 	// Default code
-	GPU_Timer gpu_timer;
-	
 	if(calc_ENTR == 1){
-		gpu_timer.Start();
 		calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-		gpu_timer.Stop();
-		//printf("Normal GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
 	}
 	else {
 		/*
@@ -828,11 +809,8 @@ void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_si
 		gpu_timer.Stop();
 		printf("Boxcar GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
 		*/
-	
-		gpu_timer.Start();
+		
 		calculate_DET_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-		gpu_timer.Stop();
-		//printf("Boxcar square GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
 	}
 
 	#else
