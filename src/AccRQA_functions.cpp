@@ -927,9 +927,8 @@ void calculate_RR_GPU_default(
 			long int corrected_size = input_size - (emb - 1)*tau;
 			std::vector<unsigned long long int> rr_count;
 			rr_count.resize(nThresholds, 0);
-			double execution_time = 0;
 			Accrqa_Error error = SUCCESS;
-			GPU_RQA_RR_metric_integer(rr_count.data(), input_data, input_size, threshold_values, nThresholds, tau, emb, distance_type, &execution_time, &error);
+			GPU_RQA_RR_metric_integer(rr_count.data(), input_data, input_size, threshold_values, nThresholds, tau, emb, distance_type, &error);
 	
 			for(int th_id = 0; th_id < nThresholds; th_id++){
 				int pos = tau_id*nEmbs*nThresholds + emb_id*nThresholds + th_id;
