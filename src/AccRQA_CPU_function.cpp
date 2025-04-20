@@ -658,6 +658,7 @@ void rqa_CPU_DET_metric_parallel_mk1(
 		}
 
 		delete[] local_hst;
+		#pragma omp barrier
 	}
 	
 	unsigned long long int *temp_histogram, *temp_metric;

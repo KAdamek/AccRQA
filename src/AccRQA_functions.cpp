@@ -68,6 +68,7 @@ protected:
 		unsigned long long int start, mid, end, length;
 		unsigned long long int mid_value, midm1_value;
 		bool found = false;
+
 		end = histogram_size - 1;
 		mid = histogram_size/2;
 		if(is_DET == 1) last_element = scan_histogram[end];
@@ -77,12 +78,17 @@ protected:
 		
 		while(found==false){
 			mid_value = scan_histogram[mid];
-			midm1_value = scan_histogram[mid-1];
+			if(mid > 0) midm1_value = scan_histogram[mid-1];
+			else midm1_value = 0;
 			if(mid_value == last_element && midm1_value > mid_value) {
 				mid = mid - 1;
 				found = true;
 			}
 			else if(length==0) {
+				found = true;
+				break;
+			}
+			else if(mid==0){
 				found = true;
 				break;
 			}
@@ -100,7 +106,6 @@ protected:
 				mid = start + (length>>1);
 			}
 		}
-		
 		return(mid);
 	}
 	
@@ -151,10 +156,8 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_horizontal_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
-		double execution_time = 0;
-		
 		Accrqa_Error error = SUCCESS;
-		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
+		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
 		printf("LAM-default execution time: %fms;\n", execution_time);
@@ -169,10 +172,8 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_vertical_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
-		double execution_time = 0;
-		
 		Accrqa_Error error = SUCCESS;
-		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
+		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &error);
 		
 		#ifdef MONITOR_PERFORMANCE
 		printf("LAM-default execution time: %fms;\n", execution_time);
@@ -235,10 +236,8 @@ protected:
 	
 	void calculate_rqa_histogram_diagonal_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { 
 		// Determinism
-		double execution_time = 0;
-		
 		Accrqa_Error error = SUCCESS;
-		GPU_RQA_length_histogram_diagonal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &execution_time, &error);
+		GPU_RQA_length_histogram_diagonal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &error);
 		
 		if(ACCRQA_DEBUG_MODE) {
 			for(int f=0; f<10; f++){
@@ -450,13 +449,12 @@ void calculate_LAM_GPU_boxcar_square(input_type *output, input_type *input_data,
 					
 					input_type h_LAM = 0, h_TT = 0, h_RR = 0;
 					unsigned long long int h_TTmax = 0;
-					double execution_time = 0;
 					GPU_RQA_horizontal_boxcar_square(
 						&h_LAM, &h_TT, &h_TTmax, &h_RR,
 						input_data,
 						threshold, tau, emb, vmin, 
 						data_size, distance_type, 
-						&execution_time, error
+						error
 					);
 					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + v_id*nThresholds + th_id;
 					output[5*pos + 0] = h_LAM;
@@ -464,17 +462,6 @@ void calculate_LAM_GPU_boxcar_square(input_type *output, input_type *input_data,
 					output[5*pos + 2] = h_TTmax;
 					output[5*pos + 3] = 0;
 					output[5*pos + 4] = h_RR;
-					
-					#ifdef MONITOR_PERFORMANCE
-					printf("LAM-sum execution time: %fms;\n", execution_time);
-					char metric_name[200]; 
-					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
-					std::ofstream FILEOUT;
-					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
-					FILEOUT.close();
-					#endif
 				}
 			}
 		}
@@ -629,13 +616,12 @@ void calculate_DET_GPU_sum(input_type *output, input_type *input_data, size_t da
 					
 					input_type h_DET = 0, h_L = 0, h_RR = 0;
 					unsigned long long int h_Lmax = 0;
-					double execution_time = 0;
 					GPU_RQA_length_histogram_diagonal_sum(
 						&h_DET, &h_L, &h_Lmax, &h_RR,
 						input_data,
 						threshold, tau, emb, lmin, 
 						data_size, distance_type, 
-						&execution_time, error
+						error
 					);
 					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = h_DET;
@@ -674,13 +660,12 @@ void calculate_DET_GPU_boxcar(input_type *output, input_type *input_data, size_t
 					
 					input_type h_DET = 0, h_L = 0, h_RR = 0;
 					unsigned long long int h_Lmax = 0;
-					double execution_time = 0;
 					GPU_RQA_diagonal_boxcar(
 						&h_DET, &h_L, &h_Lmax, &h_RR,
 						input_data,
 						threshold, tau, emb, lmin, 
 						data_size, distance_type, 
-						&execution_time, error
+						error
 					);
 					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = h_DET;
@@ -688,17 +673,6 @@ void calculate_DET_GPU_boxcar(input_type *output, input_type *input_data, size_t
 					output[5*pos + 2] = h_Lmax;
 					output[5*pos + 3] = 0;
 					output[5*pos + 4] = h_RR;
-					
-					#ifdef MONITOR_PERFORMANCE
-					printf("DET-sum execution time: %fms;\n", execution_time);
-					char metric_name[200]; 
-					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
-					std::ofstream FILEOUT;
-					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
-					FILEOUT.close();
-					#endif
 				}
 			}
 		}
@@ -720,13 +694,12 @@ void calculate_DET_GPU_boxcar_square(input_type *output, input_type *input_data,
 					
 					input_type h_DET = 0, h_L = 0, h_RR = 0;
 					unsigned long long int h_Lmax = 0;
-					double execution_time = 0;
 					GPU_RQA_diagonal_boxcar_square(
 						&h_DET, &h_L, &h_Lmax, &h_RR,
 						input_data,
 						threshold, tau, emb, lmin, 
 						data_size, distance_type, 
-						&execution_time, error
+						error
 					);
 					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = h_DET;
@@ -734,17 +707,6 @@ void calculate_DET_GPU_boxcar_square(input_type *output, input_type *input_data,
 					output[5*pos + 2] = h_Lmax;
 					output[5*pos + 3] = 0;
 					output[5*pos + 4] = h_RR;
-					
-					#ifdef MONITOR_PERFORMANCE
-					printf("DET-sum execution time: %fms;\n", execution_time);
-					char metric_name[200]; 
-					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
-					std::ofstream FILEOUT;
-					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
-					FILEOUT.close();
-					#endif
 				}
 			}
 		}

@@ -1419,13 +1419,12 @@ void RQA_length_histogram_horizontal_wrapper(
 	int emb, 
 	long int input_size,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -1436,7 +1435,6 @@ void RQA_length_histogram_horizontal_wrapper(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -1479,7 +1477,6 @@ void RQA_length_histogram_horizontal_wrapper(
 	}
 	//--------------------------------<
 	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_histogram, 0, histogram_size_in_bytes);
 	cudaMemset(d_temporary, 0, histogram_size_in_bytes);
@@ -1528,8 +1525,6 @@ void RQA_length_histogram_horizontal_wrapper(
 		*error = ERR_CUDA;
 	}
 	//--------------------------------<
-	timer.Stop();
-	*execution_time = timer.Elapsed();
 	
 	//---------> error check
 	cudaError = cudaGetLastError();
@@ -1558,13 +1553,12 @@ void RQA_length_histogram_vertical_wrapper(
 	int emb, 
 	unsigned long long int input_size,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -1575,7 +1569,6 @@ void RQA_length_histogram_vertical_wrapper(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -1616,7 +1609,6 @@ void RQA_length_histogram_vertical_wrapper(
 	}
 	//--------------------------------<
 	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_histogram, 0, histogram_size_in_bytes);
 	cudaMemset(d_temporary, 0, histogram_size_in_bytes);
@@ -1667,8 +1659,6 @@ void RQA_length_histogram_vertical_wrapper(
 		*error = ERR_CUDA;
 	}
 	//--------------------------------<
-	timer.Stop();
-	*execution_time = timer.Elapsed();
 	
 	//---------> error check
 	cudaError = cudaGetLastError();
@@ -1702,7 +1692,7 @@ void RQA_length_histogram_diagonal_wrapper_mk1(
 	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -1826,13 +1816,12 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	int emb, 
 	long int input_size,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -1843,7 +1832,6 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	long int corrected_size = input_size - (emb - 1)*tau;
 	unsigned int hst_size = corrected_size + 1;
 	int nThreads = 1024;
-	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -1886,7 +1874,6 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 		d_metric = NULL;
 	}
 	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_histogram, 0, histogram_size_in_bytes);
 	cudaMemset(d_temporary, 0, histogram_size_in_bytes);
@@ -1938,8 +1925,6 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 		*error = ERR_CUDA;
 	}
 	//--------------------------------<
-	timer.Stop();
-	*execution_time = timer.Elapsed();
 	
 	//---------> error check
 	cudaError = cudaGetLastError();
@@ -1975,13 +1960,12 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	int lmin, 
 	size_t input_size,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
 	
 	//---------> Checking that device is present
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -1991,7 +1975,6 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	
 	long int corrected_size = input_size - (emb - 1)*tau;
 	int nThreads = 1024;
-	GPU_Timer timer;
 	
 	//-----------> Kernel configurations
 	// CUDA grid and block size for length histogram calculation
@@ -2034,7 +2017,6 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 		d_N_lmin = NULL;
 	}
 	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
 	cudaMemset(d_S_lmin, 0, sizeof(unsigned long long int));
@@ -2095,9 +2077,6 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	*h_RR   = ((double) h_S_all)/((double) (corrected_size*corrected_size));
 	//--------------------------------<
 	
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
@@ -2132,14 +2111,12 @@ void RQA_diagonal_boxcar_wrapper(
 	int lmin, 
 	size_t input_size,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
-	GPU_Timer timer;
 	
 	//---------> Checking that device is present
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -2192,7 +2169,6 @@ void RQA_diagonal_boxcar_wrapper(
 	}
 	
 	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
 	cudaMemset(d_S_lmin, 0, sizeof(unsigned long long int));
@@ -2268,9 +2244,6 @@ void RQA_diagonal_boxcar_wrapper(
 	*h_RR   = ((double) h_S_all)/((double) ((corrected_size-1)*(corrected_size-1)));
 	//--------------------------------<
 	
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
@@ -2305,14 +2278,12 @@ void RQA_diagonal_boxcar_square_wrapper(
 	size_t input_size,
 	int input_type,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
-	GPU_Timer timer;
 	
 	//---------> Checking that device is present
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -2360,7 +2331,6 @@ void RQA_diagonal_boxcar_square_wrapper(
 	}
 	
 	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
 	cudaMemset(d_S_lmin, 0, sizeof(unsigned long long int));
@@ -2465,9 +2435,6 @@ void RQA_diagonal_boxcar_square_wrapper(
 	*h_RR   = ((double) h_S_all)/((double) ((corrected_size-1)*(corrected_size-1)));
 	//--------------------------------<
 	
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
@@ -2504,14 +2471,12 @@ void RQA_horizontal_boxcar_square_wrapper(
 	size_t input_size,
 	int input_type,
 	int distance_type, 
-	double *execution_time,
 	Accrqa_Error *error
 ){
 	if(*error != SUCCESS) return;
-	GPU_Timer timer;
 	
 	//---------> Checking that device is present
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(cudaError != cudaSuccess) {
@@ -2562,8 +2527,6 @@ void RQA_horizontal_boxcar_square_wrapper(
 		d_N_vmin = NULL;
 	}
 	
-	
-	timer.Start();
 	//---------> Memory copy and preparation
 	cudaMemset(d_S_all,  0, sizeof(unsigned long long int));
 	cudaMemset(d_S_vmin, 0, sizeof(unsigned long long int));
@@ -2667,9 +2630,6 @@ void RQA_horizontal_boxcar_square_wrapper(
 	*h_RR    = ((double) h_S_all)/((double) ((corrected_size-1)*(corrected_size-1)));
 	//--------------------------------<
 	
-	timer.Stop();
-	*execution_time = timer.Elapsed();
-	
 	//---------> error check
 	cudaError = cudaGetLastError();
 	if(cudaError != cudaSuccess){
@@ -2727,7 +2687,7 @@ void GPU_RQA_generate_diagonal_R_matrix_wrapper(
 	if(*error != SUCCESS) return;
 	
 	//---------> Initial nVidia stuff
-	int devCount;
+	int devCount = 0;
 	cudaError_t cudaError;
 	cudaError = cudaGetDeviceCount(&devCount);
 	if(device<devCount) cudaSetDevice(device);
@@ -2790,7 +2750,7 @@ void GPU_RQA_generate_diagonal_R_matrix_wrapper(
 
 int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, int *h_input, long int nSamples, int device, int nRuns, double *execution_time){
 	//---------> Initial nVidia stuff
-	int devCount;
+	int devCount = 0;
 	cudaGetDeviceCount(&devCount);
 	if(device<devCount) cudaSetDevice(device);
 	else { printf("Wrong device!\n"); return(1); }
@@ -2825,69 +2785,69 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 
 //---------------------------- L1 WRAPERS -----------------------------
 
-void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
+void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, error);
 }
 
-void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
-}
-
-
-void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
-}
-
-void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
+void GPU_RQA_length_histogram_horizontal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_horizontal_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, error);
 }
 
 
-void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
+void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, error);
 }
 
-void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, execution_time, error);
-}
-
-
-void GPU_RQA_length_histogram_diagonal_sum(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
-}
-
-void GPU_RQA_length_histogram_diagonal_sum(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
+void GPU_RQA_length_histogram_vertical(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_vertical_wrapper<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, error);
 }
 
 
-void GPU_RQA_diagonal_boxcar(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
+void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, float *h_input, float threshold, int tau, int emb, long int input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, error);
 }
 
-void GPU_RQA_diagonal_boxcar(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
-	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, execution_time, error);
+void GPU_RQA_length_histogram_diagonal(unsigned long long int *h_length_histogram, unsigned long long int *h_scan_histogram, unsigned long long int *h_metric, double *h_input, double threshold, int tau, int emb, long int input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_diagonal_wrapper_mk2<RQA_ConstParams>(h_length_histogram, h_scan_histogram, h_metric, h_input, threshold, tau, emb, input_size, distance_type, error);
 }
 
 
-void GPU_RQA_diagonal_boxcar_square(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+void GPU_RQA_length_histogram_diagonal_sum(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, error);
+}
+
+void GPU_RQA_length_histogram_diagonal_sum(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, Accrqa_Error *error){
+	RQA_length_histogram_diagonal_sum_wrapper<RQA_ConstParams>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, error);
+}
+
+
+void GPU_RQA_diagonal_boxcar(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, Accrqa_Error *error){
+	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, error);
+}
+
+void GPU_RQA_diagonal_boxcar(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, Accrqa_Error *error){
+	RQA_diagonal_boxcar_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, distance_type, error);
+}
+
+
+void GPU_RQA_diagonal_boxcar_square(double *h_DET, double *h_L, unsigned long long int *h_Lmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, Accrqa_Error *error){
 	// 1 means double. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 1, distance_type, execution_time, error);
+	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, double>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 1, distance_type, error);
 }
 
-void GPU_RQA_diagonal_boxcar_square(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+void GPU_RQA_diagonal_boxcar_square(float *h_DET, float *h_L, unsigned long long int *h_Lmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int lmin, size_t input_size, int distance_type, Accrqa_Error *error){
 	// 0 means float. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 0, distance_type, execution_time, error);
+	RQA_diagonal_boxcar_square_wrapper<RQA_ConstParams, float>(h_DET, h_L, h_Lmax, h_RR, h_input, threshold, tau, emb, lmin, input_size, 0, distance_type, error);
 }
 
-void GPU_RQA_horizontal_boxcar_square(double *h_LAM, double *h_TT, unsigned long long int *h_TTmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int vmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+void GPU_RQA_horizontal_boxcar_square(double *h_LAM, double *h_TT, unsigned long long int *h_TTmax, double *h_RR, double *h_input, double threshold, int tau, int emb, int vmin, size_t input_size, int distance_type, Accrqa_Error *error){
 	// 1 means double. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, double>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 1, distance_type, execution_time, error);
+	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, double>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 1, distance_type, error);
 }
 
-void GPU_RQA_horizontal_boxcar_square(float *h_LAM, float *h_TT, unsigned long long int *h_TTmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int vmin, size_t input_size, int distance_type, double *execution_time, Accrqa_Error *error){
+void GPU_RQA_horizontal_boxcar_square(float *h_LAM, float *h_TT, unsigned long long int *h_TTmax, float *h_RR, float *h_input, float threshold, int tau, int emb, int vmin, size_t input_size, int distance_type, Accrqa_Error *error){
 	// 0 means float. This is because CUDA does not seem to be capable of overloading dynamically allocated shared memory.
-	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, float>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 0, distance_type, execution_time, error);
+	RQA_horizontal_boxcar_square_wrapper<RQA_ConstParams, float>(h_LAM, h_TT, h_TTmax, h_RR, h_input, threshold, tau, emb, vmin, input_size, 0, distance_type, error);
 }
 
 
