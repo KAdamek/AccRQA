@@ -5,6 +5,14 @@
 #include <stdlib.h>
 #include <vector>
 
+template<typename input_type>
+void rqa_process_length_histogram(
+	input_type *metric, 
+	input_type *scan_histogram, 
+	input_type *length_histogram, 
+	size_t histogram_size
+);
+
 template <typename input_type>
 void rqa_CPU_RR_metric_ref(
 	input_type *output_RR, 
@@ -41,8 +49,6 @@ void rqa_CPU_RR_metric(
 
 template<typename input_type>
 void rqa_CPU_LAM_metric_ref(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -55,8 +61,6 @@ void rqa_CPU_LAM_metric_ref(
 
 template<typename input_type>
 void rqa_CPU_LAM_metric(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -69,8 +73,6 @@ void rqa_CPU_LAM_metric(
 
 template<typename input_type>
 void rqa_CPU_LAM_metric_parallel(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -83,8 +85,6 @@ void rqa_CPU_LAM_metric_parallel(
 
 template<typename input_type>
 void rqa_CPU_DET_metric_ref(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -97,8 +97,6 @@ void rqa_CPU_DET_metric_ref(
 
 template<typename input_type>
 void rqa_CPU_DET_metric(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -110,8 +108,6 @@ void rqa_CPU_DET_metric(
 
 template<typename input_type>
 void rqa_CPU_DET_metric_parallel_mk1(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -123,8 +119,6 @@ void rqa_CPU_DET_metric_parallel_mk1(
 
 template<typename input_type>
 void rqa_CPU_DET_metric_parallel_mk2(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 

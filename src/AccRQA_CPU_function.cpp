@@ -175,6 +175,30 @@ void reverseArray(input_type *destination, input_type *source, size_t input_size
 	}
 }
 
+template<typename input_type>
+void rqa_process_length_histogram(
+	input_type *metric, 
+	input_type *scan_histogram, 
+	input_type *length_histogram, 
+	size_t histogram_size
+){
+	unsigned long long int *temp_histogram, *temp_metric;
+	temp_histogram = new unsigned long long int[histogram_size];
+	temp_metric = new unsigned long long int[histogram_size];
+	
+	// metric
+	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
+	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
+	reverseArray(metric, temp_metric, histogram_size);
+	
+	// histogram
+	reverseArray(temp_histogram, length_histogram, histogram_size);
+	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
+	reverseArray(scan_histogram, temp_metric, histogram_size);
+
+	delete[] temp_histogram;
+	delete[] temp_metric;
+}
 
 //---------------------- Recurrent matrix -------------------->
 template <typename input_type>
@@ -344,8 +368,6 @@ void rqa_CPU_RR_metric(
 
 template<typename input_type>
 void rqa_CPU_LAM_metric_ref(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -355,16 +377,12 @@ void rqa_CPU_LAM_metric_ref(
 	int distance_type
 ) {
 	int *R_matrix;
-	unsigned long long int *temp_histogram;
-	unsigned long long int *temp_metric;
 	
 	long int corrected_size = input_size - (emb - 1)*tau;
 	size_t matrix_size = corrected_size*corrected_size;
 	size_t histogram_size = corrected_size + 1;
 	
 	R_matrix = new int[matrix_size];
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
 	
 	rqa_CPU_R_matrix_ref(R_matrix, time_series, corrected_size, threshold, tau, emb, distance_type);
 	
@@ -372,24 +390,11 @@ void rqa_CPU_LAM_metric_ref(
 		get_length_histogram(length_histogram, &R_matrix[r*corrected_size], corrected_size);
 	}
 	
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
 	delete[] R_matrix;
-	delete[] temp_histogram;
-	delete[] temp_metric;
 }
 
 template<typename input_type>
 void rqa_CPU_LAM_metric(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -408,28 +413,10 @@ void rqa_CPU_LAM_metric(
 			threshold, tau, emb, distance_type
 		);
 	}
-	
-	unsigned long long int *temp_histogram;
-	unsigned long long int *temp_metric;
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
-	delete[] temp_histogram;
-	delete[] temp_metric;
 }
 
 template<typename input_type>
 void rqa_CPU_LAM_metric_parallel(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -466,22 +453,6 @@ void rqa_CPU_LAM_metric_parallel(
 
 		delete[] local_hst;
 	}
-	
-	unsigned long long int *temp_histogram;
-	unsigned long long int *temp_metric;
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
-	delete[] temp_histogram;
-	delete[] temp_metric;
 }
 //----------------------------------------------------------<
 
@@ -489,8 +460,6 @@ void rqa_CPU_LAM_metric_parallel(
 //------------------------ DET metric ---------------------->
 template<typename input_type>
 void rqa_CPU_DET_metric_ref(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -500,7 +469,6 @@ void rqa_CPU_DET_metric_ref(
 	int distance_type
 ) {
 	int *R_matrix, *matrix_line;
-	unsigned long long int *temp_histogram, *temp_metric;
 	
 	long int corrected_size = input_size - (emb - 1)*tau;
 	size_t matrix_size = corrected_size*corrected_size;
@@ -508,8 +476,6 @@ void rqa_CPU_DET_metric_ref(
 	
 	R_matrix = new int[matrix_size];
 	matrix_line = new int[corrected_size];
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
 	
 	rqa_CPU_R_matrix_ref(R_matrix, time_series, corrected_size, threshold, tau, emb, distance_type);
 	
@@ -549,26 +515,12 @@ void rqa_CPU_DET_metric_ref(
 		get_length_histogram(length_histogram, matrix_line, corrected_size);
 	}
 	
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
-
-	delete[] temp_histogram;
-	delete[] temp_metric;
 	delete[] R_matrix;
 	delete[] matrix_line;
 }
 
 template<typename input_type>
 void rqa_CPU_DET_metric(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -592,33 +544,14 @@ void rqa_CPU_DET_metric(
 		);
 	}
 	
-	unsigned long long int *temp_histogram, *temp_metric;
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
-	
 	// Since we have processed only half of the diagonal and omitted central
 	// diagonal line we must add those in.
 	correctDETHistogram(length_histogram, histogram_size);
-	
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
-	delete[] temp_histogram;
-	delete[] temp_metric;
 }
 
 
 template<typename input_type>
 void rqa_CPU_DET_metric_parallel_mk1(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -661,34 +594,15 @@ void rqa_CPU_DET_metric_parallel_mk1(
 		#pragma omp barrier
 	}
 	
-	unsigned long long int *temp_histogram, *temp_metric;
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
-	
 	// Since we have processed only half of the diagonal and omitted central
 	// diagonal line we must add those in.
 	correctDETHistogram(length_histogram, histogram_size);
-	
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
-	delete[] temp_histogram;
-	delete[] temp_metric;
 }
 
 // This implementation is slower, probably because of bad memory access: columns-wise
 // instead of better row-wise access when merging histograms.
 template<typename input_type>
 void rqa_CPU_DET_metric_parallel_mk2(
-	unsigned long long int *metric, 
-	unsigned long long int *scan_histogram, 
 	unsigned long long int *length_histogram, 
 	input_type threshold, 
 	int tau, 
@@ -734,26 +648,9 @@ void rqa_CPU_DET_metric_parallel_mk2(
 	}
 	free(shared_hst);
 	
-	unsigned long long int *temp_histogram, *temp_metric;
-	temp_histogram = new unsigned long long int[histogram_size];
-	temp_metric = new unsigned long long int[histogram_size];
-	
 	// Since we have processed only half of the diagonal and omitted central
 	// diagonal line we must add those in.
 	correctDETHistogram(length_histogram, histogram_size);
-	
-	// metric
-	reverseArrayAndMultiply(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(metric, temp_metric, histogram_size);
-	
-	// histogram
-	reverseArray(temp_histogram, length_histogram, histogram_size);
-	serialScanInclusive(temp_metric, temp_histogram, histogram_size);
-	reverseArray(scan_histogram, temp_metric, histogram_size);
-
-	delete[] temp_histogram;
-	delete[] temp_metric;
 }
 //----------------------------------------------------------<
 

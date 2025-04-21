@@ -1499,24 +1499,25 @@ void RQA_length_histogram_horizontal_wrapper(
 			break;
 	}
 	
+	// This part of the code is commented out because h_metric and h_scan_histogram are calculated on the host side
 	//------------> Calculation metric
-	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
-	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
-	if(cudaError != cudaSuccess) {
-		*error = ERR_CUDA;
-	}
+	//reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	//GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	//cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
+	//if(cudaError != cudaSuccess) {
+	//	*error = ERR_CUDA;
+	//}
 	//--------------------------------<
 	
 	//------------> Calculation scan histogram
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
-	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
-	if(cudaError != cudaSuccess) {
-		*error = ERR_CUDA;
-	}
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	//GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	//cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
+	//if(cudaError != cudaSuccess) {
+	//	*error = ERR_CUDA;
+	//}
 	//--------------------------------<
 	
 	//------------> Copy data to host
@@ -1631,26 +1632,27 @@ void RQA_length_histogram_vertical_wrapper(
 			break;
 	}
 	
+	// This part of the code is commented out because h_metric and h_scan_histogram are calculated on the host side
 	//------------> Calculation metric
-	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize , 0 , NULL >>>(d_temporary, d_histogram, hst_size);
-	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaDeviceSynchronize();
-	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
-	if(cudaError != cudaSuccess) {
-		*error = ERR_CUDA;
-	}
+	//reverse_array_and_multiply<<< ra_gridSize , ra_blockSize , 0 , NULL >>>(d_temporary, d_histogram, hst_size);
+	//GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	//cudaDeviceSynchronize();
+	//cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
+	//if(cudaError != cudaSuccess) {
+	//	*error = ERR_CUDA;
+	//}
 	//--------------------------------<
 
 	//------------> Calculation scan histogram
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
-	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaDeviceSynchronize();
-	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
-	if(cudaError != cudaSuccess) {
-		*error = ERR_CUDA;
-	}
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	//GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	//cudaDeviceSynchronize();
+	//cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
+	//if(cudaError != cudaSuccess) {
+	//	*error = ERR_CUDA;
+	//}
 	//--------------------------------<
 	
 	//------------> Copy data to host
@@ -1899,24 +1901,25 @@ void RQA_length_histogram_diagonal_wrapper_mk2(
 	GPU_RQA_HST_correction_diagonal_half<<< ra_gridSize , ra_blockSize >>>( d_histogram, hst_size );
 	cudaDeviceSynchronize();
 	
+	// This part of the code is commented out because h_metric and h_scan_histogram are calculated on the host side
 	//------------> Calculation metric
-	reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
-	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
-	if(cudaError != cudaSuccess) {
-		*error = ERR_CUDA;
-	}
+	//reverse_array_and_multiply<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	//GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	//cudaError = cudaMemcpy(h_metric, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
+	//if(cudaError != cudaSuccess) {
+	//	*error = ERR_CUDA;
+	//}
 	//--------------------------------<
 	
 	//------------> Calculation scan histogram
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
-	GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
-	reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
-	cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
-	if(cudaError != cudaSuccess) {
-		*error = ERR_CUDA;
-	}
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_histogram, hst_size);
+	//GPU_scan_inclusive(d_metric, d_temporary, hst_size, 1);
+	//reverse_array<<< ra_gridSize , ra_blockSize >>>(d_temporary, d_metric, hst_size);
+	//cudaError = cudaMemcpy(h_scan_histogram, d_temporary, histogram_size_in_bytes, cudaMemcpyDeviceToHost);
+	//if(cudaError != cudaSuccess) {
+	//	*error = ERR_CUDA;
+	//}
 	//--------------------------------<
 	
 	//------------> Copy data to host

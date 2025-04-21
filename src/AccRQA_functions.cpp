@@ -139,99 +139,87 @@ protected:
 	}
 	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
-		//cpu_timer.Start();
-		//rqa_CPU_LAM_metric_ref(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
-		//cpu_timer.Stop();
-		//printf("LAM CPU reference execution time: %fms\n", (float) cpu_timer.Elapsed());
-
-		//cpu_timer.Start();
-		//rqa_CPU_LAM_metric(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
-		//cpu_timer.Stop();
-		//printf("LAM CPU inplace execution time: %fms;\n", (float) cpu_timer.Elapsed());
+		//rqa_CPU_LAM_metric_ref(length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
 		
-		//cpu_timer.Start();
-		rqa_CPU_LAM_metric_parallel(metric.data(), scan_histogram.data(), length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
-		//cpu_timer.Stop();
-		//printf("LAM CPU inplace parallel execution time: %fms;\n", (float) cpu_timer.Elapsed());
+		//rqa_CPU_LAM_metric(length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		
+		rqa_CPU_LAM_metric_parallel(length_histogram.data(), threshold, tau, emb, time_series, input_size, distance_type);
+		
+		size_t corrected_size = input_size - (emb - 1)*tau;
+		size_t histogram_size = corrected_size + 1;
+		rqa_process_length_histogram(
+			metric.data(), 
+			scan_histogram.data(), 
+			length_histogram.data(), 
+			histogram_size
+		);
 	}
 	
 	void calculate_rqa_histogram_horizontal_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
 		Accrqa_Error error = SUCCESS;
 		GPU_RQA_length_histogram_horizontal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &error);
 		
-		#ifdef MONITOR_PERFORMANCE
-		printf("LAM-default execution time: %fms;\n", execution_time);
-		char metric_name[200]; 
-		if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
-		std::ofstream FILEOUT;
-		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "LAM" << " " << execution_time << std::endl;
-		FILEOUT.close();
-		#endif
+		size_t corrected_size = input_size - (emb - 1)*tau;
+		size_t histogram_size = corrected_size + 1;
+		rqa_process_length_histogram(
+			metric.data(), 
+			scan_histogram.data(), 
+			length_histogram.data(), 
+			histogram_size
+		);
 	}
 	
 	void calculate_rqa_histogram_vertical_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
 		Accrqa_Error error = SUCCESS;
 		GPU_RQA_length_histogram_vertical(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &error);
 		
-		#ifdef MONITOR_PERFORMANCE
-		printf("LAM-default execution time: %fms;\n", execution_time);
-		char metric_name[200]; 
-		if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
-		std::ofstream FILEOUT;
-		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "LAM" << " " << execution_time << std::endl;
-		FILEOUT.close();
-		#endif
+		size_t corrected_size = input_size - (emb - 1)*tau;
+		size_t histogram_size = corrected_size + 1;
+		rqa_process_length_histogram(
+			metric.data(), 
+			scan_histogram.data(), 
+			length_histogram.data(), 
+			histogram_size
+		);
 	}
 	
 	void calculate_rqa_histogram_diagonal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Determinism 
-		/*
-		cpu_timer.Start();
-		rqa_CPU_DET_metric_ref(
-			metric.data(), scan_histogram.data(), length_histogram.data(), 
-			threshold, tau, emb, 
-			time_series, input_size, 
-			distance_type
-		);
-		cpu_timer.Stop();
-		printf("DET CPU reference execution time: %fms\n", (float) cpu_timer.Elapsed());
-		*/
-
-		/*
-		cpu_timer.Start();
-		rqa_CPU_DET_metric(
-			metric.data(), scan_histogram.data(), length_histogram.data(), 
-			threshold, tau, emb, 
-			time_series, input_size, 
-			distance_type
-		);
-		cpu_timer.Stop();
-		printf("DET CPU inplace execution time: %fms;\n", (float) cpu_timer.Elapsed());
-		*/
-
-		//cpu_timer.Start();
-		rqa_CPU_DET_metric_parallel_mk1(
-			metric.data(), scan_histogram.data(), length_histogram.data(), 
-			threshold, tau, emb, 
-			time_series, input_size, 
-			distance_type
-		);
-		//cpu_timer.Stop();
-		//printf("DET CPU inplace parallel v1 execution time: %fms;\n", (float) cpu_timer.Elapsed());
-
-		
-		//cpu_timer.Start();
-		// rqa_CPU_DET_metric_parallel_mk2(
-		// 	metric.data(), scan_histogram.data(), length_histogram.data(), 
+		// rqa_CPU_DET_metric_ref(
+		// 	length_histogram.data(), 
 		// 	threshold, tau, emb, 
 		// 	time_series, input_size, 
 		// 	distance_type
 		// );
-		//cpu_timer.Stop();
-		//printf("DET CPU inplace parallel v2 execution time: %fms;\n", (float) cpu_timer.Elapsed());
+		
+		// rqa_CPU_DET_metric(
+		// 	length_histogram.data(), 
+		// 	threshold, tau, emb, 
+		// 	time_series, input_size, 
+		// 	distance_type
+		// );
+		
+		rqa_CPU_DET_metric_parallel_mk1(
+			length_histogram.data(), 
+			threshold, tau, emb, 
+			time_series, input_size, 
+			distance_type
+		);
+		
+		// rqa_CPU_DET_metric_parallel_mk2(
+		// 	length_histogram.data(), 
+		// 	threshold, tau, emb, 
+		// 	time_series, input_size, 
+		// 	distance_type
+		// );
+		
+		size_t corrected_size = input_size - (emb - 1)*tau;
+		size_t histogram_size = corrected_size + 1;
+		rqa_process_length_histogram(
+			metric.data(), 
+			scan_histogram.data(), 
+			length_histogram.data(), 
+			histogram_size
+		);
 	}
 	
 	void calculate_rqa_histogram_diagonal_GPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { 
@@ -239,22 +227,14 @@ protected:
 		Accrqa_Error error = SUCCESS;
 		GPU_RQA_length_histogram_diagonal(length_histogram.data(), scan_histogram.data(), metric.data(), time_series, threshold, tau, emb, input_size, distance_type, &error);
 		
-		if(ACCRQA_DEBUG_MODE) {
-			for(int f=0; f<10; f++){
-				printf("-->time series: %e; metric: %lld; scan_histogram: %lld; length_histogram: %lld;\n", time_series[f], metric[f], scan_histogram[f], length_histogram[f]);
-			}
-		}
-		
-		#ifdef MONITOR_PERFORMANCE
-		printf("DET-default execution time: %fms;\n", execution_time);
-		char metric_name[200]; 
-		if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-		else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
-		std::ofstream FILEOUT;
-		FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
-		FILEOUT << std::fixed << std::setprecision(8) << input_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETmk1" << " " << execution_time << std::endl;
-		FILEOUT.close();
-		#endif
+		size_t corrected_size = input_size - (emb - 1)*tau;
+		size_t histogram_size = corrected_size + 1;
+		rqa_process_length_histogram(
+			metric.data(), 
+			scan_histogram.data(), 
+			length_histogram.data(), 
+			histogram_size
+		);
 	}
 	
 	
