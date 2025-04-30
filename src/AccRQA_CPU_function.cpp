@@ -572,7 +572,7 @@ void rqa_CPU_DET_metric_parallel_mk1(
 		for(size_t f=0; f<histogram_size; f++) local_hst[f]=0;
 
 		#pragma omp for nowait
-		for (size_t r = corrected_size-1; r>0; r--) {
+		for (long long int r = (long long int) corrected_size-1; r>0; r--) {
 			get_length_histogram_DET_inplace(
 				local_hst, 
 				time_series, 
