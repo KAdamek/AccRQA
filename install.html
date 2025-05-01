@@ -46,9 +46,17 @@
               <p class="caption" role="heading"><span class="caption-text">Installation guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-c-library">The C library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-python-library">The Python library</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-c-library">The C library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#linux">Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#windows">Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#python-package">Python package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install-from-source-package">Install from source package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-from-the-binary-wheel">Install from the binary wheel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-from-the-local-repository">Install from the local repository</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#uninstalling">Uninstalling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-on-windows">Installing on Windows</a></li>
 </ul>
 </li>
 </ul>
@@ -60,7 +68,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processing functions</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="rqa_metrics.html">RQA metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rqa_metrics.html">AccRQA functions</a></li>
 </ul>
 
         </div>
@@ -91,20 +99,27 @@
 <p>If GPU acceleration is required, make sure the CUDA toolkit is installed first.</p>
 <section id="the-c-library">
 <h2>The C library<a class="headerlink" href="#the-c-library" title="Link to this heading"></a></h2>
-<p>The AccRQA library is compiled from source using CMake.</p>
-<p>From the top-level directory, run the following commands to compile and
+<p>The AccRQA library is compiled from source using CMake. Although, AccRQA can be compiled in Linux and Windows, we strongly suggest using Linux.</p>
+<section id="linux">
+<h3>Linux<a class="headerlink" href="#linux" title="Link to this heading"></a></h3>
+<p>Clone AccRQA repository using:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/KAdamek/AccRQA.git
+</pre></div>
+</div>
+</div></blockquote>
+<p>From the top-level directory of the AccRQA, run the following commands to compile and
 install the library:</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build
 <span class="nb">cd</span><span class="w"> </span>build
-cmake<span class="w"> </span>..<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+cmake<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../
 make
 make<span class="w"> </span>install
 </pre></div>
 </div>
 </div></blockquote>
-<p>To specify the CUDA architecture use <code class="docutils literal notranslate"><span class="pre">-DCUDA_ARCH=&quot;x.y&quot;</span></code> flag, where x and y
-are major and minor compute capability on NVIDIA GPU.
+<p>Suitable CUDA architecture is selected by nvcc when compiling because the default option for CUDA is <code class="docutils literal notranslate"><span class="pre">-DCUDA_ARCH=&quot;native&quot;</span></code>. However, if you need to specify the CUDA architecture, use <code class="docutils literal notranslate"><span class="pre">-DCUDA_ARCH=&quot;x.y&quot;</span></code> flag, where x and y are major and minor compute capability on NVIDIA GPU.
 For example, for architecture <cite>7.0</cite>, do</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCUDA_ARCH<span class="o">=</span><span class="s2">&quot;7.0&quot;</span><span class="w"> </span>../
@@ -119,9 +134,47 @@ For example, for architecture <cite>7.0</cite>, do</p>
 </pre></div>
 </div>
 </div></blockquote>
+<p>To compile tests use <code class="docutils literal notranslate"><span class="pre">-DBUILD_TESTS=ON</span></code> which compiles test executable performing a series of tests of supported RQA metrics.</p>
+<p>An example application that uses the AccRQA library can be compiled with a flag <code class="docutils literal notranslate"><span class="pre">-DBUILD_APPLICATIONS=ON</span></code>.</p>
 </section>
-<section id="the-python-library">
-<h2>The Python library<a class="headerlink" href="#the-python-library" title="Link to this heading"></a></h2>
+<section id="windows">
+<h3>Windows<a class="headerlink" href="#windows" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>To compile the AccRQA library from source you will require:</dt><dd><ul class="simple">
+<li><p>MSVC compiler (part of Visual Studio)</p></li>
+<li><p>Make for Windows</p></li>
+</ul>
+</dd>
+</dl>
+<p>In command line you can build AccRQA by</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>.
+cmake<span class="w"> </span>--install<span class="w"> </span>.
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="python-package">
+<h2>Python package<a class="headerlink" href="#python-package" title="Link to this heading"></a></h2>
+<section id="install-from-source-package">
+<h3>Install from source package<a class="headerlink" href="#install-from-source-package" title="Link to this heading"></a></h3>
+<p>We encourage you to install the accrqa package from the source package, as Python binary wheels poorly support GPUs.</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>accrqa
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="install-from-the-binary-wheel">
+<h3>Install from the binary wheel<a class="headerlink" href="#install-from-the-binary-wheel" title="Link to this heading"></a></h3>
+<p>Working on it.</p>
+</section>
+<section id="install-from-the-local-repository">
+<h3>Install from the local repository<a class="headerlink" href="#install-from-the-local-repository" title="Link to this heading"></a></h3>
 <p>From the top-level directory, run the following commands to install
 the Python package:</p>
 <blockquote>
@@ -137,11 +190,35 @@ environment variable <code class="docutils literal notranslate"><span class="pre
 </pre></div>
 </div>
 </div></blockquote>
+</section>
 <section id="uninstalling">
 <h3>Uninstalling<a class="headerlink" href="#uninstalling" title="Link to this heading"></a></h3>
 <p>The Python package can be uninstalled using:</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>uninstall<span class="w"> </span>accrqa
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="installing-on-windows">
+<h3>Installing on Windows<a class="headerlink" href="#installing-on-windows" title="Link to this heading"></a></h3>
+<p>To install accrqa package on Windows the easiest way is to use the binary wheels. To install accrqa Python package on Windows from source you need to have</p>
+<dl class="simple">
+<dt>Windows requirements:</dt><dd><ul class="simple">
+<li><p>MSVC compiler (part of Visual Studio)</p></li>
+<li><p>Make for Windows</p></li>
+</ul>
+</dd>
+</dl>
+<p>To install from PiPy using pip:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>py<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>accrqa
+</pre></div>
+</div>
+</div></blockquote>
+<p>To install from the local repository in command line:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>py<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 </div></blockquote>

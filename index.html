@@ -52,7 +52,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processing functions</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="rqa_metrics.html">RQA metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rqa_metrics.html">AccRQA functions</a></li>
 </ul>
 
         </div>
@@ -80,6 +80,19 @@
              
   <section id="accrqa">
 <h1>AccRQA<a class="headerlink" href="#accrqa" title="Link to this heading"></a></h1>
+<p>AccRQA is a multi-platform (CPU, NVIDIA GPUs) application that calculates RQA metrics. Acceleration using GPUs is optional and is not required to have an NVIDIA GPU. AccRQA offers high-performance implementation of RQA metrics that are available through Python, R, and C/C++.</p>
+<p>The interfaces of the AccRQA library are designed platform and number precision agnostic. Change of the computational platform requires a change of a single parameter in the function invocation. If the selected computational platform is unavailable, the AccRQA library automatically switches to CPU. Therefore, transitioning from a locally run workflow (for example, on a laptop) to a more powerful desktop of an HPC cluster with GPUs is effortless.</p>
+<p>Supported platforms are CPUs and NVIDIA GPUs. We are planning to support AMD GPUs in the future.</p>
+<p>Interfaces assume that data are resident in the main memory (CPU RAM) and are transferred to the computational platform of the user’s choice.</p>
+<dl class="simple">
+<dt>AccRQA library exposes three functions to the user. These functions calculate:</dt><dd><ul class="simple">
+<li><p>RR</p></li>
+<li><p>LAM, including TT, TTmax</p></li>
+<li><p>DET, including L, Lmax, ENTR</p></li>
+</ul>
+</dd>
+</dl>
+<p>AccRQA library supports Euclidean and maximal norms with plans to provide more in the future.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Installation guide</span></p>
 <ul>
@@ -95,7 +108,7 @@
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Processing functions</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="rqa_metrics.html">RQA metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rqa_metrics.html">AccRQA functions</a></li>
 </ul>
 </div>
 <section id="indices-and-tables">
