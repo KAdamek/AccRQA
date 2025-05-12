@@ -37,6 +37,7 @@
 .Rhistory
 .RData
 .Rproj.user/
+AccRQA.Rcheck/
 .Ruserdata/
 .Rapp.history
 .Rbuildignore
@@ -68,4 +69,4 @@ autom4te.cache/
 .DS_Store
 
 # Custom placeholder
-
+src/accrqa.egg-info/

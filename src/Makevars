@@ -1,40 +1,38 @@
 CXX = g++
 NVCC = /usr/local/cuda-12.0/bin/nvcc
 
-# Compilation flags
-CXXFLAGS2 := -O3 -Wall -std=c++11 -fPIC -DACCRQA_R_FOUND -DCUDA_FOUND
-PKG_CXXFLAGS := -I/usr/local/cuda-12.0/include -I/usr/lib/R/include -I/usr/share/R/include
-PKG_LIBS := -L/usr/local/cuda-12.0/lib64 -lcudart -lcuda -lcublas -lcurand
+CXXFLAGS2 := -O3 -Wall -std=c++17 -fPIC -fopenmp
+CXXFLAGS2 += -DACCRQA_VER_MAJOR=0 \
+            -DACCRQA_VER_MINOR=6 \
+            -DACCRQA_VER_PATCH=5
+
+PKG_CPPFLAGS := -I/usr/local/cuda-12.0/include "-I/usr/share/R/include" -DACCRQA_R_FOUND -DCUDA_FOUND
+PKG_LIBS := -L/usr/local/cuda-12.0/lib64 -lcudart -lcuda -lcublas -lcurand -Wl,--export-dynamic -fopenmp -Wl,-Bsymbolic-functions -Wl,-z,relro -L/usr/lib/R/lib -lR -lpcre2-8 -llzma -lbz2 -lz -lrt -ldl -lm -licuuc -licui18n
 NVCC_FLAGS := -arch=sm_70
 
-# Find all .cpp and .cu files
 CPP_FILES := $(wildcard *.cpp)
 CU_FILES := $(wildcard *.cu)
 
-# Generate object file list
 CPP_OBJECTS := $(CPP_FILES:.cpp=.o)
 CU_OBJECTS := $(CU_FILES:.cu=.o)
-OBJECTS = $(CPP_OBJECTS) 
-OBJECTS += $(CU_OBJECTS)
+OBJECTS = $(CPP_OBJECTS) $(CU_OBJECTS)
 
-# Debugging info
-$(info Building with CXXFLAGS: $(CXXFLAGS))
-$(info CPP Files: $(CPP_FILES))
-$(info CU Files: $(CU_OBJECTS))
-$(info Object Files: $(OBJECTS))
+# Debug info
+$(info C++ Files: $(CPP_FILES))
+$(info CUDA Files: $(CU_FILES))
+$(info R Includes: -I/usr/share/R/include)
+$(info C++ Flags: $(PKG_CPPFLAGS))
 
-# Rule to compile C++ files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS2) $(PKG_CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS2) $(PKG_CPPFLAGS) -c $< -o $@
 
-# Rule to compile CUDA files
 %.o: %.cu
 	$(NVCC) -O3 -std=c++17 $(NVCC_FLAGS) -c $< -o $@ -Xcompiler "-fPIC"
 
-# Build the shared object library
 AccRQA.so: $(OBJECTS)
 	$(CXX) -shared -o $@ $(OBJECTS) $(PKG_LIBS)
 
-# Clean rule
 clean:
 	rm -f *.o AccRQA.so
+
+

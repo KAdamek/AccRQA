@@ -135,11 +135,13 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
   )
   
   tidy_df <- expand.grid(
-    Delay = rst$tau,
+    Threshold = rst$threshold,
     Embedding = rst$emb, 
     Lmin = rst$lmin,
-    Threshold = rst$threshold
+    Delay = rst$tau
   )
+  tidy_df <- tidy_df[,c("Delay", "Embedding", "Lmin", "Threshold")]
+  
   metrics <- as.data.frame(matrix(rst$output, ncol = 5, byrow = TRUE))
   colnames(metrics) <- c("DET", "L", "Lmax", "ENTR", "RR")
   
@@ -250,11 +252,12 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
   )
   
   tidy_df <- expand.grid(
-    Delay = rst$tau,
+    Threshold = rst$threshold,
     Embedding = rst$emb, 
     Vmin = rst$vmin,
-    Threshold = rst$threshold
+    Delay = rst$tau
   )
+  tidy_df <- tidy_df[,c("Delay", "Embedding", "Vmin", "Threshold")]
   
   metrics <- as.data.frame(matrix(rst$output, ncol = 5, byrow = TRUE))
   colnames(metrics) <- c("LAM", "TT", "TTmax", "ENTR", "RR")
@@ -362,10 +365,11 @@ accrqa_RR <- function(input, tau_values, emb_values, threshold_values, norm = "e
     )
     
     tidy_df <- expand.grid(
-      Delay = rst$tau,
+      Threshold = rst$threshold,
       Embedding = rst$emb, 
-      Threshold = rst$threshold
+      Delay = rst$tau
     )
+    tidy_df <- tidy_df[, c("Delay", "Embedding", "Threshold")]
     
     metrics <- as.data.frame(rst$output)
     colnames(metrics) <- c("RR")
