@@ -110,7 +110,7 @@ protected:
 		double entr = 0;
 		for(long int f = minimum_length; f < histogram_size; f++) {
 			double probability;
-			probability = ((double) length_histogram[f])/((double) scan_histogram[f]);
+			probability = ((double) length_histogram[f])/((double) scan_histogram[minimum_length]);
 			if(probability > 0) {
 				entr = entr + probability*log(probability);
 			}

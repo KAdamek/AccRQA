@@ -135,9 +135,9 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
   )
   
   tidy_df <- expand.grid(
+    Lmin = rst$lmin,
     Threshold = rst$threshold,
     Embedding = rst$emb, 
-    Lmin = rst$lmin,
     Delay = rst$tau
   )
   tidy_df <- tidy_df[,c("Delay", "Embedding", "Lmin", "Threshold")]
@@ -252,9 +252,9 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
   )
   
   tidy_df <- expand.grid(
+    Vmin = rst$vmin,
     Threshold = rst$threshold,
     Embedding = rst$emb, 
-    Vmin = rst$vmin,
     Delay = rst$tau
   )
   tidy_df <- tidy_df[,c("Delay", "Embedding", "Vmin", "Threshold")]
