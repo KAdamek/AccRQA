@@ -20,6 +20,7 @@ test_that("AccRQA results match PyRQA -- RR, euclidean",{
 test_that("AccRQA results match PyRQA -- DET, euclidean",{
   input_data <- readRDS("testdata/input.rds")
   expected_DET <- readRDS("testdata/expected_PyRQA_DET_euclidean.rds")
+  expected_DET <- subset(expected_DET, select = -c(L))
 
   results_DET <- accrqa_DET(input_data, 
                             tau_values = tau,
@@ -30,13 +31,13 @@ test_that("AccRQA results match PyRQA -- DET, euclidean",{
                             calc_ENTR = TRUE,
                             platform = "cpu")
   
-  results_DET <- subset(results_DET, select = -c(ENTR))
+  results_DET <- subset(results_DET, select = -c(ENTR,L))
   expect_equal(results_DET, expected_DET, tolerance = tolerance)
 })
 
-test_that("AccRQA results match PyRQA -- LAM",{
+test_that("AccRQA results match PyRQA -- LAM, euclidean",{
   input_data <- readRDS("testdata/input.rds")
-  expected_LAM <- readRDS("testdata/expected_LAM.rds")
+  expected_LAM <- readRDS("testdata/expected_PyRQA_LAM_euclidean.rds")
 
   results_LAM <- accrqa_LAM(input_data, 
                             tau_values = tau,
