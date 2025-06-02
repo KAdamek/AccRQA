@@ -63,6 +63,10 @@ To install from the local repository in command line:
      py -m pip install .
 
 
+How to install R package
+===
+
+
 Installation of C library (Linux)
 ===
 
