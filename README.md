@@ -63,8 +63,29 @@ To install from the local repository in command line:
      py -m pip install .
 
 
-How to install R package
-===
+## How to Install the R Package
+
+You can install the **AccRQA R package** either from a downloaded source archive (e.g., `.tar.gz` or `.zip`) or directly within RStudio.
+
+### Option 1: Install from `.zip` or `.tar.gz` in RStudio
+
+1. Open **RStudio**
+2. Go to **Tools → Install Packages**
+3. Select **"Package Archive File (.tar.gz / .zip)"** as the source
+4. Click **Browse**, and select the downloaded file (e.g., `AccRQA_x.y.z.tar.gz`)
+5. Click **Install**
+
+> 💡 Make sure that Rtools (on Windows) or build-essential (on Linux) is installed to compile packages from source.
+
+---
+
+### Option 2: Install from the Command Line
+
+#### From inside R:
+
+```r
+install.packages("AccRQA_x.y.z.tar.gz", repos = NULL, type = "source")
+
 
 
 Installation of C library (Linux)
