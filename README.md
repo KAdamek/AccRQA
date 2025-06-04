@@ -63,7 +63,52 @@ To install from the local repository in command line:
      py -m pip install .
 
 
-Installation of C library (Linux)
+How to Install the R Package
+===
+
+
+### System Requirements
+
+To install and use the AccRQA R package, the following system requirements apply:
+
+- **R version**: 4.0 or newer.
+- **Operating system**: Linux, macOS, or Windows.
+- **Build tools**:
+  - On **Linux/macOS**: `gcc`, `g++`, `make` (usually provided by `build-essential`).
+  - On **Windows**: [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
+- *(Optional)* **CUDA Toolkit** (e.g., 11.x or newer) — required for GPU acceleration.
+  - Ensure `nvcc` and `cuda_runtime.h` are available in the environment.
+  - Set `CUDA_HOME` if the toolkit is not in the default path.
+
+You can install the **AccRQA R package** either from a downloaded source archive (e.g., `.tar.gz` or `.zip`) or directly within RStudio.
+
+### Option 1: Install from `.zip` or `.tar.gz` in RStudio
+
+1. Open **RStudio**.
+2. Go to **Tools → Install Packages**.
+3. From the box Install from select **"Package Archive File (.tar.gz / .zip)"** as the sources.
+4. Click **Browse**, and select the downloaded file (e.g., `AccRQA_x.y.z.tar.gz` where the `x.y.z` refers to the specific version number).
+5. Click **Install**.
+
+> Make sure that Rtools (on Windows) or build-essential (on Linux) is installed to compile packages from source.
+
+### Option 2: Install from the Command Line
+
+The downloaded archive can be install by using the R console:
+```
+r
+
+# From inside R
+install.packages("AccRQA_x.y.z.tar.gz", repos = NULL, type = "source")
+```
+or from your system's terminal:
+````
+bash
+
+R CMD INSTALL AccRQA_x.y.z.tar.gz
+````
+
+How to Install the C library (Linux)
 ===
 
 To configure the build system using CMake, create a `build` directory
