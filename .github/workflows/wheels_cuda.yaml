@@ -16,7 +16,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: [3.12]
         arch: ["x86_64"]
-        cudaver: ['11.8.0','12.5.0']
+        cudaver: ['12.5.0']
     steps:
       - name: Code checkout
         uses: actions/checkout@v4
@@ -63,10 +63,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022]
+        os: [windows-latest]
         python-version: [3.12]
         arch: ["AMD64"]
-        cudaver: ['11.8.0','12.5.0']
+        cudaver: ['12.5.0']
     steps:
       - name: Code checkout
         uses: actions/checkout@v4
