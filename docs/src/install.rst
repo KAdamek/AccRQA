@@ -85,7 +85,7 @@ We encourage you to install the accrqa package from the source package, as Pytho
 Install from the binary wheel
 -----------------------------
 
-To install accrqa from binary wheel use:
+Binary wheels can be downloaded from GitHub release page. To install accrqa from binary wheel use:
 
   .. code-block:: bash
 
