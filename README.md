@@ -72,7 +72,7 @@ How to Install the R Package
 To install and use the AccRQA R package, the following system requirements apply:
 
 - **R version**: 4.0 or newer.
-- **Operating system**: Linux, macOS, or Windows.
+- **Operating system**: Linux, or Windows.
 - **Build tools**:
   - On **Linux/macOS**: `gcc`, `g++`, `make` (usually provided by `build-essential`).
   - On **Windows**: [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
