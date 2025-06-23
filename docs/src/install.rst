@@ -2,12 +2,16 @@
 Installation guide
 ******************
 
-If GPU acceleration is required, make sure the CUDA toolkit is installed first.
-
 The C library
 =============
 
-The AccRQA library is compiled from source using CMake. Although, AccRQA can be compiled in Linux and Windows, we strongly suggest using Linux.
+The AccRQA library can be compiled from source using CMake. To install and use AccRQA you need following:
+  * *Operating system*: Linux or Windows 10+
+  * *Build tools*: ``CMake`` 3.13 or newer 
+  * *Compiler*: ``GCC``  8.1 or newer for linux or ``MSVC`` 2019 or newer for Windows 10
+  * **(Optional)** *CUDA Toolkit* (e.g., 11.x or newer) — required for GPU acceleration. 
+
+To install git you can go to https://git-scm.com/downloads and follow instruction from there. If GPU acceleration is required, make sure the CUDA toolkit is installed first.
 
 Linux
 -----
@@ -30,7 +34,7 @@ install the library:
      make install
 
 Suitable CUDA architecture is selected by nvcc when compiling because the default option for CUDA is ``-DCUDA_ARCH="native"``. However, if you need to specify the CUDA architecture, use ``-DCUDA_ARCH="x.y"`` flag, where x and y are major and minor compute capability on NVIDIA GPU. 
-For example, for architecture `7.0`, do
+For example, for architecture `7.0`, use
 
   .. code-block:: bash
   
@@ -51,9 +55,9 @@ An example application that uses the AccRQA library can be compiled with a flag 
 Windows
 -------
 
-To compile the AccRQA library from source you will require:
-  - MSVC compiler (part of Visual Studio)
-  - Make for Windows
+To compile the AccRQA library from source on Windows 10 you will require:
+  * *Build tools*: ``CMake`` 3.13 or newer 
+  * *Compiler*: ``MSVC`` 2019 or newer
 
 
 In command line you can build AccRQA by
@@ -72,7 +76,7 @@ Python package
 Install from source package
 ---------------------------
 
-We encourage you to install the accrqa package from the source package, as Python binary wheels poorly support GPUs.
+We encourage you to install the accrqa package from the source package, as Python binary wheels do not support GPUs well and accrqa package will be compiled directly for GPU architecture you have. For the installation you will require an compiler installed (GCC for linux or MSVC for Windows), CUDA toolkit if GPU acceleration is desired and setuptools 63.1.0 or newer. To install accrqa from source use:
 
   .. code-block:: bash
 
@@ -81,10 +85,20 @@ We encourage you to install the accrqa package from the source package, as Pytho
 Install from the binary wheel
 -----------------------------
 
-Working on it.
+To install accrqa from binary wheel use:
+
+  .. code-block:: bash
+
+     pip3 install accrqa*.whl
 
 Install from the local repository
 ---------------------------------
+
+To install accrqa from local repository, clone AccRQA repository using:
+
+  .. code-block:: bash
+
+     git clone https://github.com/KAdamek/AccRQA.git
 
 From the top-level directory, run the following commands to install
 the Python package:
@@ -114,11 +128,18 @@ The Python package can be uninstalled using:
 Installing on Windows
 ---------------------
 
-To install accrqa package on Windows the easiest way is to use the binary wheels. To install accrqa Python package on Windows from source you need to have 
+To install accrqa package on Windows the easiest way is to use the binary wheels. To install accrqa using binary wheels use:
+
+  .. code-block:: bash
+
+     py -m pip install accrqa*.whl
+
+
+To install accrqa Python package on Windows from source you need to have 
 
 Windows requirements:
   - MSVC compiler (part of Visual Studio)
-  - Make for Windows
+  - CMake for Windows
 
 To install from PiPy using pip:
 
