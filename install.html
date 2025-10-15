@@ -102,10 +102,18 @@
              
   <section id="installation-guide">
 <h1>Installation guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
-<p>If GPU acceleration is required, make sure the CUDA toolkit is installed first.</p>
 <section id="the-c-library">
 <h2>The C library<a class="headerlink" href="#the-c-library" title="Link to this heading"></a></h2>
-<p>The AccRQA library is compiled from source using CMake. Although, AccRQA can be compiled in Linux and Windows, we strongly suggest using Linux.</p>
+<dl class="simple">
+<dt>The AccRQA library can be compiled from source using CMake. To install and use AccRQA you need following:</dt><dd><ul class="simple">
+<li><p><em>Operating system</em>: Linux or Windows 10+</p></li>
+<li><p><em>Build tools</em>: <code class="docutils literal notranslate"><span class="pre">CMake</span></code> 3.13 or newer</p></li>
+<li><p><em>Compiler</em>: <code class="docutils literal notranslate"><span class="pre">GCC</span></code>  8.1 or newer for linux or <code class="docutils literal notranslate"><span class="pre">MSVC</span></code> 2019 or newer for Windows 10</p></li>
+<li><p><strong>(Optional)</strong> <em>CUDA Toolkit</em> (e.g., 11.x or newer) — required for GPU acceleration.</p></li>
+</ul>
+</dd>
+</dl>
+<p>To install git you can go to <a class="reference external" href="https://git-scm.com/downloads">https://git-scm.com/downloads</a> and follow instruction from there. If GPU acceleration is required, make sure the CUDA toolkit is installed first.</p>
 <section id="linux">
 <h3>Linux<a class="headerlink" href="#linux" title="Link to this heading"></a></h3>
 <p>Clone AccRQA repository using:</p>
@@ -126,7 +134,7 @@ make<span class="w"> </span>install
 </div>
 </div></blockquote>
 <p>Suitable CUDA architecture is selected by nvcc when compiling because the default option for CUDA is <code class="docutils literal notranslate"><span class="pre">-DCUDA_ARCH=&quot;native&quot;</span></code>. However, if you need to specify the CUDA architecture, use <code class="docutils literal notranslate"><span class="pre">-DCUDA_ARCH=&quot;x.y&quot;</span></code> flag, where x and y are major and minor compute capability on NVIDIA GPU.
-For example, for architecture <cite>7.0</cite>, do</p>
+For example, for architecture <cite>7.0</cite>, use</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCUDA_ARCH<span class="o">=</span><span class="s2">&quot;7.0&quot;</span><span class="w"> </span>../
 </pre></div>
@@ -146,9 +154,9 @@ For example, for architecture <cite>7.0</cite>, do</p>
 <section id="windows">
 <h3>Windows<a class="headerlink" href="#windows" title="Link to this heading"></a></h3>
 <dl class="simple">
-<dt>To compile the AccRQA library from source you will require:</dt><dd><ul class="simple">
-<li><p>MSVC compiler (part of Visual Studio)</p></li>
-<li><p>Make for Windows</p></li>
+<dt>To compile the AccRQA library from source on Windows 10 you will require:</dt><dd><ul class="simple">
+<li><p><em>Build tools</em>: <code class="docutils literal notranslate"><span class="pre">CMake</span></code> 3.13 or newer</p></li>
+<li><p><em>Compiler</em>: <code class="docutils literal notranslate"><span class="pre">MSVC</span></code> 2019 or newer</p></li>
 </ul>
 </dd>
 </dl>
@@ -168,7 +176,7 @@ cmake<span class="w"> </span>--install<span class="w"> </span>.
 <h2>Python package<a class="headerlink" href="#python-package" title="Link to this heading"></a></h2>
 <section id="install-from-source-package">
 <h3>Install from source package<a class="headerlink" href="#install-from-source-package" title="Link to this heading"></a></h3>
-<p>We encourage you to install the accrqa package from the source package, as Python binary wheels poorly support GPUs.</p>
+<p>We encourage you to install the accrqa package from the source package, as Python binary wheels do not support GPUs well and accrqa package will be compiled directly for GPU architecture you have. For the installation you will require an compiler installed (GCC for linux or MSVC for Windows), CUDA toolkit if GPU acceleration is desired and setuptools 63.1.0 or newer. To install accrqa from source use:</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>accrqa
 </pre></div>
@@ -177,10 +185,21 @@ cmake<span class="w"> </span>--install<span class="w"> </span>.
 </section>
 <section id="install-from-the-binary-wheel">
 <h3>Install from the binary wheel<a class="headerlink" href="#install-from-the-binary-wheel" title="Link to this heading"></a></h3>
-<p>Working on it.</p>
+<p>Binary wheels can be downloaded from GitHub release page. To install accrqa from binary wheel use:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span>accrqa*.whl
+</pre></div>
+</div>
+</div></blockquote>
 </section>
 <section id="install-from-the-local-repository">
 <h3>Install from the local repository<a class="headerlink" href="#install-from-the-local-repository" title="Link to this heading"></a></h3>
+<p>To install accrqa from local repository, clone AccRQA repository using:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/KAdamek/AccRQA.git
+</pre></div>
+</div>
+</div></blockquote>
 <p>From the top-level directory, run the following commands to install
 the Python package:</p>
 <blockquote>
@@ -208,11 +227,17 @@ environment variable <code class="docutils literal notranslate"><span class="pre
 </section>
 <section id="installing-on-windows">
 <h3>Installing on Windows<a class="headerlink" href="#installing-on-windows" title="Link to this heading"></a></h3>
-<p>To install accrqa package on Windows the easiest way is to use the binary wheels. To install accrqa Python package on Windows from source you need to have</p>
+<p>To install accrqa package on Windows the easiest way is to use the binary wheels. To install accrqa using binary wheels use:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>py<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>accrqa*.whl
+</pre></div>
+</div>
+</div></blockquote>
+<p>To install accrqa Python package on Windows from source you need to have</p>
 <dl class="simple">
 <dt>Windows requirements:</dt><dd><ul class="simple">
 <li><p>MSVC compiler (part of Visual Studio)</p></li>
-<li><p>Make for Windows</p></li>
+<li><p>CMake for Windows</p></li>
 </ul>
 </dd>
 </dl>
