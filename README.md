@@ -1,11 +1,11 @@
 # AccRQA
-AccRQA is a multi-platform (CPU, NVIDIA GPUs) application that calculates RQA metrics. Acceleration using GPUs is optional and is not required to have an NVIDIA GPU. AccRQA offers high-performance implementation of RQA metrics that are available through Python, R, and C/C++. 
+AccRQA is a multi-platform (CPU, NVIDIA GPUs) application that calculates RQA metrics. Acceleration using GPUs is optional and is not required to have an NVIDIA GPU to use AccRQA. AccRQA offers high-performance implementation of RQA metrics that are available through Python, R, and C/C++. 
 
 The interfaces of the AccRQA library are designed platform and number precision agnostic. Change of the computational platform requires a change of a single parameter in the function invocation. If the selected computational platform is unavailable, the AccRQA library automatically switches to CPU. Therefore, transitioning from a locally run workflow (for example, on a laptop) to a more powerful desktop of an HPC cluster with GPUs is effortless. 
 
 Supported platforms are CPUs and NVIDIA GPUs. We are planning to support AMD GPUs in the future.
 
-Interfaces assume that data are resident in the main memory (CPU RAM) and are transferred to the computational platform of the user's choice. 
+Interfaces assume that data are resident in the main memory (CPU RAM) and are transferred to the computational platform of the user's choice by AccRQA. 
 
 AccRQA library exposes three functions to the user. These functions calculate:
  - RR
@@ -21,18 +21,23 @@ The documentation is on GitHub [pages](https://kadamek.github.io/AccRQA/index.ht
 How to install Python package
 ===
 
-We encourage you to install the accrqa package from the source package, as Python binary wheels poorly support GPUs.
+We encourage you to install the accrqa package from the source package, as Python binary wheels do not support GPUs well and accrqa package will be compiled directly for GPU architecture you have. For the installation you will require an compiler installed (GCC for linux or MSVC for Windows), CUDA toolkit if GPU acceleration is desired and setuptools 63.1.0 or newer. To install accrqa from source use:
 
     pip install accrqa
 
-Binary wheels can be downloaded from GitHub release page.
-
-The Python package can be uninstalled using:
-
-     pip3 uninstall accrqa
-
-Install from local repository
+Install from the binary wheel
 ---
+
+Binary wheels can be downloaded from GitHub release page. To install accrqa from binary wheel use:
+
+     pip3 install accrqa_version_.whl
+
+Install from the local repository
+---
+
+To install accrqa from local repository, clone AccRQA repository using:
+
+     git clone https://github.com/KAdamek/AccRQA.git
 
 From the top-level directory, run the following commands to install
 the Python package:
@@ -45,14 +50,25 @@ environment variable ``CMAKE_ARGS`` first, for example:
 
      CMAKE_ARGS="-DCUDA_ARCH=7.0" pip3 install .
 
+Uninstalling
+---
+
+The Python package can be uninstalled using:
+
+     pip3 uninstall accrqa
+
+
 Installing on Windows
 ---
 
-To install accrqa Python package on Windows from source you need to have 
+To install accrqa package on Windows the easiest way is to use the binary wheels. Binary wheels can be downloaded from GitHub release page. To install accrqa using binary wheels use:
 
-Windows requirements:
+     py -m pip install accrqa_version_.whl
+
+
+To install accrqa Python package on Windows from source you need to have:
   - MSVC compiler (part of Visual Studio)
-  - Make for Windows
+  - CMake for Windows
 
 To install from PiPy using pip:
 
@@ -61,6 +77,8 @@ To install from PiPy using pip:
 To install from the local repository in command line:
 
      py -m pip install .
+
+
 
 
 How to Install the R Package
@@ -111,36 +129,63 @@ R CMD INSTALL AccRQA_x.y.z.tar.gz
 How to Install the C library (Linux)
 ===
 
-To configure the build system using CMake, create a `build` directory
+The AccRQA library can be compiled from source using CMake. To install and use AccRQA you need following:
+- **Operating system**: Linux or Windows 10+
+- **Build tools**: ``CMake`` 3.13 or newer 
+- **Compiler**: ``GCC``  8.1 or newer for linux or ``MSVC`` 2019 or newer for Windows 10
+- *(Optional)* **CUDA Toolkit** (e.g., 11.x or newer) — required for GPU acceleration. 
 
-    mkdir build
+To install git you can go to https://git-scm.com/downloads and follow instruction from there. If GPU acceleration is required, make sure the CUDA toolkit is installed first.
 
-and then
+Linux
+---
 
-    cd build/
+Clone AccRQA repository using:
 
-run CMake
+     git clone https://github.com/KAdamek/AccRQA.git
 
-    cmake ../
+From the top-level directory of the AccRQA, run the following commands to compile and
+install the library:
 
-The CUDA architecture can be specified with the `-DCUDA_ARCH` flag. For example, for architecture `7.0`, do
+     mkdir build
+     cd build
+     cmake [OPTIONS] ../
+     make
+     make install
 
-    cmake -DCUDA_ARCH="7.0" ../
+Suitable CUDA architecture is selected by nvcc when compiling because the default option for CUDA is ``-DCUDA_ARCH="native"``. However, if you need to specify the CUDA architecture, use ``-DCUDA_ARCH="x.y"`` flag, where x and y are major and minor compute capability on NVIDIA GPU. 
+For example, for architecture `7.0`, use
 
-To compile binding to R, you have to specify R library location using `-DCMAKE_R_LIB_DIR` and location of the R include directory using `-DCMAKE_R_INC_DIR`. For example
+     cmake -DCUDA_ARCH="7.0" ../
 
-    cmake -DCMAKE_R_INC_DIR="/usr/share/R/include" -DCMAKE_R_LIB_DIR="/usr/lib/R/lib/libR.so"  ../
+To compile binding to R, you have to specify R library location using 
+``-DCMAKE_R_LIB_DIR`` and location of the R include directory using 
+``-DCMAKE_R_INC_DIR``. For example
 
-To compile tests set `-DBUILD_TESTS=ON`.
-To compile example C/C++ application set `-DBUILD_APPLICATIONS=ON`.
-
-The software can then be compiled using the generated Makefile. To do so, simply type
-
-    make
+     cmake -DCMAKE_R_INC_DIR="/usr/share/R/include" -DCMAKE_R_LIB_DIR="/usr/lib/R/lib/libR.so"  ../
 
 To compile tests use ``-DBUILD_TESTS=ON`` which compiles test executable performing a series of tests of supported RQA metrics.
 
 An example application that uses the AccRQA library can be compiled with a flag ``-DBUILD_APPLICATIONS=ON``.
+
+
+Windows
+---
+
+To compile the AccRQA library from source on Windows 10 you will require:
+- **Build tools**: ``CMake`` 3.13 or newer 
+- **Compiler**: ``MSVC`` 2019 or newer
+
+
+In command line you can build AccRQA by
+
+     mkdir build
+     cd build
+     cmake .. [OPTIONS]
+     cmake --build .
+     cmake --install .
+
+
 
 
 Installation of C library (Windows)
