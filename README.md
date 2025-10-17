@@ -1,7 +1,7 @@
 # AccRQA
 AccRQA is a multi-platform (CPU, NVIDIA GPUs) application that calculates RQA metrics. Acceleration using GPUs is optional and is not required to have an NVIDIA GPU to use AccRQA. AccRQA offers high-performance implementation of RQA metrics that are available through Python, R, and C/C++. 
 
-The interfaces of the AccRQA library are designed platform and number precision agnostic. Change of the computational platform requires a change of a single parameter in the function invocation. If the selected computational platform is unavailable, the AccRQA library automatically switches to CPU. Therefore, transitioning from a locally run workflow (for example, on a laptop) to a more powerful desktop of an HPC cluster with GPUs is effortless. 
+The interfaces of the AccRQA library are designed platform and number precision agnostic. Change of the computational platform requires a change of a single parameter in the function invocation. If the selected computational platform is unavailable, the AccRQA library automatically switches to CPU. Therefore, transitioning from a locally run workflow (for example, on a laptop) to a more powerful desktop or an HPC cluster with GPUs is effortless. 
 
 Supported platforms are CPUs and NVIDIA GPUs. We are planning to support AMD GPUs in the future.
 
@@ -158,12 +158,6 @@ For example, for architecture `7.0`, use
 
      cmake -DCUDA_ARCH="7.0" ../
 
-To compile binding to R, you have to specify R library location using 
-``-DCMAKE_R_LIB_DIR`` and location of the R include directory using 
-``-DCMAKE_R_INC_DIR``. For example
-
-     cmake -DCMAKE_R_INC_DIR="/usr/share/R/include" -DCMAKE_R_LIB_DIR="/usr/lib/R/lib/libR.so"  ../
-
 To compile tests use ``-DBUILD_TESTS=ON`` which compiles test executable performing a series of tests of supported RQA metrics.
 
 An example application that uses the AccRQA library can be compiled with a flag ``-DBUILD_APPLICATIONS=ON``.
@@ -185,24 +179,6 @@ In command line you can build AccRQA by
      cmake --build .
      cmake --install .
 
-
-
-
-Installation of C library (Windows)
----
-
-To compile the AccRQA library from source you will require:
-  - MSVC compiler (part of Visual Studio)
-  - Make for Windows
-
-
-In command line you can build AccRQA by
-
-    mkdir build
-    cd build
-    cmake .. [OPTIONS]
-    cmake --build .
-    cmake --install .
 
 
 Contributors
