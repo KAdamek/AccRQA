@@ -74,8 +74,8 @@ void get_length_histogram_DET_inplace(
 
 	// upper triangle
 	for(size_t s=0; s<diagonal_length; s++) {
-		long int row = s;
-		long int column = s + distance_from_diagonal;
+		int64_t row = s;
+		int64_t column = s + distance_from_diagonal;
 		int R_matrix_value = R_matrix_element(time_series, row, column, threshold, tau, emb, distance_type);
 
 		if (R_matrix_value == 1 && line_active == 0) {
@@ -103,18 +103,18 @@ template <typename input_type>
 void get_length_histogram_LAM_inplace(
 	unsigned long long int *length_histogram, 
 	input_type *time_series, 
-	size_t corrected_size, 
-	size_t row,
+	int64_t corrected_size, 
+	int64_t row,
 	input_type threshold, 
 	int tau, 
 	int emb, 
 	int distance_type
 ){
 	int line_active = 0;
-	size_t line_length = 0;
+	int64_t line_length = 0;
 
 	// upper triangle
-	for(long int j = 0; j < corrected_size; j++){
+	for(int64_t j = 0; j < corrected_size; j++){
 		int R_matrix_value = R_matrix_element(time_series, row, j, threshold, tau, emb, distance_type);
 
 		if (R_matrix_value == 1 && line_active == 0) {
@@ -205,14 +205,14 @@ template <typename input_type>
 int rqa_CPU_R_matrix_ref(
 	int *R_matrix, 
 	input_type *time_series, 
-	long int corrected_size, 
+	int64_t corrected_size, 
 	input_type threshold, 
 	int tau, 
 	int emb, 
 	int distance_type
 ){
-	for(long int i = 0; i < corrected_size; i++){
-		for(long int j = 0; j < corrected_size; j++){
+	for(int64_t i = 0; i < corrected_size; i++){
+		for(int64_t j = 0; j < corrected_size; j++){
 			size_t r_pos = i*corrected_size + j;
 			R_matrix[r_pos] = R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
 		}
@@ -225,7 +225,7 @@ template <typename input_type>
 int rqa_CPU_R_matrix(
 	int *R_matrix, 
 	input_type *time_series, 
-	long int corrected_size, 
+	int64_t corrected_size, 
 	input_type threshold, 
 	int tau, 
 	int emb, 
@@ -239,19 +239,19 @@ template <typename input_type>
 int rqa_CPU_R_matrix_diagonal_ref(
 	int *R_matrix_diagonal, 
 	input_type *time_series, 
-	long int corrected_size, 
+	int64_t corrected_size, 
 	input_type threshold, 
 	int tau, 
 	int emb, 
 	int distance_type
 ){
-	long int line_count = 0;
+	int64_t line_count = 0;
 	memset(R_matrix_diagonal, 0, (2*corrected_size - 1)*corrected_size*sizeof(int));
 	// upper triangle
-	for (long int r = corrected_size-1; r>0; r--) {
-		for(long int s=0; s<corrected_size; s++) {
-			long int row = s;
-			long int column = s + r;
+	for (int64_t r = corrected_size-1; r>0; r--) {
+		for(int64_t s=0; s<corrected_size; s++) {
+			int64_t row = s;
+			int64_t column = s + r;
 			if(s<corrected_size) {
 				size_t r_pos = line_count*corrected_size + s;
 				R_matrix_diagonal[r_pos] = R_matrix_element(time_series, row, column, threshold, tau, emb, distance_type);
@@ -262,16 +262,16 @@ int rqa_CPU_R_matrix_diagonal_ref(
 	}
 	
 	//diagonal:
-	for(long int s=0; s<corrected_size; s++) {
+	for(int64_t s=0; s<corrected_size; s++) {
 		R_matrix_diagonal[line_count*corrected_size + s] = R_matrix_element(time_series, s, s, threshold, tau, emb, distance_type);
 	}
 	line_count++;
 	
 	// lower triangle
-	for (long int r = 1; r<corrected_size; r++) {
-		for(long int s=0; s<corrected_size; s++) {
-			long int row = s + r;
-			long int column = s;
+	for (int64_t r = 1; r<corrected_size; r++) {
+		for(int64_t s=0; s<corrected_size; s++) {
+			int64_t row = s + r;
+			int64_t column = s;
 			if(row < corrected_size){
 				size_t r_pos = line_count*corrected_size + s;
 				R_matrix_diagonal[r_pos] = R_matrix_element(time_series, row, column, threshold, tau, emb, distance_type);
@@ -288,7 +288,7 @@ template <typename input_type>
 int rqa_CPU_R_matrix_diagonal(
 	int *R_matrix_diagonal, 
 	input_type *time_series, 
-	long int corrected_size, 
+	int64_t corrected_size, 
 	input_type threshold, 
 	int tau, 
 	int emb, 
@@ -310,15 +310,16 @@ void rqa_CPU_RR_metric_ref(
 	int emb, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	
-	unsigned long long int sum = 0;
-	for(long int i=0; i<corrected_size; i++) {
-		for(long int j=0; j<corrected_size; j++) {
+	int64_t sum = 0;
+	for(int64_t i=0; i<corrected_size; i++) {
+		for(int64_t j=0; j<corrected_size; j++) {
 			sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
 		}
 	}
-	*output_RR = ((input_type) sum)/((input_type) (corrected_size*corrected_size));
+	int64_t tmp = corrected_size*corrected_size;
+	*output_RR = ((input_type) sum)/((input_type) (tmp));
 }
 
 template <typename input_type>
@@ -331,22 +332,23 @@ void rqa_CPU_RR_metric_ref_parallel(
 	int emb, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	
-	unsigned long long int sum = 0;
+	int64_t sum = 0;
 	#pragma omp parallel shared(sum) 
 	{
 		//int th_idx = omp_get_thread_num();
 		//int nThreads = omp_get_num_threads();
 		//if(th_idx==0) printf("Using %d omp threads.\n", nThreads);
 		#pragma omp for reduction(+:sum)
-		for(long int i=0; i<corrected_size; i++) {
-			for(long int j=0; j<corrected_size; j++) {
+		for(int64_t i=0; i<corrected_size; i++) {
+			for(int64_t j=0; j<corrected_size; j++) {
 				sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
 			}
 		}
 	}
-	*output_RR = ((input_type) sum)/((input_type) (corrected_size*corrected_size));
+	int64_t tmp = corrected_size*corrected_size;
+	*output_RR = ((input_type) sum)/((input_type) (tmp));
 }
 
 template <typename input_type>
@@ -373,20 +375,20 @@ void rqa_CPU_LAM_metric_ref(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
 	int *R_matrix;
 	
-	long int corrected_size = input_size - (emb - 1)*tau;
-	size_t matrix_size = corrected_size*corrected_size;
-	size_t histogram_size = corrected_size + 1;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
+	int64_t matrix_size = corrected_size*corrected_size;
+	int64_t histogram_size = corrected_size + 1;
 	
 	R_matrix = new int[matrix_size];
 	
 	rqa_CPU_R_matrix_ref(R_matrix, time_series, corrected_size, threshold, tau, emb, distance_type);
 	
-	for (long int r = 0; r<corrected_size; r++) {
+	for (int64_t r = 0; r<corrected_size; r++) {
 		get_length_histogram(length_histogram, &R_matrix[r*corrected_size], corrected_size);
 	}
 	
@@ -400,13 +402,13 @@ void rqa_CPU_LAM_metric(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	size_t histogram_size = corrected_size + 1;
 
-	for (long int i = 0; i<corrected_size; i++) {
+	for (int64_t i = 0; i<corrected_size; i++) {
 		get_length_histogram_LAM_inplace(
 			length_histogram, 
 			time_series, corrected_size, i,
@@ -422,10 +424,10 @@ void rqa_CPU_LAM_metric_parallel(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	size_t histogram_size = corrected_size + 1;
 
 	#pragma omp parallel
@@ -435,7 +437,7 @@ void rqa_CPU_LAM_metric_parallel(
 		for(size_t f=0; f<histogram_size; f++) local_hst[f]=0;
 
 		#pragma omp for nowait
-		for (long int i = 0; i<corrected_size; i++) {
+		for (int64_t i = 0; i<corrected_size; i++) {
 			get_length_histogram_LAM_inplace(
 				local_hst, 
 				time_series, corrected_size, i,
@@ -465,12 +467,12 @@ void rqa_CPU_DET_metric_ref(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
 	int *R_matrix, *matrix_line;
 	
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	size_t matrix_size = corrected_size*corrected_size;
 	size_t histogram_size = corrected_size + 1;
 	
@@ -481,13 +483,13 @@ void rqa_CPU_DET_metric_ref(
 	
 	// upper triangle
 	// r is distance from diagonal line
-	for (long int r = corrected_size-1; r>0; r--) {
+	for (int64_t r = corrected_size-1; r>0; r--) {
 		
-		for(long int s=0; s<corrected_size; s++) matrix_line[s] = 0;
+		for(int64_t s=0; s<corrected_size; s++) matrix_line[s] = 0;
 
-		for(long int s=0; s<corrected_size; s++) {
-			long int row = s;
-			long int column = s + r;
+		for(int64_t s=0; s<corrected_size; s++) {
+			int64_t row = s;
+			int64_t column = s + r;
 			if(column<corrected_size){
 				size_t pos = row*corrected_size + column;
 				matrix_line[s] = R_matrix[pos];
@@ -497,16 +499,16 @@ void rqa_CPU_DET_metric_ref(
 	}
 	
 	//diagonal:
-	for(long int f=0; f<corrected_size; f++) matrix_line[f] = R_matrix[f*corrected_size + f];
+	for(int64_t f=0; f<corrected_size; f++) matrix_line[f] = R_matrix[f*corrected_size + f];
 	get_length_histogram(length_histogram, matrix_line, corrected_size);
 	
 	// lower triangle
-	for (long int r = 1; r<corrected_size; r++) {
-		for(long int s=0; s<corrected_size; s++) matrix_line[s] = 0;
+	for (int64_t r = 1; r<corrected_size; r++) {
+		for(int64_t s=0; s<corrected_size; s++) matrix_line[s] = 0;
 		
-		for(long int s=0; s<corrected_size; s++) {
-			long int row = s + r;
-			long int column = s;
+		for(int64_t s=0; s<corrected_size; s++) {
+			int64_t row = s + r;
+			int64_t column = s;
 			if(row<corrected_size){
 				size_t pos = row*corrected_size + column;
 				matrix_line[s] = R_matrix[pos];
@@ -526,10 +528,10 @@ void rqa_CPU_DET_metric(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	size_t histogram_size = corrected_size + 1;
 
 	// upper triangle
@@ -557,11 +559,11 @@ void rqa_CPU_DET_metric_parallel_mk1(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
-	size_t corrected_size = input_size - (emb - 1)*tau;
-	size_t histogram_size = corrected_size + 1;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
+	int64_t histogram_size = corrected_size + 1;
 
 	// upper triangle
 	// r = distance_from_diagonal
@@ -572,7 +574,7 @@ void rqa_CPU_DET_metric_parallel_mk1(
 		for(size_t f=0; f<histogram_size; f++) local_hst[f]=0;
 
 		#pragma omp for nowait
-		for (long long int r = (long long int) corrected_size-1; r>0; r--) {
+		for (int64_t r = corrected_size-1; r>0; r--) {
 			get_length_histogram_DET_inplace(
 				local_hst, 
 				time_series, 
@@ -608,10 +610,10 @@ void rqa_CPU_DET_metric_parallel_mk2(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 ) {
-	long int corrected_size = input_size - (emb - 1)*tau;
+	int64_t corrected_size = input_size - (emb - 1)*tau;
 	size_t histogram_size = corrected_size + 1;
 
 	// upper triangle

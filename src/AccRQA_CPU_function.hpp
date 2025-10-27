@@ -54,7 +54,7 @@ void rqa_CPU_LAM_metric_ref(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 
@@ -66,7 +66,7 @@ void rqa_CPU_LAM_metric(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 
@@ -78,7 +78,7 @@ void rqa_CPU_LAM_metric_parallel(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 
@@ -90,7 +90,7 @@ void rqa_CPU_DET_metric_ref(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 
@@ -102,7 +102,7 @@ void rqa_CPU_DET_metric(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 
@@ -113,7 +113,7 @@ void rqa_CPU_DET_metric_parallel_mk1(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 
@@ -124,7 +124,7 @@ void rqa_CPU_DET_metric_parallel_mk2(
 	int tau, 
 	int emb, 
 	input_type *time_series, 
-	long int input_size, 
+	int64_t input_size, 
 	int distance_type
 );
 #include "AccRQA_CPU_function.cpp"
