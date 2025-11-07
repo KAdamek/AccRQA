@@ -488,8 +488,15 @@ void accrqa_LAM_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || vmin_values == NULL || threshold_values == NULL) *error = ERR_MEM_ALLOC_FAILURE;
 	if(*error!=SUCCESS) return;
 	
+	int vmin_max = 0;
+	for(int f=0; f<nVmins; f++) {
+		if(vmin_values[f]>vmin_max) {
+			vmin_max = vmin_values[f];
+		}
+	}
+	
 	// Default code
-	if(calc_ENTR == 1){
+	if(calc_ENTR == 1 || vmin_max >= 16){
 		calculate_LAM_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, error);
 	}
 	else {
@@ -733,25 +740,18 @@ void accrqa_DET_GPU_t(input_type *output, input_type *input_data, size_t data_si
 	if(output == NULL || input_data == NULL || tau_values == NULL || emb_values == NULL || lmin_values == NULL || threshold_values == NULL) *error = ERR_MEM_ALLOC_FAILURE;
 	if(*error!=SUCCESS) return;
 	
+	int lmin_max = 0;
+	for(int f=0; f<nLmins; f++) {
+		if(lmin_values[f]>lmin_max) {
+			lmin_max = lmin_values[f];
+		}
+	}
+	
 	// Default code
-	if(calc_ENTR == 1){
+	if(calc_ENTR == 1 || lmin_max >= 16){
 		calculate_DET_GPU_default(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
 	}
 	else {
-		/*
-		gpu_timer.Start();
-		calculate_DET_GPU_sum(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-		gpu_timer.Stop();
-		printf("Sum GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-		*/
-		
-		/*
-		gpu_timer.Start();
-		calculate_DET_GPU_boxcar(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
-		gpu_timer.Stop();
-		printf("Boxcar GPU DET execution time: %fms;\n", gpu_timer.Elapsed());
-		*/
-		
 		calculate_DET_GPU_boxcar_square(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, error);
 	}
 
