@@ -439,8 +439,8 @@ void calculate_LAM_GPU_boxcar_square(input_type *output, input_type *input_data,
 					int pos = tau_id*nVmins*nEmbs*nThresholds + emb_id*nVmins*nThresholds + v_id*nThresholds + th_id;
 					output[5*pos + 0] = h_LAM;
 					output[5*pos + 1] = h_TT;
-					output[5*pos + 2] = h_TTmax;
-					output[5*pos + 3] = 0;
+					output[5*pos + 2] = NAN;
+					output[5*pos + 3] = NAN;
 					output[5*pos + 4] = h_RR;
 				}
 			}
@@ -657,8 +657,8 @@ void calculate_DET_GPU_boxcar(input_type *output, input_type *input_data, size_t
 					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = h_DET;
 					output[5*pos + 1] = h_L;
-					output[5*pos + 2] = h_Lmax;
-					output[5*pos + 3] = 0;
+					output[5*pos + 2] = NAN;
+					output[5*pos + 3] = NAN;
 					output[5*pos + 4] = h_RR;
 				}
 			}
@@ -691,8 +691,8 @@ void calculate_DET_GPU_boxcar_square(input_type *output, input_type *input_data,
 					int pos = tau_id*nLmins*nEmbs*nThresholds + emb_id*nLmins*nThresholds + l_id*nThresholds + th_id;
 					output[5*pos + 0] = h_DET;
 					output[5*pos + 1] = h_L;
-					output[5*pos + 2] = h_Lmax;
-					output[5*pos + 3] = 0;
+					output[5*pos + 2] = NAN;
+					output[5*pos + 3] = NAN;
 					output[5*pos + 4] = h_RR;
 				}
 			}
