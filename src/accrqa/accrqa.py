@@ -8,11 +8,6 @@ from typing import Optional
 from typing import Union
 
 try:
-    import cupy
-except ImportError:
-    cupy = None
-
-try:
     import pandas as pd
 except ImportError:
     pd = None
