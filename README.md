@@ -183,7 +183,8 @@ bash
 
 export CUDA_HOME=/usr/local/cuda
 
-R CMD INSTALL AccRQA_x.y.z.tar.gz```
+R CMD INSTALL AccRQA_x.y.z.tar.gz
+```
 
 ##### Inside an R session using `Sys.setenv()`:
 
@@ -197,7 +198,9 @@ install.packages("AccRQA_x.y.z.tar.gz",
                  type           = "source"
                  )
 ```
+
 ##### Persistenly via `.Renviron`:
+
 Edit (or create) `~/.Renviron` and add:
 
 ```
