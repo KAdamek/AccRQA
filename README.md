@@ -84,9 +84,6 @@ To install from the local repository in command line:
 How to Install the R Package
 ===
 
-Installing on Linux
----
-
 ### System Requirements
 
 To install and use the AccRQA R package, the following system requirements apply:
@@ -112,6 +109,9 @@ You can install them from within R (or RStudio) using:
      install.packages(c("Rcpp", "dplyr", "tidyr"))
 
 > If you install AccRQA from a repository with dependencies = TRUE, R will also attempt to install these automatically, but for local source archives we recommend installing them explicitly as above.
+
+Installing on Linux
+---
 
 ### Additional system libraries (show for Debian/Ubuntu)
 
@@ -245,6 +245,9 @@ install.packages("AccRQA_x.y.z.tar.gz",
 ```
 
 If you omit these arguments, the configure script will attempt to detect CUDA automatically and use a default GPU architecture, but for optimal performance and reproducibility we recommend specifying them explicitly when building on GPU-enabled systems.
+
+Installing on Windows
+---
 
 ### CPU-Enabled Installation (Windows)
 
