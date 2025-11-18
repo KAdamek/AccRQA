@@ -22,7 +22,7 @@ from . import accrqaCompPlatform
 
 def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
-    Calculates RR metric from supplied time-series.
+    Calculates RR measure from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
     
     Args:
@@ -126,7 +126,7 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
 
 def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
-    Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
+    Calculates DET, L, Lmax, ENTR and RR measures from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
     
     Args:
@@ -260,7 +260,7 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
 
 def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
-    Calculates DET, L, Lmax, ENTR and RR metrics from supplied time-series.
+    Calculates DET, L, Lmax, ENTR and RR measures from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
     
     Args:

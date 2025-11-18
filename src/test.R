@@ -110,7 +110,7 @@ test_rqa <- function(sequence, threshold, norm = "euclidean") {
   # Generate recurrence plot
   rp <- generate_recurrence_plot(sequence, threshold, norm)
   
-  # Compute exact metrics
+  # Compute exact measures
   exact_metrics <- compute_rqa_metrics(rp)
   
   # Run your RQA function
@@ -126,9 +126,9 @@ test_rqa <- function(sequence, threshold, norm = "euclidean") {
   )
   
   # Compare results
-  print("Exact Metrics:")
+  print("Exact Measures:")
   print(exact_metrics)
-  print("Computed Metrics:")
+  print("Computed Measures:")
   print(rqa_result)
 }
 
@@ -146,7 +146,7 @@ for (test in test_cases) {
 
 library(testthat)
 
-test_that("RQA results match exact metrics", {
+test_that("RQA results match exact measures", {
   sequence <- runif(10)
   threshold <- 0.1
   rp <- generate_recurrence_plot(sequence, threshold)

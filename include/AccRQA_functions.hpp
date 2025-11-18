@@ -36,7 +36,7 @@ inline void accrqa_version(){
 //==========================================================
 
 /**
- * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA metrics from supplied time-series. (float)
+ * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA measures from supplied time-series. (float)
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p output is 3D data cube containing RR values, with shape:
@@ -85,7 +85,7 @@ void accrqa_LAM(
 );
 
 /**
- * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA metrics from supplied time-series. (double)
+ * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA measures from supplied time-series. (double)
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p output is 3D data cube containing RR values, with shape:
@@ -151,7 +151,7 @@ int accrqa_LAM_output_size_in_elements(
 //==========================================================
 
 /**
- * @brief Calculates DET, L, Lmax, ENTR and RR RQA metrics from supplied time-series. (float)
+ * @brief Calculates DET, L, Lmax, ENTR and RR RQA measures from supplied time-series. (float)
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p output is 3D data cube containing RR values, with shape:
@@ -200,7 +200,7 @@ void accrqa_DET(
 );
 
 /**
- * @brief Calculates DET, L, Lmax, ENTR and RR RQA metrics from supplied time-series. (double)
+ * @brief Calculates DET, L, Lmax, ENTR and RR RQA measures from supplied time-series. (double)
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p output is 3D data cube containing RR values, with shape:
@@ -266,7 +266,7 @@ int accrqa_DET_output_size_in_elements(
 //==========================================================
 
 /**
- * @brief Calculates RR RQA metric from supplied time-series. (float)
+ * @brief Calculates RR RQA measure from supplied time-series. (float)
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p output is 3D data cube containing RR values, with shape:
@@ -308,7 +308,7 @@ void accrqa_RR(
 );
 
 /**
- * @brief Calculates RR RQA metric from supplied time-series. (double)
+ * @brief Calculates RR RQA measure from supplied time-series. (double)
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p output is 3D data cube containing RR values, with shape:

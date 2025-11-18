@@ -366,7 +366,7 @@ void rqa_CPU_RR_metric(
 //----------------------------------------------------------<
 
 
-//------------------------ LAM metric ---------------------->
+//------------------------ Laminarity ---------------------->
 
 template<typename input_type>
 void rqa_CPU_LAM_metric_ref(
@@ -459,7 +459,7 @@ void rqa_CPU_LAM_metric_parallel(
 //----------------------------------------------------------<
 
 
-//------------------------ DET metric ---------------------->
+//------------------------ Determinism ---------------------->
 template<typename input_type>
 void rqa_CPU_DET_metric_ref(
 	unsigned long long int *length_histogram, 

@@ -56,7 +56,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Calculates RR RQA metric from supplied time-series.
+ * @brief Calculates RR RQA measure from supplied time-series.
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p mem_output_RR is 3D data cube containing RR values, with shape:
@@ -188,7 +188,7 @@ void py_accrqa_RR(
 
 
 /**
- * @brief Calculates DET, L, Lmax, ENTR and RR RQA metrics from supplied time-series.
+ * @brief Calculates DET, L, Lmax, ENTR and RR RQA measures from supplied time-series.
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p mem_output_DET is 3D data cube containing RR values, with shape:
@@ -334,7 +334,7 @@ void py_accrqa_DET(
 
 
 /**
- * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA metrics from supplied time-series.
+ * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA measures from supplied time-series.
  *
  * Array dimensions are as follows, from slowest to fastest varying:
  * - @p mem_output_LAM is 3D data cube containing RR values, with shape:

@@ -1,6 +1,6 @@
 # See the LICENSE file at the top-level directory of this distribution.
 
-"""AccRQA is a package to calculate recurrence quantification analysis (RQA) metrics.
+"""AccRQA is a package to calculate recurrence quantification analysis (RQA) measures.
 """
 
 from __future__ import absolute_import

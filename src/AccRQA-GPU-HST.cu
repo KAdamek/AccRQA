@@ -2046,7 +2046,7 @@ void RQA_length_histogram_diagonal_sum_wrapper(
 	cudaDeviceSynchronize();
 	//--------------------------------<
 	
-	//------------> Calculation RQA metrics
+	//------------> Calculation RQA measures
 	unsigned long long int h_S_all = 0;
 	unsigned long long int h_S_lmin = 0;
 	unsigned long long int h_lmax = 0;
@@ -2213,7 +2213,7 @@ void RQA_diagonal_boxcar_wrapper(
 	cudaDeviceSynchronize();
 	//--------------------------------<
 	
-	//------------> Calculation RQA metrics
+	//------------> Calculation RQA measures
 	unsigned long long int h_S_all = 0;
 	unsigned long long int h_S_lmin = 0;
 	unsigned long long int h_N_lmin = 0;
@@ -2407,7 +2407,7 @@ void RQA_diagonal_boxcar_square_wrapper(
 	cudaDeviceSynchronize();
 	//--------------------------------<
 	
-	//------------> Calculation RQA metrics
+	//------------> Calculation RQA measures
 	unsigned long long int h_S_all = 0;
 	unsigned long long int h_S_lmin = 0;
 	unsigned long long int h_N_lmin = 0;
@@ -2603,7 +2603,7 @@ void RQA_horizontal_boxcar_square_wrapper(
 	cudaDeviceSynchronize();
 	//--------------------------------<
 	
-	//------------> Calculation RQA metrics
+	//------------> Calculation RQA measures
 	unsigned long long int h_S_all = 0;
 	unsigned long long int h_S_vmin = 0;
 	unsigned long long int h_N_vmin = 0;

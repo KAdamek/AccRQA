@@ -374,7 +374,7 @@ void accrqa_print_error(Accrqa_Error *error){
 			printf("other CUDA error");
 			break;
 		case ERR_INVALID_METRIC_TYPE:
-			printf("invalid metric selected");
+			printf("invalid measure selected");
 			break;
 		default:
 			printf("unrecognised AccRQA error");
