@@ -126,7 +126,7 @@ sudo apt install \
 
 You can install the **AccRQA R package** either from a downloaded source archive (e.g., `.tar.gz` or `.zip`) or directly within RStudio.
 
-### CPU-Enabled Installation (default)
+### CPU-Enabled Installation (Linux)
 
 #### Option 1: Install from `.zip` or `.tar.gz` in RStudio
 
@@ -169,7 +169,7 @@ bash
 R CMD INSTALL AccRQA_x.y.z.tar.gz
 ```
 
-### GPU-Enabled Installation (CUDA)
+### GPU-Enabled Installation (CUDA, Linux)
 
 If you want to enable GPU acceleration in the R package, you need a working CUDA Toolkit installation and a correctly set `CUDA_HOME` environment variable.
 
@@ -222,7 +222,7 @@ Compute capability of your GPU (e.g. 70 for V100, 80 for A100, 86 for RTX 30-ser
 
 ##### Examples:
 
-From a terminal:
+From a terminal (note: accordingly change the **AccRQA_x.y.z.tar.gz** with the version and location of the fiel:
 
 ```
 bash
@@ -246,8 +246,35 @@ install.packages("AccRQA_x.y.z.tar.gz",
 
 If you omit these arguments, the configure script will attempt to detect CUDA automatically and use a default GPU architecture, but for optimal performance and reproducibility we recommend specifying them explicitly when building on GPU-enabled systems.
 
+### CPU-Enabled Installation (Windows)
+
+Make sure that **Rtools** is installed to compile packages from source and appropriate R libraries (dplyr, tidyr, Rcpp):
+
+```
+r
+     # Install dependencies
+     install.packages(c("Rcpp", "dplyr", "tidyr"))
+
+     # Install AccRQA from a local source archive
+     install.packages("AccRQA_x.y.z.tar.gz",
+                 repos = NULL,
+                 type  = "source")
+```
+
+To install the ``AccRQA`` just use this command in the console:
+
+```
+r
+
+install.packages("AccRQA_x.y.z.tar.gz", repos=NULL, type="source")
+```
+
+where **AccRQA_x.y.z.tar.gz" correspond to the version you downloaded with the full path to the file.
+
+
 How to Install the C library (Linux)
 ===
+
 
 The AccRQA library can be compiled from source using CMake. To install and use AccRQA you need following:
 - **Operating system**: Linux or Windows 10+
