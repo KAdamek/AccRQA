@@ -2,10 +2,6 @@
 
 import ctypes
 import numpy
-try:
-    import cupy
-except ImportError:
-    cupy = None
 
 from . import accrqaError
 from . import accrqaLib
@@ -70,35 +66,6 @@ class accrqaMem:
                 error_status.handle()
             )
             mem_set_read_only(self._handle, not obj.flags.writeable)
-        elif cupy:
-            if type(obj) == cupy.ndarray:
-                if obj.dtype == cupy.int8 or obj.dtype == cupy.byte:
-                    mem_type = self.MemType.MEM_CHAR
-                elif obj.dtype == cupy.int32:
-                    mem_type = self.MemType.MEM_INT
-                elif obj.dtype == cupy.float32:
-                    mem_type = self.MemType.MEM_FLOAT
-                elif obj.dtype == cupy.float64:
-                    mem_type = self.MemType.MEM_DOUBLE
-                elif obj.dtype == cupy.complex64:
-                    mem_type = self.MemType.MEM_COMPLEX_FLOAT
-                elif obj.dtype == cupy.complex128:
-                    mem_type = self.MemType.MEM_COMPLEX_DOUBLE
-                else:
-                    raise TypeError("Unsupported type of cupy array")
-                shape = (ctypes.c_int64 * obj.ndim)(*obj.shape)
-                strides = (ctypes.c_int64 * obj.ndim)(*obj.strides)
-                self._handle = mem_create_wrapper(
-                    ctypes.cast(obj.data.ptr, ctypes.POINTER(ctypes.c_void_p)),
-                    mem_type,
-                    self.MemLocation.MEM_GPU,
-                    obj.ndim,
-                    shape,
-                    strides,
-                    error_status.handle()
-                )
-                # cupy doesn't appear to have a "writeable" flag.
-                mem_set_read_only(self._handle, 0)
         if not self._handle and obj is not None:
             raise TypeError("Unknown array type")
         error_status.check()
