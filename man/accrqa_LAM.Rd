@@ -57,13 +57,14 @@ calculating LAM with options for normalization and entropy computation.
 }
 \examples{
 # Example usage of accrqa_LAM
-input <- c(1.0, 2.0, 3.0, 4.0)
+input <- runif(100)
 tau_values <- c(1, 2)
 emb_values <- c(2, 3)
 vmin_values <- c(2, 3)
 threshold_values <- c(0.1, 0.2)
 norm <- "euclidean"
 calc_ENTR <- TRUE
-result <- accrqa_LAM(input, tau_values, emb_values, vmin_values, threshold_values, norm, calc_ENTR)
+comp_platform <- "cpu" # or set to nv_gpu
+result <- accrqa_LAM(input, tau_values, emb_values, vmin_values, threshold_values, norm, calc_ENTR, comp_platform)
 
 }

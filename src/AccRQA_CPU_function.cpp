@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <omp.h>
+#include <cstdint>
 
 //---------------------- Utilities ------------------------->
 template <typename input_type>
