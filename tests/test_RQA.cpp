@@ -901,7 +901,6 @@ int R_matrix_element(input_type *input, size_t i, size_t j, input_type threshold
 	if(distance_type == 1) distance = distance_euclidean(input, i, j, tau, emb);
 	if(distance_type == 2) distance = distance_maximum(input, i, j, tau, emb);
 	int R_element = ( (threshold - distance)>=0 ? 1 : 0 );
-	//printf("[%d;%d]=%d; ", (int) i, (int) j, R_element);
 	return ( R_element );
 }
 

@@ -20,6 +20,70 @@ from . import accrqaMem
 from . import accrqaDistance
 from . import accrqaCompPlatform
 
+def RP(input_data: NDArray, tau: int, emb: int, threshold: float, distance_type: accrqaDistance) -> NDArray:
+    """
+    Calculates recurrence plot from supplied time-series.
+    https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
+    
+    Args:
+        input_data: The input time-series.
+        tau: Integer value of delay.
+        emb: Integer value of embedding.
+        threshold: Floating point value of threshold.
+        distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+
+    Returns:
+        A numpy NDArray containing of RP values.
+
+    Raises:
+        TypeError: If number of delays, embedding or thresholds is zero length.
+        TypeError: If input_data is not numpy.ndarray.
+        TypeError: If wrong type of the distance to the line of identity is selected.
+        TypeError: If wrong computational platform is selected.
+        RuntimeError: If AccRQA library encounters a problem.
+    """
+    if tau <= 0 or emb <= 0:
+        raise TypeError("Delay and embedding must be greater than zero.")
+    
+    input_size = input_data.shape[0]
+    corrected_size = input_size - (emb - 1)*tau;
+    if type(input_data) == np.ndarray:
+        rp_output = np.zeros((corrected_size, corrected_size), dtype=np.int8);
+    else:
+        raise TypeError("Unknown array type of the input_data")
+    
+    # Checking distance validity
+    if not type(distance_type) is accrqaDistance:
+        raise TypeError("Distance must be an instance of accrqaDistance")
+    int_distance_type = 0
+    int_distance_type = distance_type.get_distance_id()
+    
+    mem_output = accrqaMem(rp_output)
+    mem_input = accrqaMem(input_data)
+    error_status = accrqaError()
+    lib_AccRQA = accrqaLib.handle().py_accrqa_RP
+    lib_AccRQA.argtypes = [
+        accrqaMem.handle_type(),
+        accrqaMem.handle_type(),
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_double,
+        ctypes.c_int,
+        accrqaError.handle_type()
+    ]
+    lib_AccRQA(
+        mem_output.handle(),
+        mem_input.handle(),
+        tau,
+        emb,
+        threshold,
+        int_distance_type,
+        error_status.handle()
+    )
+    error_status.check()
+    
+    return(rp_output)
+
 def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates RR measure from supplied time-series.
@@ -30,7 +94,7 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         tau_values: Array of delays.
         emb_values: Array of embedding values.
         threshold_values: Array of threshold values.
-        distance_type: Type of formula used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+        distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
 
@@ -135,7 +199,7 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         emb_values: Array of embedding values.
         lmin_values: Array of minimal lengths.
         threshold_values: Array of threshold values.
-        distance_type: Type of formula used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+        distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         calculate_ENTR: [Optional] Enable calculation of Lmax and ENTR. Default True.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
@@ -269,7 +333,7 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         emb_values: Array of embedding values.
         vmin_values: Array of minimal lengths.
         threshold_values: Array of threshold values.
-        distance_type: Type of formula used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
+        distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         calculate_ENTR: [Optional] Enable calculation of Vmax and ENTR. Default True.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.

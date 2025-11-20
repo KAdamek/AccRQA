@@ -374,7 +374,7 @@ void accrqa_print_error(Accrqa_Error *error){
 			printf("other CUDA error");
 			break;
 		case ERR_INVALID_METRIC_TYPE:
-			printf("invalid measure selected");
+			printf("invalid metric selected");
 			break;
 		default:
 			printf("unrecognised AccRQA error");
@@ -971,6 +971,71 @@ int accrqa_RR_output_size_in_elements(
 ) {
 	return(nTaus*nEmbs*nThresholds);
 }
+
+
+//==========================================================
+//========================== RP ============================
+//==========================================================
+
+int64_t accrqa_RP_output_size_in_elements(
+	int64_t input_size, int64_t tau, int64_t emb
+){
+	int64_t corrected_size  = input_size - (emb - 1)*tau;
+	return(corrected_size);
+}
+
+void accrqa_RP(
+	char *output, 
+	float *input_data, size_t data_size, 
+	int tau,
+	int emb,
+	float threshold,
+	Accrqa_Distance distance_type,
+	Accrqa_Error *error
+){
+	if(*error!=SUCCESS) return;
+	if(data_size > 65536){
+		*error = ERR_INVALID_ARGUMENT;
+	}
+	int64_t corrected_size = accrqa_RP_output_size_in_elements(data_size, tau, emb);
+	rqa_CPU_R_matrix_ref(
+		output, 
+		input_data, 
+		corrected_size, 
+		threshold, 
+		tau, 
+		emb, 
+		distance_type
+	);
+}
+
+void accrqa_RP(
+	char *output, 
+	double *input_data, size_t data_size, 
+	int tau,
+	int emb,
+	double threshold,
+	Accrqa_Distance distance_type,
+	Accrqa_Error *error
+){
+	if(*error!=SUCCESS) return;
+	if(data_size > 65536){
+		*error = ERR_INVALID_ARGUMENT;
+	}
+	int64_t corrected_size = accrqa_RP_output_size_in_elements(data_size, tau, emb);
+	rqa_CPU_R_matrix_ref(
+		output, 
+		input_data, 
+		corrected_size, 
+		threshold, 
+		tau, 
+		emb, 
+		distance_type
+	);
+}
+
+
+
 
 //=============================<
 

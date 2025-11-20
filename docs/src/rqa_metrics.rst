@@ -11,6 +11,8 @@ C/C++
 Python
 ======
 
+.. autofunction:: accrqa.RP
+
 .. autofunction:: accrqa.RR
 
 .. autofunction:: accrqa.LAM

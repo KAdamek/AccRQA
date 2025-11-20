@@ -55,6 +55,94 @@ Accrqa_CompPlatform check_comp_platform(int int_comp_platform, Accrqa_Error *err
 extern "C" {
 #endif
 
+
+/**
+ * @brief Calculates recurrence plot from supplied time-series.
+ *
+ * Array dimensions are as follows, from slowest to fastest varying:
+ * - @p output is 2D data containing recurrence plot in row-major format. Size of the RP output is @p N = data_size - (emb - 1)*tau, with shape:
+ *   - [ @p N, @p N].
+ *
+ * - @p mem_input is 1D and real-valued, with shape:
+ *   - [ @p data_size ]
+ *
+ * @param mem_output_RP 2D array containing RP values.
+ * @param mem_input Real-valued array of input time-series samples.
+ * @param tau Integer value of delay.
+ * @param emb Integer value of embedding.
+ * @param threshold Floating point value of threshold.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
+ * @param error Error status.
+ */
+void py_accrqa_RP(
+	Mem *mem_output_RP, 
+	Mem *mem_input, 
+	int32_t tau, 
+	int32_t emb, 
+	double threshold, 
+	int int_distance_type, 
+	Accrqa_Error *error
+) {
+	if(
+		mem_location(mem_output_RP) != MEM_CPU 
+		|| mem_location(mem_input) != MEM_CPU 
+	){
+		printf("ERROR! Data are stored in wrong destination.\n");
+		*error = ERR_MEM_LOCATION;
+		return;
+	} 
+	
+	if(tau <= 0 || emb <=0){
+		printf("ERROR! Values of tau and emb must be non-zero.\n");
+		*error = ERR_DATA_TYPE;
+		return;
+	}
+	
+	if(mem_num_dims(mem_input) != 1) {
+		printf("input must be one-dimensional array.\n");
+		*error = ERR_INVALID_ARGUMENT;
+		return;
+	}
+	
+	if( mem_num_dims(mem_output_RP) != 2 ){
+		printf("mem_output_RP must be two-dimensional.\n");
+		*error = ERR_INVALID_ARGUMENT;
+		return;
+	}
+	
+	if(mem_shape_dim(mem_input, 0) == 0) {
+		printf("input number of elements must be non zero.\n");
+		*error = ERR_INVALID_ARGUMENT;
+		return;
+	}
+	
+	Accrqa_Distance distance_type = check_distance_type(int_distance_type, error);
+	if(*error != SUCCESS) return;
+	
+	if(mem_type(mem_input) == MEM_FLOAT){
+		float *input_data = (float *) mem_data(mem_input);
+		size_t input_size = (size_t) mem_shape_dim(mem_input, 0);
+		char *output = (char *) mem_data(mem_output_RP);
+		float local_threshold = (float) threshold;
+		
+		accrqa_RP(output, input_data, input_size, tau, emb, local_threshold, distance_type, error);
+	}
+	else if(mem_type(mem_input) == MEM_DOUBLE){
+		double *input_data = (double *) mem_data(mem_input);
+		size_t input_size = (size_t) mem_shape_dim(mem_input, 0);
+		char *output = (char *) mem_data(mem_output_RP);
+		float local_threshold = (double) threshold;
+		
+		accrqa_RP(output, input_data, input_size, tau, emb, local_threshold, distance_type, error);
+	}
+	else {
+		printf("ERROR! Unsupported data type.\n");
+		*error = ERR_DATA_TYPE;
+	}
+}
+
+
+
 /**
  * @brief Calculates RR RQA measure from supplied time-series.
  *
@@ -79,7 +167,7 @@ extern "C" {
  * @param mem_tau_values Integer array of delay values.
  * @param mem_emb_values Integer array of embedding values.
  * @param mem_threshold_values Real-valued array of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param comp_platform Compute platform to use.
  * @param error Error status.
  */
@@ -135,7 +223,7 @@ void py_accrqa_RR(
 	}
 	
 	if( mem_num_dims(mem_output_RR) != 3 ){
-		printf("mem_output_RR must be four-dimensional.\n");
+		printf("mem_output_RR must be three-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -215,7 +303,7 @@ void py_accrqa_RR(
  * @param mem_emb_values Integer array of embedding values.
  * @param mem_lmin_values Integer array of  minimal lengths values.
  * @param mem_threshold_values Real-valued array (float) of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param calc_ENTR Turns calculation of ENTR on (1) and off (0).
  * @param comp_platform Compute platform to use.
  * @param error Error status.
@@ -332,7 +420,6 @@ void py_accrqa_DET(
 }
 
 
-
 /**
  * @brief Calculates LAM, TT, TTmax, ENTR and RR RQA measures from supplied time-series.
  *
@@ -361,7 +448,7 @@ void py_accrqa_DET(
  * @param mem_emb_values Integer array of embedding values.
  * @param mem_vmin_values Integer array of  minimal lengths values.
  * @param mem_threshold_values Real-valued array (double) of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param calc_ENTR Turns calculation of ENTR on (1) and off (0).
  * @param comp_platform Compute platform to use.
  * @param error Error status.

@@ -73,8 +73,8 @@ extern "C" {
 		Accrqa_CompPlatform comp_platform = check_comp_platform2(local_int_comp_platform, &error);
 		//std::cout << "Computation platform: " << comp_platform << " " << error <<std::endl;
 		if(error != SUCCESS) return;
-    
-    accrqa_DET(
+		
+		accrqa_DET(
 			output,
 			input,
 			local_input_size,
@@ -190,6 +190,37 @@ extern "C" {
   		&error
   	);
   }
+  
+	void R_double_accrqa_RP(
+		char *output,
+		double *input,
+		int    *input_size,
+		int    *tau,
+		int    *emb,
+		double *threshold,
+		int    *int_distance_type
+	){
+		size_t local_input_size = (size_t) input_size[0];
+		int local_thresholds = threshold[0];
+		int local_tau = tau[0];
+		int local_emb = emb[0];
+		int local_int_distance_type = int_distance_type[0];
+		Accrqa_Error error = SUCCESS;
+		
+		Accrqa_Distance distance_type = check_distance_type2(local_int_distance_type, &error);
+		if(error != SUCCESS)  return;
+		
+		accrqa_RP(
+			output,
+			input,
+			local_input_size,
+			local_tau,
+			local_emb,
+			local_threshold,
+			distance_type,
+			&error
+		);
+	}
 
   R_CMethodDef cMethods[] = {
     {"R_double_accrqa_DET", (DL_FUNC) &R_double_accrqa_DET, 14},

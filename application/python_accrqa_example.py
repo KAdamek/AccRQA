@@ -1,6 +1,8 @@
 import numpy as np
 import accrqa as rqa
 import pandas as pd
+import sys
+import matplotlib.pyplot as plt
 
 tau_values = np.array([1,2], dtype=np.intc)
 emb_values = np.array([1,2], dtype=np.intc)
@@ -56,5 +58,17 @@ print("LAM tidy-data output:")
 print(output_LAM_pd);
 print("----------------------------")
 
-
+print("----------- RP ------------")
+steps = np.linspace(0,10*3.141592654,2000)
+rp_input_data = np.sin(steps)
+tau = 1
+emb = 2
+threshold = 0.2
+output_RP = rqa.RP(rp_input_data, tau, emb, threshold, distance_type=rqa.accrqaDistance("maximal"))
+print(output_RP)
+print("Generating figure...")
+plt.imshow(output_RP, cmap='hot', interpolation='nearest')
+file = "rp_output_fig.png"
+plt.savefig(file, dpi=600)
+print("----------------------------")
 

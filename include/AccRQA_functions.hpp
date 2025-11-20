@@ -68,7 +68,7 @@ inline void accrqa_version(){
  * @param nVmins Number of  minimal lengths.
  * @param threshold_values Real-valued array (float) of threshold values.
  * @param nThresholds Number of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param calc_ENTR Turns calculation of ENTR on (1) and off (0).
  * @param comp_platform Compute platform to use.
  * @param error Error status.
@@ -117,7 +117,7 @@ void accrqa_LAM(
  * @param nVmins Number of  minimal lengths.
  * @param threshold_values Real-valued array (double) of threshold values.
  * @param nThresholds Number of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param calc_ENTR Turns calculation of ENTR on (1) and off (0).
  * @param comp_platform Compute platform to use.
  * @param error Error status.
@@ -183,7 +183,7 @@ int accrqa_LAM_output_size_in_elements(
  * @param nLmins Number of  minimal lengths.
  * @param threshold_values Real-valued array (float) of threshold values.
  * @param nThresholds Number of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param calc_ENTR Turns calculation of ENTR on (1) and off (0).
  * @param comp_platform Compute platform to use.
  * @param error Error status.
@@ -232,7 +232,7 @@ void accrqa_DET(
  * @param nLmins Number of  minimal lengths.
  * @param threshold_values Real-valued array (double) of threshold values.
  * @param nThresholds Number of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param calc_ENTR Turns calculation of ENTR on (1) and off (0).
  * @param comp_platform Compute platform to use.
  * @param error Error status.
@@ -293,7 +293,7 @@ int accrqa_DET_output_size_in_elements(
  * @param nEmbs Number of embeddings.
  * @param threshold_values Real-valued array (float) of threshold values.
  * @param nThresholds Number of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param comp_platform Compute platform to use.
  * @param error Error status.
  */
@@ -335,7 +335,7 @@ void accrqa_RR(
  * @param nEmbs Number of embeddings.
  * @param threshold_values Real-valued array (double) of threshold values.
  * @param nThresholds Number of threshold values.
- * @param distance_type Distance formula used in calculation of distance to the line of identity.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
  * @param comp_platform Compute platform to use.
  * @param error Error status.
  */
@@ -359,6 +359,82 @@ void accrqa_RR(
 int accrqa_RR_output_size_in_elements(
 	int nTaus, int nEmbs, int nThresholds
 );
+
+//==========================================================
+//========================== RP ============================
+//==========================================================
+
+/**
+ * @brief Calculates recurrence plot from supplied time-series. (float)
+ *
+ * Array dimensions are as follows, from slowest to fastest varying:
+ * - @p output is 2D data containing recurrence plot in row-major format. Size of the RP output is N = data_size - (emb - 1)*tau, with shape:
+ *   - [ @p N, @p N].
+ *
+ * - @p input_data is 1D and real-valued, with shape:
+ *   - [ @p data_size ]
+ *
+ * @param output Recurrence plot in row-major format.
+ * @param input_data Real-valued array of input time-series samples.
+ * @param data_size Number of samples (float) of the time-series.
+ * @param tau Integer value of delay.
+ * @param emb Integer value of embedding.
+ * @param threshold Floating point value of threshold.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
+ * @param error Error status.
+ */
+void accrqa_RP(
+	char *output, 
+	float *input_data, size_t data_size, 
+	int tau,
+	int emb,
+	float threshold,
+	Accrqa_Distance distance_type,
+	Accrqa_Error *error
+);
+
+/**
+ * @brief Calculates recurrence plot from supplied time-series. (double)
+ *
+ * Array dimensions are as follows, from slowest to fastest varying:
+ * - @p output is 2D data containing recurrence plot in row-major format. Size of the RP output is @p N = data_size - (emb - 1)*tau, with shape:
+ *   - [ @p N, @p N].
+ *
+ * - @p input_data is 1D and real-valued, with shape:
+ *   - [ @p data_size ]
+ *
+ * @param output Recurrence plot in row-major format.
+ * @param input_data Real-valued array of input time-series samples.
+ * @param data_size Number of samples (double) of the time-series.
+ * @param tau Integer value of delay.
+ * @param emb Integer value of embedding.
+ * @param threshold Floating point value of threshold.
+ * @param distance_type Norm used in calculation of distance to the line of identity.
+ * @param error Error status.
+ */
+void accrqa_RP(
+	char *output, 
+	double *input_data, size_t data_size, 
+	int tau,
+	int emb,
+	double threshold,
+	Accrqa_Distance distance_type,
+	Accrqa_Error *error
+);
+
+/**
+ * @brief Calculates size of RR output array in number of elements.
+ *
+ * @param nSamples Number of input samples.
+ * @param tau Delay value.
+ * @param emb Embedding value.
+ */
+int64_t accrqa_RP_output_size_in_elements(
+	int64_t input_size, int64_t tau, int64_t emb
+);
+
+
+
 
 /** @} */ /* End group rqa_metrics. */
 #endif
