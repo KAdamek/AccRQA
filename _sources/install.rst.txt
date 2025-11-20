@@ -48,7 +48,7 @@ To compile binding to R, you have to specify R library location using
 
      cmake -DCMAKE_R_INC_DIR="/usr/share/R/include" -DCMAKE_R_LIB_DIR="/usr/lib/R/lib/libR.so"  ../
 
-To compile tests use ``-DBUILD_TESTS=ON`` which compiles test executable performing a series of tests of supported RQA metrics.
+To compile tests use ``-DBUILD_TESTS=ON`` which compiles test executable performing a series of tests of supported RQA measures.
 
 An example application that uses the AccRQA library can be compiled with a flag ``-DBUILD_APPLICATIONS=ON``.
 
