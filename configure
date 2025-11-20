@@ -616,8 +616,10 @@ ac_unique_file="src/"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 ACCRQA_CXXFLAGS
+ACCRQA_USE_CUDA
 NVCC_FLAGS
 CUDA_HOME
+NVCC
 R_LIB
 R_INCL
 R_HOME
@@ -667,6 +669,8 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_cuda
+with_gpu_arch
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1285,6 +1289,13 @@ if test -n "$ac_init_help"; then
    esac
   cat <<\_ACEOF
 
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-cuda             build with CUDA GPU support if available
+                          [default=yes]
+  --with-gpu-arch=XX      set CUDA GPU arch, e.g. 80 for sm_80
+
 Report bugs to the package provider.
 _ACEOF
 ac_status=$?
@@ -1728,6 +1739,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
 VERSION_FILE="version.txt"
 
 if test -f "$VERSION_FILE"; then
@@ -1735,8 +1747,17 @@ if test -f "$VERSION_FILE"; then
 else
 	as_fn_error $? "version.txt not found" "$LINENO" 5
 fi
+ACCRQA_VERSION_STRING=`echo "$ACCRQA_VERSION_STRING" | tr -d ':space:'`
 
-# Split version into parts
+case "$ACCRQA_VERSION_STRING" in
+	*!0-9A-Za-z.\-*)
+	as_fn_error $? "Invalid characters in version string: $ACCRQA_VERSION_STRING" "$LINENO" 5
+	;;
+esac
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Using AccRQA version: $ACCRQA_VERSION_STRING" >&5
+printf "%s\n" "Using AccRQA version: $ACCRQA_VERSION_STRING" >&6; }
+
 ACCRQA_VERSION_MAJOR=$(echo "$ACCRQA_VERSION_STRING" | cut -d. -f1)
 ACCRQA_VERSION_MINOR=$(echo "$ACCRQA_VERSION_STRING" | cut -d. -f2)
 ACCRQA_VERSION_PATCH=$(echo "$ACCRQA_VERSION_STRING" | cut -d. -f3)
@@ -1756,6 +1777,8 @@ printf "%s\n" "#define ACCRQA_VER_PATCH $ACCRQA_VERSION_PATCH" >>confdefs.h
 
 
 
+
+ACCRQA_CXXFLAGS=""
 
 
 # Use system R for reliable config output (avoids R_check_bin wrapper issues)
@@ -1778,66 +1801,322 @@ fi
 
 
 
-# Check for CUDA
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking environment variable CUDA_HOME" >&5
-printf %s "checking environment variable CUDA_HOME... " >&6; }
-if test -z "${CUDA_HOME}"; then
-    CUDA_HOME=`find /usr/local/ -maxdepth 1 -type d -name "cuda*" | sort -V | tail -1`
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CUDA_HOME not set; using highest version found ${CUDA_HOME}" >&5
-printf "%s\n" "CUDA_HOME not set; using highest version found ${CUDA_HOME}" >&6; }
-else
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: using CUDA_HOME=${CUDA_HOME}" >&5
-printf "%s\n" "using CUDA_HOME=${CUDA_HOME}" >&6; }
+
+
+# Check whether --with-cuda was given.
+if test ${with_cuda+y}
+then :
+  withval=$with_cuda; with_cuda=$withval
+else $as_nop
+  with_cuda=yes
 fi
 
 
-as_ac_File=`printf "%s\n" "ac_cv_file_${CUDA_HOME}/bin/nvcc" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ${CUDA_HOME}/bin/nvcc" >&5
-printf %s "checking for ${CUDA_HOME}/bin/nvcc... " >&6; }
-if eval test \${$as_ac_File+y}
+
+# Check whether --with-gpu-arch was given.
+if test ${with_gpu_arch+y}
+then :
+  withval=$with_gpu_arch; GPU_ARCH="$withval"
+else $as_nop
+  GPU_ARCH=""
+fi
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to use CUDA" >&5
+printf %s "checking whether to use CUDA... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $with_cuda" >&5
+printf "%s\n" "$with_cuda" >&6; }
+
+ACCRQA_USE_CUDA=no
+CUDA_HOME=${CUDA_HOME-""}
+NVCC_FLAGS=""
+
+if test "x$with_cuda" = "xno"; then
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CUDA explicitly disabled" >&5
+printf "%s\n" "CUDA explicitly disabled" >&6; }
+	NVCC=""
+	CUDA_HOME=""
+else
+		if test "x$with_cuda" != "xyes"; then
+		CUDA_HOME="$with_cuda"
+	fi
+
+		if test -n "$CUDA_HOME"; then
+		if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}nvcc", so it can be a program name with args.
+set dummy ${ac_tool_prefix}nvcc; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_NVCC+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "${CUDA_HOME}/bin/nvcc"; then
-  eval "$as_ac_File=yes"
+  case $NVCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_NVCC="$NVCC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$CUDA_HOME/bin:$PATH"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_NVCC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+NVCC=$ac_cv_path_NVCC
+if test -n "$NVCC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NVCC" >&5
+printf "%s\n" "$NVCC" >&6; }
 else
-  eval "$as_ac_File=no"
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 fi
+
+
 fi
-eval ac_res=\$$as_ac_File
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"
+if test -z "$ac_cv_path_NVCC"; then
+  ac_pt_NVCC=$NVCC
+  # Extract the first word of "nvcc", so it can be a program name with args.
+set dummy nvcc; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_ac_pt_NVCC+y}
 then :
-  HAS_NVCC="yes"
+  printf %s "(cached) " >&6
 else $as_nop
-  HAS_NVCC="no"
+  case $ac_pt_NVCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_NVCC="$ac_pt_NVCC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$CUDA_HOME/bin:$PATH"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_NVCC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
 fi
-
-
-if test "$HAS_NVCC" = "yes"; then
-    ACCRQA_CXXFLAGS="$ACCRQA_CXXFLAGS -DCUDA_FOUND"
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CUDA found and will be used" >&5
-printf "%s\n" "CUDA found and will be used" >&6; }
-    # Detect CUDA compute capability
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for nvcc compute capability" >&5
-printf %s "checking for nvcc compute capability... " >&6; }
-    NVCC_FLAGS="-arch=native"  # default fallback
-
-    if command -v nvidia-smi > /dev/null; then
-      GPU_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -n 1)
-      GPU_ARCH_NUM=$(echo "$GPU_ARCH" | tr -d ".")
-      NVCC_FLAGS="-arch=sm_${GPU_ARCH_NUM}"
-    fi
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NVCC_FLAGS" >&5
-printf "%s\n" "$NVCC_FLAGS" >&6; }
-
+ac_pt_NVCC=$ac_cv_path_ac_pt_NVCC
+if test -n "$ac_pt_NVCC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_pt_NVCC" >&5
+printf "%s\n" "$ac_pt_NVCC" >&6; }
 else
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CUDA not found. CUDA support will be disabled" >&5
-printf "%s\n" "CUDA not found. CUDA support will be disabled" >&6; }
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 fi
+
+  if test "x$ac_pt_NVCC" = x; then
+    NVCC="no"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    NVCC=$ac_pt_NVCC
+  fi
+else
+  NVCC="$ac_cv_path_NVCC"
+fi
+
+	else
+		if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}nvcc", so it can be a program name with args.
+set dummy ${ac_tool_prefix}nvcc; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_NVCC+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $NVCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_NVCC="$NVCC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_NVCC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+NVCC=$ac_cv_path_NVCC
+if test -n "$NVCC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NVCC" >&5
+printf "%s\n" "$NVCC" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_NVCC"; then
+  ac_pt_NVCC=$NVCC
+  # Extract the first word of "nvcc", so it can be a program name with args.
+set dummy nvcc; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_ac_pt_NVCC+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $ac_pt_NVCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_NVCC="$ac_pt_NVCC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_NVCC="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_NVCC=$ac_cv_path_ac_pt_NVCC
+if test -n "$ac_pt_NVCC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_pt_NVCC" >&5
+printf "%s\n" "$ac_pt_NVCC" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+  if test "x$ac_pt_NVCC" = x; then
+    NVCC="no"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    NVCC=$ac_pt_NVCC
+  fi
+else
+  NVCC="$ac_cv_path_NVCC"
+fi
+
+	fi
+
+	if test "x$NVCC" = "xno"; then
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: nvcc not found; building AccRQA without GPU support" >&5
+printf "%s\n" "$as_me: WARNING: nvcc not found; building AccRQA without GPU support" >&2;}
+		NVCC=""
+		CUDA_HOME=""
+		ACCRQA_USE_CUDA=no
+	else
+				if test -z "$CUDA_HOME"; then
+			for d in /usr/local/cuda /usr; do
+				if test -f "$d/include/cuda_runtime_api.h"; then
+					CUDA_HOME="$d"
+					break
+				fi
+			done
+		fi
+
+				if test -n "$CUDA_HOME" && test -f "$CUDA_HOME/include/cuda_runtime_api.h"; then
+			ACCRQA_USE_CUDA=yes
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: nvcc found: $NVCC" >&5
+printf "%s\n" "nvcc found: $NVCC" >&6; }
+			#AC_MSG_RESULT([CUDA home: $CUDA_HOME])
+
+						ACCRQA_CXXFLAGS="$ACCRQA_CXXFLAGS -DCUDA_FOUND"
+
+						if test -n "$GPU_ARCH"; then
+				GPU_ARCH_NUM=`echo "$GPU_ARCH" | tr -d "."`
+				NVCC_FLAGS="-arch=sm_${GPU_ARCH_NUM}"
+			else
+				NVCC_FLAGS=""
+				{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: no --with-gpu-arch given; nvcc will use default arch" >&5
+printf "%s\n" "$as_me: WARNING: no --with-gpu-arch given; nvcc will use default arch" >&2;}
+			fi
+		else
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: cuda_runtime_api.h not found; building AccRQA without GPU support" >&5
+printf "%s\n" "$as_me: WARNING: cuda_runtime_api.h not found; building AccRQA without GPU support" >&2;}
+			NVCC=""
+			CUDA_HOME=""
+			ACCRQA_USE_CUDA=no
+		fi
+	fi
+fi
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CUDA home: $CUDA_HOME" >&5
+printf "%s\n" "CUDA home: $CUDA_HOME" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Use CUDA: $ACCRQA_USE_CUDA" >&5
+printf "%s\n" "Use CUDA: $ACCRQA_USE_CUDA" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: NVCC flags: $NVCC_FLAGS" >&5
+printf "%s\n" "NVCC flags: $NVCC_FLAGS" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: CXX flags (extra): $ACCRQA_CXXFLAGS" >&5
+printf "%s\n" "CXX flags (extra): $ACCRQA_CXXFLAGS" >&6; }
+
+
+
+
 
 
 

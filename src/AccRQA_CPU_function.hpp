@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <cstdint>
 
 template<typename input_type>
 void rqa_process_length_histogram(

@@ -1,38 +1,53 @@
-CXX = g++
-NVCC = @CUDA_HOME@/bin/nvcc
+## src/Makevars.in – template, processed by configure
 
-CXXFLAGS2 := -O3 -Wall -std=c++17 -fPIC -fopenmp
-CXXFLAGS2 += -DACCRQA_VER_MAJOR=@ACCRQA_VERSION_MAJOR@ \
-            -DACCRQA_VER_MINOR=@ACCRQA_VERSION_MINOR@ \
-            -DACCRQA_VER_PATCH=@ACCRQA_VERSION_PATCH@
+CXX_STD = CXX17
 
-PKG_CPPFLAGS := -I@CUDA_HOME@/include "@R_INCL@" @ACCRQA_CXXFLAGS@
-PKG_LIBS := -L@CUDA_HOME@/lib64 -lcudart -lcuda -lcublas -lcurand @R_LIB@
-NVCC_FLAGS := @NVCC_FLAGS@
+NVCC            = @NVCC@
+ACCRQA_USE_CUDA = @ACCRQA_USE_CUDA@
+NVCC_FLAGS = @NVCC_FLAGS@
 
-CPP_FILES := $(wildcard *.cpp)
-CU_FILES := $(wildcard *.cu)
+## R flags detected in configure
+PKG_CPPFLAGS = @R_INCL@ @ACCRQA_CXXFLAGS@
+PKG_CXXFLAGS = -O3 -Wall -fopenmp -fPIC \
+  -DACCRQA_VER_MAJOR=@ACCRQA_VERSION_MAJOR@ \
+  -DACCRQA_VER_MINOR=@ACCRQA_VERSION_MINOR@ \
+  -DACCRQA_VER_PATCH=@ACCRQA_VERSION_PATCH@
 
-CPP_OBJECTS := $(CPP_FILES:.cpp=.o)
-CU_OBJECTS := $(CU_FILES:.cu=.o)
-OBJECTS = $(CPP_OBJECTS) $(CU_OBJECTS)
+PKG_LIBS = @R_LIB@
 
-# Debug info
-$(info C++ Files: $(CPP_FILES))
-$(info CUDA Files: $(CU_FILES))
-$(info R Includes: @R_INCL@)
-$(info C++ Flags: $(PKG_CPPFLAGS))
+## List CPU object files explicitly (so R knows exactly what to link)
+CPP_FILES   := $(wildcard *.cpp)
+CPU_OBJS = $(CPP_FILES:.cpp=.o)
+#CPU_OBJS = \
+#  AccRQA_CPU_function.o \
+#  AccRQA_functions.o \
+#  AccRQA_python_bindings.o \
+#  AccRQA_R_bindings.o \
+#  AccRQA_utilities_mem.o
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS2) $(PKG_CPPFLAGS) -c $< -o $@
+## Default: CPU-only
+OBJECTS = $(CPU_OBJS)
 
+## CUDA support
+ifeq ($(strip $(ACCRQA_USE_CUDA)),yes)
+  PKG_CPPFLAGS += -I@CUDA_HOME@/include -DCUDA_FOUND
+  PKG_LIBS     += -L@CUDA_HOME@/lib64 -lcudart -lcuda -lcublas -lcurand
+
+  CU_FILES := $(wildcard *.cu)
+  CU_OBJS := $(CU_FILES:.cu=.o) #AccRQA-GPU-HST.o AccRQA-GPU-RR.o
+  OBJECTS += $(CU_OBJS)
+endif
+
+## Debug info (just printed once when make starts)
+$(info --> ACCRQA_USE_CUDA = $(ACCRQA_USE_CUDA))
+$(info CPU_OBJS: $(CPU_OBJS))
+$(info CUDA_OBJS: $(CU_OBJS))
+$(info OBJECTS: $(OBJECTS))
+$(info PKG_CPPFLAGS: $(PKG_CPPFLAGS))
+$(info PKG_LIBS: $(PKG_LIBS))
+
+## Tell make how to build CUDA object files.
+## R's own rules handle .cpp -> .o and linking AccRQA.so.
 %.o: %.cu
-	$(NVCC) -O3 -std=c++17 $(NVCC_FLAGS) -c $< -o $@ -Xcompiler "-fPIC"
-
-AccRQA.so: $(OBJECTS)
-	$(CXX) -shared -o $@ $(OBJECTS) $(PKG_LIBS)
-
-clean:
-	rm -f *.o AccRQA.so
-
+	$(NVCC) -O3 $(NVCC_FLAGS) -c $< -o $@ -Xcompiler "-fPIC"
 

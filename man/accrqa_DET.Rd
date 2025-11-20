@@ -75,7 +75,7 @@ results <- accrqa_DET(
   threshold_values = threshold,
   norm = norm_method,
   calc_ENTR = calculate_entropy,
-  platform = comp_platform,
+  platform = comp_platform
 )
 
 }

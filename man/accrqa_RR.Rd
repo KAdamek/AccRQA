@@ -57,13 +57,13 @@ are integers.
 }
 \examples{
 # Example usage of accRQA_RR
-input <- c(1.0, 2.0, 3.0, 4.0)
+input <- runif(100)
 tau_values <- c(1, 2)
 emb_values <- c(2, 3)
 threshold_values <- c(0.1, 0.2)
 norm <- "euclidean"
-platform <- "cpu"
-result <- accRQA_RR(input, tau_values, emb_values, threshold_values, norm, platform)
+platform <- "cpu" # or nv_gpu if the CUDA enabled
+result <- accrqa_RR(input, tau_values, emb_values, threshold_values, norm, platform)
 print(result)
 
 }
