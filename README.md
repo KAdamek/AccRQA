@@ -260,11 +260,6 @@ Make sure that **Rtools** is installed to compile packages from source and appro
 r
      # Install dependencies
      install.packages(c("Rcpp", "dplyr", "tidyr"))
-
-     # Install AccRQA from a local source archive
-     install.packages("AccRQA_x.y.z.tar.gz",
-                 repos = NULL,
-                 type  = "source")
 ```
 
 To install the ``AccRQA`` just use this command in the console:
@@ -275,7 +270,7 @@ r
 install.packages("AccRQA_x.y.z.tar.gz", repos=NULL, type="source")
 ```
 
-where **AccRQA_x.y.z.tar.gz" correspond to the version you downloaded with the full path to the file.
+where **AccRQA_x.y.z.tar.gz** correspond to the version you downloaded with the full path to the file.
 
 
 How to Install the C library (Linux)
