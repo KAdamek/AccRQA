@@ -36,10 +36,9 @@ def RP(input_data: NDArray, tau: int, emb: int, threshold: float, distance_type:
         A numpy NDArray containing of RP values.
 
     Raises:
-        TypeError: If number of delays, embedding or thresholds is zero length.
+        TypeError: If delay or embedding is negative or zero.
         TypeError: If input_data is not numpy.ndarray.
-        TypeError: If wrong type of the distance to the line of identity is selected.
-        TypeError: If wrong computational platform is selected.
+        TypeError: If wrong type of the norm to the line of identity is selected.
         RuntimeError: If AccRQA library encounters a problem.
     """
     if tau <= 0 or emb <= 0:
