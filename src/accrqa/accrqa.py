@@ -204,8 +204,14 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
 
     Returns:
-        A numpy NDArray containing of RR values with dimensions [number of delays, 
-        number of embeddings, number of thresholds].
+        A numpy NDArray containing of diagonal line based RQA values with dimensions [number of delays, 
+        number of embeddings, number of thresholds, RQA_ID]:
+        RQA ID  RQA measure:
+        0       DET
+        1       L
+        2       Lmax
+        3       ENTR
+        4       RR
 
     Raises:
         TypeError: If number of delays, embedding, minimal lengths or thresholds is zero length.
@@ -338,8 +344,14 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
 
     Returns:
-        A numpy NDArray containing of RR values with dimensions [number of delays, 
-        number of embeddings, number of thresholds].
+        A numpy NDArray containing of vertical line based RQA values with dimensions [number of delays, 
+        number of embeddings, number of thresholds, RQA_ID]:
+        RQA ID  RQA measure:
+        0       LAM
+        1       TT
+        2       TTmax
+        3       ENTR
+        4       RR
 
     Raises:
         TypeError: If number of delays, embedding, minimal lengths or thresholds is zero length.
