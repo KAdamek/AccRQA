@@ -5,18 +5,18 @@
 \title{Calculate Determinism for Cross-Recurrence Quantification Analysis}
 \usage{
 accrqa_DET(
-  input,
+  input_data,
   tau_values,
   emb_values,
   lmin_values,
   threshold_values,
-  norm = "euclidean",
+  distance_type = "euclidean",
   calc_ENTR = TRUE,
-  platform
+  comp_platform
 )
 }
 \arguments{
-\item{input}{A numeric matrix or data frame representing the input data for CRQA analysis.}
+\item{input_data}{A numeric matrix or data frame representing the input data for CRQA analysis.}
 
 \item{tau_values}{A numeric vector specifying the time delay(s) to be used in the analysis.}
 
@@ -26,7 +26,7 @@ accrqa_DET(
 
 \item{threshold_values}{A numeric vector specifying the threshold values for recurrence computation.}
 
-\item{norm}{A character string specifying the normalization method to be used. Options may include
+\item{distance_type}{A character string specifying the normalization method to be used. Options may include
 \code{"euclidean"}, \code{"maximal"}, etc.}
 
 \item{calc_ENTR}{A logical value indicating whether to calculate entropy (ENTR) along with DET.}
@@ -68,14 +68,14 @@ calculate_entropy <- TRUE
 comp_platform <- "cpu"
 
 results <- accrqa_DET(
-  input = input_data,
+  input_data = input_data,
   tau_values = tau,
   emb_values = emb,
   lmin_values = lmin,
   threshold_values = threshold,
-  norm = norm_method,
+  distance_type = norm_method,
   calc_ENTR = calculate_entropy,
-  platform = comp_platform
+  comp_platform = comp_platform
 )
 
 }

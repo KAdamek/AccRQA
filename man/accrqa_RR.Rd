@@ -5,16 +5,16 @@
 \title{Calculate Recurrence Rate (RR) in Recurrence Quantification Analysis (RQA)}
 \usage{
 accrqa_RR(
-  input,
+  input_data,
   tau_values,
   emb_values,
   threshold_values,
-  norm = "euclidean",
-  platform
+  distance_type = "euclidean",
+  comp_platform
 )
 }
 \arguments{
-\item{input}{A numeric vector representing the input time series.}
+\item{input_data}{A numeric vector representing the input time series.}
 
 \item{tau_values}{A numeric vector of time delay (\eqn{\tau}) values.}
 
@@ -22,14 +22,14 @@ accrqa_RR(
 
 \item{threshold_values}{A numeric vector of threshold values for recurrence detection.}
 
-\item{norm}{A character string specifying the normalization method. Defaults to \code{"euclidean"}.
+\item{distance_type}{A character string specifying the normalization method. Defaults to \code{"euclidean"}.
 Possible values are:
 \itemize{
 \item \code{"euclidean"}: Euclidean distance.
 \item \code{"maximal"}: Maximum norm (Chebyshev distance).
 }}
 
-\item{platform}{A character string specifying the computational platform. Possible values are:
+\item{comp_platform}{A character string specifying the computational platform. Possible values are:
 \itemize{
 \item \code{"cpu"}: Use the CPU for computations.
 \item \code{"nv_gpu"}: Use an NVIDIA GPU for computations.
@@ -62,8 +62,8 @@ tau_values <- c(1, 2)
 emb_values <- c(2, 3)
 threshold_values <- c(0.1, 0.2)
 norm <- "euclidean"
-platform <- "cpu" # or nv_gpu if the CUDA enabled
-result <- accrqa_RR(input, tau_values, emb_values, threshold_values, norm, platform)
+platform <- "cpu"
+result <- accRQA_RR(input, tau_values, emb_values, threshold_values, norm, platform)
 print(result)
 
 }

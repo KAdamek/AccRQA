@@ -24,6 +24,80 @@ switch_platform <- function(platform){
   return(output)
 }
 
+#' Compute a Recurrence Plot (RP)
+#'
+#' Calculates recurrence plot from supplied time-series and return the RP plot.
+#'
+#' @param input_data Numeric vector; the (scalar) time series.
+#' @param tau Integer; embedding delay.
+#' @param emb Integer; embedding dimension.
+#' @param threshold Numeric; threshold (radius) in phase space.
+#' @param distance_type; distance metric. Must correspond to the
+#'   values supported by AccRQA (e.g. \code{"euclidean"}, \code{"maximum"}).
+#'
+#' @details
+#' The choice of \code{threshold} strongly controls the recurrence rate (RR).
+#' Smaller thresholds produce sparser plots (low RR), larger thresholds denser
+#' plots (high RR). Typical practice is to choose \code{threshold} such that
+#' RR is in a reasonable range (e.g. 1–5–10%) and then compute DET, LAM, ENTR
+#' on the resulting RP.
+#'
+#' The returned RP is an \eqn{N \times N} matrix, where \eqn{N} is the length
+#' of the (possibly embedded) time series. It can be visualised with
+#' \code{\link[graphics]{image}} or your own plotting routines.
+#'
+#' @return A logical matrix of size \eqn{N \times N}
+#'
+#' @examples
+#' ts <- sin(2 * pi * (1:100) / 20)
+#' rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.5, distance = "euclidean")
+#' image(rp, useRaster = TRUE, axes = FALSE, main = "Recurrence plot")
+#'
+#' @export
+accrqa_RP <- function(input_data, tau, emb, threshold, distance_type){
+	print("In fucntion accrqa_RP")
+	variables <- list(input_data = input_data, tau = tau, emb = emb, threshold = threshold)
+	empty_vars <- names(variables)[sapply(variables, function(x) length(x) == 0)]
+  
+	input_size <- length(input_data)
+	nThresholds <- length(threshold)
+	corrected_size <- input_size - (emb - 1)*tau
+	if (corrected_size <= 0) {
+		stop("corrected_size must be positive; check tau and emb.")
+	}
+
+	output_size <- corrected_size*corrected_size
+
+	if (length(empty_vars) > 0) {
+		stop(paste("Number of delays, embedding, minimal lengths or thresholds must be greater than zero or the input frame. The following are empy or null: ", paste(empty_vars, collapse = ", ")))
+	}
+  
+	if( any(variables$tau %% 1 != 0) == TRUE){
+		warning("The delay values should be integers only, converting.")
+	}
+  
+	if( any(variables$emb %% 1 != 0) == TRUE){
+		warning("The tau values should be integers only, converting.")
+	}
+
+	norm_method <- switch_norm(distance_type)
+  
+	if (norm_method == 0) {
+		stop("Normalization method to be used not recognized. Please use 'euclidean' or 'maximal'.")
+	}
+
+	rst <- .C("R_double_accrqa_RP",
+		output = integer(output_size),
+		input = as.double(input_data),
+		input_size = as.integer(input_size),
+		tau = as.integer(tau),
+		emb = as.integer(emb),
+		threshold = as.double(threshold),
+		distance_type = as.integer(norm_method)
+	)
+
+	return(rst)
+}
 
 #' Calculate Determinism for Cross-Recurrence Quantification Analysis
 #'
@@ -31,12 +105,12 @@ switch_platform <- function(platform){
 #' based on a set of input parameters, including time delay, embedding dimensions, minimum line length,
 #' threshold values, and normalization.
 #'
-#' @param input A numeric matrix or data frame representing the input data for CRQA analysis.
+#' @param input_data A numeric matrix or data frame representing the input data for CRQA analysis.
 #' @param tau_values A numeric vector specifying the time delay(s) to be used in the analysis.
 #' @param emb_values A numeric vector specifying the embedding dimensions to be tested.
 #' @param lmin_values A numeric vector specifying the minimum diagonal line lengths for DET computation.
 #' @param threshold_values A numeric vector specifying the threshold values for recurrence computation.
-#' @param norm A character string specifying the normalization method to be used. Options may include
+#' @param distance_type A character string specifying the normalization method to be used. Options may include
 #'   `"euclidean"`, `"maximal"`, etc.
 #' @param calc_ENTR A logical value indicating whether to calculate entropy (ENTR) along with DET.
 #' @param comp_platform A character string specifying the computing platform. Options may include
@@ -67,23 +141,23 @@ switch_platform <- function(platform){
 #' comp_platform <- "cpu"
 #'
 #' results <- accrqa_DET(
-#'   input = input_data,
+#'   input_data = input_data,
 #'   tau_values = tau,
 #'   emb_values = emb,
 #'   lmin_values = lmin,
 #'   threshold_values = threshold,
-#'   norm = norm_method,
+#'   distance_type = norm_method,
 #'   calc_ENTR = calculate_entropy,
-#'   platform = comp_platform,
+#'   comp_platform = comp_platform
 #' )
 #'
 #' @export
-accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_values, norm="euclidean", calc_ENTR=TRUE, platform)
+accrqa_DET <- function(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type="euclidean", calc_ENTR=TRUE, comp_platform)
 {
-  variables <- list(input = input, tau = tau_values, emb = emb_values, lmin = lmin_values, threshold = threshold_values)
+  variables <- list(input_data = input_data, tau = tau_values, emb = emb_values, lmin = lmin_values, threshold = threshold_values)
   empty_vars <- names(variables)[sapply(variables, function(x) length(x) == 0)]
   
-  input_size <- length(input)
+  input_size <- length(input_data)
   nTaus <- length(tau_values)
   nEmbs <- length(emb_values)
   nLmins <- length(lmin_values)
@@ -106,8 +180,8 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
     stop("Invalid value of calculate_ENTR. Should be TRUE or FALSE")
   }
   
-  norm_method <- switch_norm(norm)
-  comp_platform <- switch_platform(platform)
+  norm_method <- switch_norm(distance_type)
+  comp_platform <- switch_platform(comp_platform)
   
   if (norm_method == 0) {
     stop("Normalization method to be used not recognized. Please use 'euclidean' or 'maximal'.")
@@ -119,7 +193,7 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
   
   rst <- .C("R_double_accrqa_DET",
     output = double(length=output_size),
-    input = as.double(input),
+    input = as.double(input_data),
     input_size = as.integer(input_size),
     tau = as.integer(tau_values),
     tau_size = as.integer(nTaus),
@@ -131,7 +205,7 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
     thr_size = as.integer(nThresholds),
     norm = as.integer(norm_method),
     entr = as.integer(calc_ENTR),
-    platform = as.integer(comp_platform)
+    comp_platform = as.integer(comp_platform)
   )
   
   tidy_df <- expand.grid(
@@ -153,12 +227,12 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
 #'
 #' This function computes laminarity (LAM) based on the given input time series and RQA parameters.
 #'
-#' @param input A numeric vector representing the input time series data.
+#' @param input_data A numeric vector representing the input time series data.
 #' @param tau_values A numeric vector of time delay values.
 #' @param emb_values A numeric vector of embedding dimension values.
 #' @param vmin_values A numeric vector of minimum vertical line lengths.
 #' @param threshold_values A numeric vector of threshold values for recurrence detection.
-#' @param norm A character string specifying the distance norm to use. Possible values are:
+#' @param distance_type A character string specifying the distance norm to use. Possible values are:
 #'   \itemize{
 #'     \item `"euclidean"`: Euclidean distance.
 #'     \item `"maximal"`: Maximum norm (Chebyshev distance).
@@ -183,7 +257,7 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
 #'
 #' @examples
 #' # Example usage of accrqa_LAM
-#' input <- c(1.0, 2.0, 3.0, 4.0)
+#' input <- runif(100)
 #' tau_values <- c(1, 2)
 #' emb_values <- c(2, 3)
 #' vmin_values <- c(2, 3)
@@ -193,16 +267,16 @@ accrqa_DET <- function(input, tau_values, emb_values, lmin_values, threshold_val
 #' result <- accrqa_LAM(input, tau_values, emb_values, vmin_values, threshold_values, norm, calc_ENTR)
 #'
 #' @export
-accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_values, norm="euclidean", calc_ENTR=TRUE, platform)
+accrqa_LAM <- function(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type="euclidean", calc_ENTR=TRUE, comp_platform)
 {
-  variables <- list(input = input, tau = tau_values, emb = emb_values, vmin = vmin_values, threshold = threshold_values)
+  variables <- list(input_data = input_data, tau = tau_values, emb = emb_values, vmin = vmin_values, threshold = threshold_values)
   empty_vars <- names(variables)[sapply(variables, function(x) length(x) == 0)]
   
   if (length(empty_vars) > 0) {
     stop(paste("Number of delays, embedding, minimal vmin lengths or thresholds must be greater than zero or the input frame. The following are empy or null: ", paste(empty_vars, collapse = ", ")))
   }
   
-  input_size <- length(input)
+  input_size <- length(input_data)
   nTaus <- length(tau_values)
   nEmbs <- length(emb_values)
   nVmins <- length(vmin_values)
@@ -211,8 +285,8 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
   
   if(input_size < 1) stop("n must be a positive integer!")
   
-  norm_method <- switch_norm(norm)
-  comp_platform <- switch_platform(platform)
+  norm_method <- switch_norm(distance_type)
+  comp_platform <- switch_platform(comp_platform)
   
   if (norm_method == 0) {
     stop("Normalization method to be used not recognized. Please use 'euclidean' or 'maximal'.")
@@ -236,7 +310,7 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
   
   rst <- .C("R_double_accrqa_LAM",
     output = double(length=output_size),
-    input = as.double(input),
+    input = as.double(input_data),
     input_size = as.integer(input_size),
     tau = as.integer(tau_values),
     tau_size = as.integer(nTaus),
@@ -273,17 +347,17 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
 #' delays, embedding dimensions, and thresholds. The function allows the user to specify normalization
 #' and computational platform.
 #'
-#' @param input A numeric vector representing the input time series.
+#' @param input_data A numeric vector representing the input time series.
 #' @param tau_values A numeric vector of time delay (\eqn{\tau}) values.
 #' @param emb_values A numeric vector of embedding dimension (\eqn{m}) values.
 #' @param threshold_values A numeric vector of threshold values for recurrence detection.
-#' @param norm A character string specifying the normalization method. Defaults to `"euclidean"`. 
+#' @param distance_type A character string specifying the normalization method. Defaults to `"euclidean"`. 
 #'   Possible values are:
 #'   \itemize{
 #'     \item `"euclidean"`: Euclidean distance.
 #'     \item `"maximal"`: Maximum norm (Chebyshev distance).
 #'   }
-#' @param platform A character string specifying the computational platform. Possible values are:
+#' @param comp_platform A character string specifying the computational platform. Possible values are:
 #'   \itemize{
 #'     \item `"cpu"`: Use the CPU for computations.
 #'     \item `"nv_gpu"`: Use an NVIDIA GPU for computations.
@@ -305,7 +379,7 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
 #'
 #' @examples
 #' # Example usage of accRQA_RR
-#' input <- c(1.0, 2.0, 3.0, 4.0)
+#' input <- runif(100)
 #' tau_values <- c(1, 2)
 #' emb_values <- c(2, 3)
 #' threshold_values <- c(0.1, 0.2)
@@ -315,24 +389,24 @@ accrqa_LAM <- function(input, tau_values, emb_values, vmin_values, threshold_val
 #' print(result)
 #'
 #' @export
-accrqa_RR <- function(input, tau_values, emb_values, threshold_values, norm = "euclidean", platform)
+accrqa_RR <- function(input_data, tau_values, emb_values, threshold_values, distance_type = "euclidean", comp_platform)
 {
-  variables <- list(input = input, tau = tau_values, emb = emb_values, threshold = threshold_values)
+  variables <- list(input_data = input_data, tau = tau_values, emb = emb_values, threshold = threshold_values)
   empty_vars <- names(variables)[sapply(variables, function(x) length(x) == 0)]
   
   if (length(empty_vars) > 0) {
     stop(paste("Number of delays, embedding or thresholds must be greater than zero or the input frame. The following are empy or null: ", paste(empty_vars, collapse = ", ")))
   }
   
-  input_size <- length(input)
+  input_size <- length(input_data)
   nTaus <- length(tau_values)
   nEmbs <- length(emb_values)
   nThresholds <- length(threshold_values)
   output_size <- nTaus*nEmbs*nThresholds
   if(input_size < 1) stop("Length of the input time-series must be > 0!")
   
-  norm_method <- switch_norm(norm)
-  comp_platform <- switch_platform(platform)
+  norm_method <- switch_norm(distance_type)
+  comp_platform <- switch_platform(comp_platform)
   
   if (norm_method == 0) {
     stop("Normalization method to be used not recognized. Please use 'euclidean' or 'maximal'.")
@@ -352,7 +426,7 @@ accrqa_RR <- function(input, tau_values, emb_values, threshold_values, norm = "e
   
   rst <- .C("R_double_accrqa_RR",
       output = double(length=output_size),
-      input = as.double(input),
+      input = as.double(input_data),
       input_size = as.integer(input_size),
       tau = as.integer(tau_values),
       tau_size = as.integer(nTaus),
