@@ -1,7 +1,7 @@
 Type: Package
 Package: AccRQA
 Title: Accelerated Recurrence Quantitave Analysis
-Version: 0.9.6
+Version: 0.9.8
 Authors@R: c(
   person("Karel", "Adamek", email="karel.adamek@gmail.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-2797-0595")), 
   person("Jan", "Novotny", email="jan.novotny@physics.slu.cz", role = c("aut"), comment = c(ORCID = "0000-0002-9667-635X")))
