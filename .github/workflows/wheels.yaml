@@ -97,7 +97,7 @@ jobs:
           path: ./dist/*.whl
           config-file: "pyproject.toml"
 
-  build_macos_wheels:
+  build_macos15_wheels:
     name: Build python ${{ matrix.cibw_python }} ${{ matrix.cibw_arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -144,7 +144,7 @@ jobs:
           name: wheels-macos-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
           path: ./dist/*.whl
 
-  build_macos_wheels:
+  build_macos14_wheels:
     name: Build python ${{ matrix.cibw_python }} ${{ matrix.cibw_arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
