@@ -106,7 +106,7 @@ jobs:
         os: [macos-latest]
         #cibw_python: ["cp311-*", "cp312-*", "cp313-*"]
         cibw_python: ["cp312-*"]
-        cibw_arch: ["x86_64", "arm64"]
+        cibw_arch: ["arm64"]
 
     steps:
       - uses: actions/checkout@v4
@@ -126,19 +126,11 @@ jobs:
         run: |
           python -m pip install cibuildwheel
 
-      - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@d2e6a045a86077fb6cad6f5adf368e9076ddaa8d # v3.1.0
-        with:
-          python-version: "3.12"
-          channels: conda-forge
-          channel-priority: true
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-
       - name: Build wheels for CPython Mac OS
         run: |
           brew update
           brew install llvm libomp
+          export MACOSX_DEPLOYMENT_TARGET=15.0
           python -m cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}
