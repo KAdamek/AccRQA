@@ -103,7 +103,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
+        os: [macos-15]
         #cibw_python: ["cp311-*", "cp312-*", "cp313-*"]
         cibw_python: ["cp312-*"]
         cibw_arch: ["arm64"]
