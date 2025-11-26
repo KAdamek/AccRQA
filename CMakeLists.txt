@@ -57,7 +57,47 @@ if (CUDAToolkit_FOUND)
     add_compile_definitions(CUDA_FOUND)
 endif()
 
-find_package(OpenMP QUIET)
+# ----- OpenMP Cross-Platform Handling (macOS + Linux) -----
+if(APPLE)
+    message(STATUS "Configuring OpenMP for macOS…")
+
+    # ----------- MacPorts detection -----------
+    if(EXISTS "/opt/local/lib/libomp/libomp.dylib")
+        message(STATUS "Found MacPorts OpenMP (libomp)")
+
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/local/include -I/opt/local/include/libomp")
+        set(OpenMP_CXX_LIB_NAMES "omp")
+        set(OpenMP_omp_LIBRARY "/opt/local/lib/libomp/libomp.dylib")
+
+    # ----------- Homebrew (Intel & ARM) detection -----------    
+    elseif(EXISTS "/opt/homebrew/opt/libomp/lib/libomp.dylib")
+        message(STATUS "Found Homebrew OpenMP (Apple Silicon)")
+
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
+        set(OpenMP_CXX_LIB_NAMES "omp")
+        set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
+
+    elseif(EXISTS "/usr/local/opt/libomp/lib/libomp.dylib")
+        message(STATUS "Found Homebrew OpenMP (Intel Mac)")
+
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
+        set(OpenMP_CXX_LIB_NAMES "omp")
+        set(OpenMP_omp_LIBRARY "/usr/local/opt/libomp/lib/libomp.dylib")
+
+    else()
+        message(FATAL_ERROR "OpenMP not found! Please install libomp (MacPorts or Homebrew).")
+    endif()
+
+    # Apply flags (compiler + linker)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L${OpenMP_omp_LIBRARY}/../ -lomp")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${OpenMP_omp_LIBRARY}/../ -lomp")
+
+else()
+    # ----- Linux: standard OpenMP -----
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 # Set install directory paths.
 if (PYTHON_EXECUTABLE)
@@ -120,7 +160,26 @@ else()
     message("-- INFO: R library not found. Not compiling R bindings.")
 endif()
 
-target_link_libraries(${CMAKE_PROJECT_NAME} OpenMP::OpenMP_CXX)
+# --- OpenMP handling: use MacPorts libomp on macOS, otherwise use OpenMP::OpenMP_CXX ---
+if(APPLE)
+    message(STATUS "Using MacPorts libomp for OpenMP on macOS")
+
+    # Compiler flags for AppleClang
+    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/local/include -I/opt/local/include/libomp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+    # Linker flags pointing to MacPorts lib
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/opt/local/lib/libomp -lomp")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L/opt/local/lib/libomp -lomp")
+
+    # Also try to provide the variables that some CMake scripts check
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY "/opt/local/lib/libomp/libomp.dylib")
+else()
+    # normal systems: rely on find_package(OpenMP)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 # Since we are doing brute force using CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS it is
 # not needed
