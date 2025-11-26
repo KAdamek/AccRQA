@@ -141,7 +141,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
+          name: wheels-macos-${{ matrix.cibw_arch }}-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
 
   build_macos14_wheels:
@@ -188,7 +188,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
+          name: wheels-macos-${{ matrix.cibw_arch }}-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
 
   build_macos13_wheels:
@@ -256,5 +256,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
+          name: wheels-macos-${{ matrix.cibw_arch }}-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
