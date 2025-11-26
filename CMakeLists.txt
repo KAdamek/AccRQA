@@ -96,7 +96,6 @@ if(APPLE)
 else()
     # ----- Linux: standard OpenMP -----
     find_package(OpenMP REQUIRED)
-    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 # Set install directory paths.
@@ -177,8 +176,7 @@ if(APPLE)
     set(OpenMP_omp_LIBRARY "/opt/local/lib/libomp/libomp.dylib")
 else()
     # normal systems: rely on find_package(OpenMP)
-    find_package(OpenMP REQUIRED)
-    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+    target_link_libraries(${CMAKE_PROJECT_NAME} OpenMP::OpenMP_CXX)
 endif()
 
 # Since we are doing brute force using CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS it is
