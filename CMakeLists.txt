@@ -59,6 +59,7 @@ endif()
 
 # ----- OpenMP Cross-Platform Handling (macOS + Linux) -----
 if(APPLE)
+    message(STATUS "${CMAKE_HOST_SYSTEM_NAME} and ${CMAKE_HOST_SYSTEM_VERSION}")
     message(STATUS "Configuring OpenMP for macOS...")
     if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_HOST_SYSTEM_VERSION VERSION_LESS_EQUAL 22)
         message(STATUS "macOS version 13 and lower")
@@ -163,7 +164,6 @@ endif()
 
 # --- OpenMP handling: use MacPorts libomp on macOS, otherwise use OpenMP::OpenMP_CXX ---
 if(APPLE)
-    message(STATUS "${CMAKE_HOST_SYSTEM_NAME} and ${CMAKE_HOST_SYSTEM_VERSION}")
     if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_HOST_SYSTEM_VERSION VERSION_LESS_EQUAL 22)
         message(STATUS "macOS version 13 and lower")
     else()
