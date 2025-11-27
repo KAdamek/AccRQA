@@ -652,8 +652,14 @@ number of embeddings, number of thresholds].</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A numpy NDArray containing of RR values with dimensions [number of delays,
-number of embeddings, number of thresholds].</p>
+<dd class="field-even"><p>A numpy NDArray containing of vertical line based RQA values with dimensions [number of delays,
+number of embeddings, number of thresholds, RQA_ID]:
+RQA ID  RQA measure:
+0       LAM
+1       TT
+2       TTmax
+3       ENTR
+4       RR</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -687,8 +693,14 @@ number of embeddings, number of thresholds].</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A numpy NDArray containing of RR values with dimensions [number of delays,
-number of embeddings, number of thresholds].</p>
+<dd class="field-even"><p>A numpy NDArray containing of diagonal line based RQA values with dimensions [number of delays,
+number of embeddings, number of thresholds, RQA_ID]:
+RQA ID  RQA measure:
+0       DET
+1       L
+2       Lmax
+3       ENTR
+4       RR</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
