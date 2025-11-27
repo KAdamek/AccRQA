@@ -2,6 +2,7 @@
 
 import sys
 import ctypes
+import warnings
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from typing import Optional
@@ -45,6 +46,8 @@ def RP(input_data: NDArray, tau: int, emb: int, threshold: float, distance_type:
         raise TypeError("Delay and embedding must be greater than zero.")
     
     input_size = input_data.shape[0]
+    if input_size > 65536:
+        print("WARNING: Requested recurrence plot will be large. Large amounts of system memory is needed and system may crash.")
     corrected_size = input_size - (emb - 1)*tau;
     if type(input_data) == np.ndarray:
         rp_output = np.zeros((corrected_size, corrected_size), dtype=np.int8);

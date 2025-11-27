@@ -994,9 +994,6 @@ void accrqa_RP(
 	Accrqa_Error *error
 ){
 	if(*error!=SUCCESS) return;
-	if(data_size > 65536){
-		*error = ERR_INVALID_ARGUMENT;
-	}
 	int64_t corrected_size = accrqa_RP_output_size_in_elements(data_size, tau, emb);
 	rqa_CPU_R_matrix_ref(
 		output, 
@@ -1019,9 +1016,6 @@ void accrqa_RP(
 	Accrqa_Error *error
 ){
 	if(*error!=SUCCESS) return;
-	if(data_size > 65536){
-		*error = ERR_INVALID_ARGUMENT;
-	}
 	int64_t corrected_size = accrqa_RP_output_size_in_elements(data_size, tau, emb);
 	rqa_CPU_R_matrix_ref(
 		output, 
