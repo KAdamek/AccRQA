@@ -11,7 +11,7 @@ accrqa_DET(
   lmin_values,
   threshold_values,
   distance_type = "euclidean",
-  calc_ENTR = TRUE,
+  calculate_ENTR = TRUE,
   comp_platform
 )
 }
@@ -29,7 +29,7 @@ accrqa_DET(
 \item{distance_type}{A character string specifying the normalization method to be used. Options may include
 \code{"euclidean"}, \code{"maximal"}, etc.}
 
-\item{calc_ENTR}{A logical value indicating whether to calculate entropy (ENTR) along with DET.}
+\item{calculate_ENTR}{A logical value indicating whether to calculate entropy (ENTR) along with DET.}
 
 \item{comp_platform}{A character string specifying the computing platform. Options may include
 \code{"cpu"}, \code{"nv_gpu"}, etc.}
@@ -41,7 +41,7 @@ A data frame containing:
 \item \code{Embedding}: Specific embedding dimension from the values set in the parameters.
 \item \code{Lmin}: Minimal diagonal line lengths set for DET computation.
 \item \code{DET}: The determinism values computed for the given input parameters.
-\item \code{ENTR} (if \code{calc_ENTR = TRUE}): The entropy values corresponding to the DET computations.
+\item \code{ENTR} (if \code{calculate_ENTR = TRUE}): The entropy values corresponding to the DET computations.
 \item \code{RR}: RR values.
 }
 }
@@ -53,7 +53,7 @@ threshold values, and normalization.
 \details{
 The function performs cross-recurrence quantification analysis (CRQA) using the specified parameters.
 DET measures the proportion of recurrent points forming diagonal lines in the recurrence plot,
-which indicates deterministic structures in the data. If \code{calc_ENTR} is \code{TRUE}, the entropy of diagonal
+which indicates deterministic structures in the data. If \code{calculate_ENTR} is \code{TRUE}, the entropy of diagonal
 line lengths is also computed.
 }
 \examples{
@@ -74,8 +74,9 @@ results <- accrqa_DET(
   lmin_values = lmin,
   threshold_values = threshold,
   distance_type = norm_method,
-  calc_ENTR = calculate_entropy,
+  calculate_ENTR = calculate_entropy,
   comp_platform = comp_platform
 )
 
+results
 }

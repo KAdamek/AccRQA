@@ -201,7 +201,7 @@ extern "C" {
 		int    *int_distance_type
 	){
 		size_t local_input_size = (size_t) input_size[0];
-		int local_threshold = threshold[0];
+		double local_threshold = threshold[0];
 		int local_tau = tau[0];
 		int local_emb = emb[0];
 		int local_int_distance_type = int_distance_type[0];

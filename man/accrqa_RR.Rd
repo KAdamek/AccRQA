@@ -56,14 +56,14 @@ It performs validations on input lengths and ensures that parameters like delays
 are integers.
 }
 \examples{
-# Example usage of accRQA_RR
+# Example usage of accrqa_RR
 input <- runif(100)
 tau_values <- c(1, 2)
 emb_values <- c(2, 3)
 threshold_values <- c(0.1, 0.2)
 norm <- "euclidean"
 platform <- "cpu"
-result <- accRQA_RR(input, tau_values, emb_values, threshold_values, norm, platform)
+result <- accrqa_RR(input, tau_values, emb_values, threshold_values, norm, platform)
 print(result)
 
 }

@@ -6,8 +6,8 @@ test_that("RR computation: function throws an error when input is NULL",{
                           tau_values, 
                           emb_values,
                           threshold,
-                          norm = "maximal",
-                          platform = "cpu"
+                          distance_type = "maximal",
+                          comp_platform = "cpu"
   ),
   regexp = ":  input"
   )
@@ -22,8 +22,8 @@ test_that("RR computation: function throws an error when use of not defined norm
                          tau_values, 
                          emb_values,
                          threshold,
-                         norm = "maxima",
-                         platform = "cpu"
+                         distance_type = "maxima",
+                         comp_platform = "cpu"
   ),
   regexp = "Normalization method"
   )
@@ -38,8 +38,8 @@ test_that("RR computation: function throws an error when platform not recognized
                          tau_values, 
                          emb_values,
                          threshold,
-                         norm = "maximal",
-                         platform = "cp"
+                         distance_type = "maximal",
+                         comp_platform = "cp"
   ),
   regexp = "Platform to compute not recognized"
   )
@@ -55,8 +55,8 @@ test_that("RR computation: function throws an error when tau is NULL or negative
                           tau_values, 
                           emb_values,
                           threshold,
-                          norm = "maximal",
-                          platform = "cpu"
+                          distance_type = "maximal",
+                          comp_platform = "cpu"
   ),
   regexp = ":  tau"
   )
@@ -65,8 +65,8 @@ test_that("RR computation: function throws an error when tau is NULL or negative
                           tau_values, 
                           emb_values,
                           threshold,
-                          norm = "maximal",
-                          platform = "cpu"
+                          distance_type = "maximal",
+                          comp_platform = "cpu"
   ),
   regexp = ":  tau"
   )
@@ -82,8 +82,8 @@ test_that("RR computation is correct for constant input",{
                        tau_values, 
                        emb_values,
                        threshold,
-                       norm = "maximal",
-                       platform = "cpu"
+                       distance_type = "maximal",
+                       comp_platform = "cpu"
   )
   
   expect_type(result, "list") # Fails if the function does not return a data.frame

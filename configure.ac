@@ -54,9 +54,9 @@ dnl ------------------------------------------------------------
 SYS_R=`which R`
 
 if test -x "$SYS_R"; then
-  R_HOME=`R RHOME`
-  R_INCL=`R CMD config --cppflags`
-  R_LIB=`R CMD config --ldflags`
+#  R_HOME=`R RHOME`
+  R_INCL="" #`R CMD config --cppflags`
+  R_LIB="" #`R CMD config --ldflags`
   AC_MSG_NOTICE([System R found: $SYS_R])
   AC_MSG_NOTICE([R_INCL flags: $R_INCL])
   ACCRQA_CXXFLAGS="-DACCRQA_R_FOUND"
@@ -64,7 +64,7 @@ else
   AC_MSG_ERROR([System R not found.])
 fi
 
-AC_SUBST(R_HOME)
+#AC_SUBST(R_HOME)
 AC_SUBST(R_INCL)
 AC_SUBST(R_LIB)
 

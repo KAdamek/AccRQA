@@ -4,22 +4,38 @@
 \alias{accrqa_RP}
 \title{Compute a Recurrence Plot (RP)}
 \usage{
-accrqa_RP(input_data, tau, emb, threshold, distance_type)
+accrqa_RP(
+  input_data,
+  tau,
+  emb,
+  threshold,
+  distance_type = c("euclidean", "maximal")
+)
 }
 \arguments{
-\item{input_data}{Numeric vector; the (scalar) time series.}
+\item{input_data}{Numeric vector with the time series.}
 
-\item{tau}{Integer; embedding delay.}
+\item{tau}{Delay (integer, scalar).}
 
-\item{emb}{Integer; embedding dimension.}
+\item{emb}{Embedding dimension (integer, scalar).}
 
-\item{threshold}{Numeric; threshold (radius) in phase space.}
+\item{threshold}{Threshold for recurrence (numeric, scalar).}
 
-\item{distance_type;}{distance metric. Must correspond to the
-values supported by AccRQA (e.g. \code{"euclidean"}, \code{"maximum"}).}
+\item{distance_type}{Character string specifying distance:
+one of "euclidean" or "maximal".}
 }
 \value{
-A logical matrix of size \eqn{N \times N}
+An object of class "accrqa_rp" (and "accrqa") containing:
+\itemize{
+\item output       Integer vector of length \code{rp_size^2} with RP (0/1).
+\item input        Original input data (numeric vector).
+\item input_size   Length of the input series.
+\item tau          Delay (integer).
+\item emb          Embedding dimension (integer).
+\item threshold    Threshold used.
+\item distance_type Distance type as character.
+\item rp_size      Effective RP side length after embedding.
+}
 }
 \description{
 Calculates recurrence plot from supplied time-series and return the RP plot.
@@ -28,16 +44,16 @@ Calculates recurrence plot from supplied time-series and return the RP plot.
 The choice of \code{threshold} strongly controls the recurrence rate (RR).
 Smaller thresholds produce sparser plots (low RR), larger thresholds denser
 plots (high RR). Typical practice is to choose \code{threshold} such that
-RR is in a reasonable range (e.g. 1–5–10\%) and then compute DET, LAM, ENTR
+RR is in a reasonable range (e.g. 1-5-10\%) and then compute DET, LAM, ENTR
 on the resulting RP.
 
 The returned RP is an \eqn{N \times N} matrix, where \eqn{N} is the length
 of the (possibly embedded) time series. It can be visualised with
-\code{\link[graphics]{image}} or your own plotting routines.
+\code{\link[graphics]{plot}()} or your own plotting routines.
 }
 \examples{
 ts <- sin(2 * pi * (1:100) / 20)
-rp <- accrqa.RP(ts, tau = 1, emb = 2, threshold = 0.5, distance = "euclidean")
-image(rp, useRaster = TRUE, axes = FALSE, main = "Recurrence plot")
+rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.5, distance_type = "euclidean")
+plot(rp)
 
 }

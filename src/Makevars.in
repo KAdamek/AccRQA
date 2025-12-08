@@ -7,13 +7,13 @@ ACCRQA_USE_CUDA = @ACCRQA_USE_CUDA@
 NVCC_FLAGS = @NVCC_FLAGS@
 
 ## R flags detected in configure
-PKG_CPPFLAGS = @R_INCL@ @ACCRQA_CXXFLAGS@
-PKG_CXXFLAGS = -O3 -Wall -fopenmp -fPIC \
+#PKG_CXXFLAGS = @R_INCL@ @ACCRQA_CXXFLAGS@
+PKG_CXXFLAGS = -O3 -Wall -fopenmp -fPIC -DACCRQA_R_FOUND \
   -DACCRQA_VER_MAJOR=@ACCRQA_VERSION_MAJOR@ \
   -DACCRQA_VER_MINOR=@ACCRQA_VERSION_MINOR@ \
   -DACCRQA_VER_PATCH=@ACCRQA_VERSION_PATCH@
 
-PKG_LIBS = @R_LIB@
+#PKG_LIBS = @R_LIB@
 
 ## List CPU object files explicitly (so R knows exactly what to link)
 CPP_FILES   := $(wildcard *.cpp)
@@ -30,7 +30,7 @@ OBJECTS = $(CPU_OBJS)
 
 ## CUDA support
 ifeq ($(strip $(ACCRQA_USE_CUDA)),yes)
-  PKG_CPPFLAGS += -I@CUDA_HOME@/include -DCUDA_FOUND
+  PKG_CXXFLAGS += -I@CUDA_HOME@/include -DCUDA_FOUND
   PKG_LIBS     += -L@CUDA_HOME@/lib64 -lcudart -lcuda -lcublas -lcurand
 
   CU_FILES := $(wildcard *.cu)
@@ -43,7 +43,7 @@ $(info --> ACCRQA_USE_CUDA = $(ACCRQA_USE_CUDA))
 $(info CPU_OBJS: $(CPU_OBJS))
 $(info CUDA_OBJS: $(CU_OBJS))
 $(info OBJECTS: $(OBJECTS))
-$(info PKG_CPPFLAGS: $(PKG_CPPFLAGS))
+$(info PKG_CXXFLAGS: $(PKG_CXXFLAGS))
 $(info PKG_LIBS: $(PKG_LIBS))
 
 ## Tell make how to build CUDA object files.
