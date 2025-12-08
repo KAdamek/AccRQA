@@ -12,8 +12,6 @@ try:
     import pandas as pd
 except ImportError:
     pd = None
-    
-#TODO: improve support for tidy data, preferably directly from C
 
 from . import accrqaError
 from . import accrqaLib
@@ -44,16 +42,14 @@ def RP(input_data: NDArray, tau: int, emb: int, threshold: float, distance_type:
     """
     if tau <= 0 or emb <= 0:
         raise TypeError("Delay and embedding must be greater than zero.")
-    
-    input_size = input_data.shape[0]
-    if input_size > 65536:
-        print("WARNING: Requested recurrence plot will be large. Large amounts of system memory is needed and system may crash.")
-    corrected_size = input_size - (emb - 1)*tau;
     if type(input_data) == np.ndarray:
+        input_size = input_data.shape[0]
+        corrected_size = input_size - (emb - 1)*tau;
+        if input_size > 65536:
+            print("WARNING: Requested recurrence plot will be large. Large amounts of system memory is needed and system may crash.")
         rp_output = np.zeros((corrected_size, corrected_size), dtype=np.int8);
     else:
         raise TypeError("Unknown array type of the input_data")
-    
     # Checking distance validity
     if not type(distance_type) is accrqaDistance:
         raise TypeError("Distance must be an instance of accrqaDistance")
@@ -111,7 +107,7 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         TypeError: If wrong computational platform is selected.
         RuntimeError: If AccRQA library encounters a problem.
     """
-    pandas_detected = 'datetime' in sys.modules
+    pandas_detected = 'pandas' in sys.modules
     if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -224,7 +220,7 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         RuntimeError: If AccRQA library encounters a problem.
     """
     
-    pandas_detected = 'datetime' in sys.modules
+    pandas_detected = 'pandas' in sys.modules
     if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -364,7 +360,7 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         RuntimeError: If AccRQA library encounters a problem.
     """
     
-    pandas_detected = 'datetime' in sys.modules
+    pandas_detected = 'pandas' in sys.modules
     if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
     
@@ -469,3 +465,133 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
+
+
+def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distance_type: accrqaDistance, epsilon: Optional[float]=0.01, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), max_iter: Optional[int] = 20, threshold_min: Optional[float] = 0, threshold_max: Optional[float] = 10) -> Union[float, float]:
+    """
+    Finds the recurrence rate threshold associated with a target recurrence rate (RR) value
+    using a bisection search algorithm within specified precision.
+    
+    This function performs a binary search between threshold_min and threshold_max to find
+    the threshold value that yields a recurrence rate closest to the target_RR within the
+    specified epsilon tolerance or maximum number of iterations.
+    
+    Parameters:
+    -----------
+    input_data : NDArray
+        Input time series data as a numpy array
+    tau : int
+        Time delay parameter for phase space reconstruction (must be > 0)
+    emb : int
+        Embedding dimension for phase space reconstruction (must be > 0)
+    target_RR : float
+        Target recurrence rate value between 0 and 1
+    distance_type : accrqaDistance
+        Distance metric instance for recurrence plot calculations
+    epsilon : float, optional
+        Precision tolerance for convergence (default: 0.01, must be > 0)
+    comp_platform : accrqaCompPlatform, optional
+        Computational platform instance (default: NVIDIA GPU)
+    max_iter : int, optional
+        Maximum number of bisection iterations (default: 20, must be > 0)
+    threshold_min : float, optional
+        Lower bound for threshold search range (default: 0)
+    threshold_max : float, optional
+        Upper bound for threshold search range (default: 10)
+    
+    Returns:
+    --------
+    float
+        The threshold value that produces a recurrence rate closest to target_RR
+        within the specified epsilon tolerance
+    float
+        The RR for given threshold.
+        
+    Raises:
+    -------
+    TypeError
+        - If distance_type is not an accrqaDistance instance
+        - If comp_platform is not an accrqaCompPlatform instance  
+        - If input_data is not a numpy array
+        - If tau or emb are <= 0
+        - If target_RR is not between 0 and 1
+        - If epsilon <= 0
+        - If max_iter <= 0
+        - If threshold_min >= threshold_max
+        - If threshold_min yields RR > target_RR
+        - If threshold_max yields RR < target_RR
+        - If threshold_min and threshold_max yield identical RR values
+    """
+    # Checking distance validity
+    if not type(distance_type) is accrqaDistance:
+        raise TypeError("distance must be an instance of accrqaDistance")
+    int_distance_type = 0
+    int_distance_type = distance_type.get_distance_id()
+    
+    # Checking computational platform validity
+    if not type(comp_platform) is accrqaCompPlatform:
+        raise TypeError("Computational platform must be an instance of accrqaCompPlatform")
+    int_comp_platform = 0
+    int_comp_platform = comp_platform.get_platform_id()
+    
+    if type(input_data) != np.ndarray:
+        raise TypeError("Unknown array type")
+    
+    if tau <= 0 or emb <= 0:
+        raise TypeError("Delay and embedding must be greater than zero.")
+    if target_RR<0.0 or target_RR>1.0:
+        raise TypeError("target_RR must be between 0 and 1.")
+    if epsilon<=0.0:
+        raise TypeError("epsilon must be positive and non-zero.")
+    if max_iter<=0:
+        raise TypeError("max_iter must be positive.")
+    if threshold_min >= threshold_max:
+        raise TypeError("threshold_min must be smaller then threshold_max.")
+    
+    # Preparations
+    threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
+    emb_values = np.array([emb], dtype=np.intc)
+    tau_values = np.array([tau], dtype=np.intc)
+    threshold_values = np.array([threshold_min, threshold_mid, threshold_max], dtype=np.float32)
+    
+    RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
+    RR_values = RR_values.flatten()
+    low_RR = RR_values[0]
+    mid_RR = RR_values[1]
+    hgh_RR = RR_values[2]
+    
+    if low_RR > target_RR:
+        TypeError("threshold_min is too high, decrease it to get to desired target_RR")
+    if hgh_RR < target_RR:
+        TypeError("threshold_max is too low, increase it to get to desired target_RR")
+    if low_RR == hgh_RR:
+        TypeError("threshold_min and threshold_max yields the same RR value. Increase range between those two threshold values.")
+    
+    max_iter
+    iteration = 0
+    for iteration in range(1, max_iter + 1):
+        threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
+        threshold_values = np.array([threshold_mid], dtype=np.float32)
+        RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
+        RR_values = RR_values.flatten()
+        current_RR = RR_values[0]
+        
+        # Check if we've found the solution within epsilon precision
+        if abs(current_RR - target_RR) < epsilon:
+            return threshold_mid, current_RR
+            
+        # Check if interval is smaller than epsilon
+        if (hgh_RR - low_RR) < epsilon:
+            return threshold_mid, current_RR
+            
+        # Update the search interval
+        if current_RR < target_RR:
+            threshold_min = threshold_mid
+        else:
+            threshold_max = threshold_mid
+    print(f"Warning: Bisection search stopped after {max_iter} iterations")
+    threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
+    return threshold_mid, current_RR
+
+
+
