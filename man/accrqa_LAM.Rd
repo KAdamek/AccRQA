@@ -5,18 +5,18 @@
 \title{Calculate Laminarity in Recurrence Quantification Analysis (RQA)}
 \usage{
 accrqa_LAM(
-  input,
+  input_data,
   tau_values,
   emb_values,
   vmin_values,
   threshold_values,
-  norm = "euclidean",
-  calc_ENTR = TRUE,
-  platform
+  distance_type = "euclidean",
+  calculate_ENTR = TRUE,
+  comp_platform
 )
 }
 \arguments{
-\item{input}{A numeric vector representing the input time series data.}
+\item{input_data}{A numeric vector representing the input time series data.}
 
 \item{tau_values}{A numeric vector of time delay values.}
 
@@ -26,14 +26,14 @@ accrqa_LAM(
 
 \item{threshold_values}{A numeric vector of threshold values for recurrence detection.}
 
-\item{norm}{A character string specifying the distance norm to use. Possible values are:
+\item{distance_type}{A character string specifying the distance norm to use. Possible values are:
 \itemize{
 \item \code{"euclidean"}: Euclidean distance.
 \item \code{"maximal"}: Maximum norm (Chebyshev distance).
 \item \code{"none"}: No normalization.
 }}
 
-\item{calc_ENTR}{A logical value indicating whether to calculate entropy (\code{TRUE} or \code{FALSE}).}
+\item{calculate_ENTR}{A logical value indicating whether to calculate entropy (\code{TRUE} or \code{FALSE}).}
 
 \item{comp_platform}{A character string specifying the computing platform. Options may include
 \code{"cpu"}, \code{"nv_gpu"}, etc.}
@@ -44,7 +44,7 @@ A data frame with the following columns:
 \item \code{LAM}: Laminarity percentage.
 \item \code{V}: Mean vertical line length.
 \item \code{Vmax}: Maximum vertical line length.
-\item \code{ENTR}: Entropy of the vertical line length distribution (if \code{calc_ENTR = TRUE}).
+\item \code{ENTR}: Entropy of the vertical line length distribution (if \code{calculate_ENTR = TRUE}).
 }
 }
 \description{
@@ -63,8 +63,18 @@ emb_values <- c(2, 3)
 vmin_values <- c(2, 3)
 threshold_values <- c(0.1, 0.2)
 norm <- "euclidean"
-calc_ENTR <- TRUE
-comp_platform <- "cpu" # or set to nv_gpu
-result <- accrqa_LAM(input, tau_values, emb_values, vmin_values, threshold_values, norm, calc_ENTR, comp_platform)
+calculate_ENTR <- TRUE
+comp_platform <- "cpu"
+result <- accrqa_LAM(
+  input            = input,
+  tau_values       = tau_values,
+  emb_values       = emb_values,
+  vmin_values      = vmin_values,
+  threshold_values = threshold_values,
+  distance_type    = norm,
+  calculate_ENTR   = calculate_ENTR,
+  comp_platform    = comp_platform
+)
 
+result
 }

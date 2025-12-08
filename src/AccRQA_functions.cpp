@@ -1028,7 +1028,30 @@ void accrqa_RP(
 	);
 }
 
-
+void accrqa_RP(
+	int *output, 
+	double *input_data, size_t data_size, 
+	int tau,
+	int emb,
+	double threshold,
+	Accrqa_Distance distance_type,
+	Accrqa_Error *error
+){
+	if(*error!=SUCCESS) return;
+	if(data_size > 65536){
+		*error = ERR_INVALID_ARGUMENT;
+	}
+	int64_t corrected_size = accrqa_RP_output_size_in_elements(data_size, tau, emb);
+	rqa_CPU_R_matrix_ref(
+		output, 
+		input_data, 
+		corrected_size, 
+		threshold, 
+		tau, 
+		emb, 
+		distance_type
+	);
+}
 
 
 //=============================<

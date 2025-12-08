@@ -622,7 +622,6 @@ CUDA_HOME
 NVCC
 R_LIB
 R_INCL
-R_HOME
 ACCRQA_VERSION_STRING
 ACCRQA_VERSION_PATCH
 ACCRQA_VERSION_MINOR
@@ -1785,9 +1784,9 @@ ACCRQA_CXXFLAGS=""
 SYS_R=`which R`
 
 if test -x "$SYS_R"; then
-  R_HOME=`R RHOME`
-  R_INCL=`R CMD config --cppflags`
-  R_LIB=`R CMD config --ldflags`
+#  R_HOME=`R RHOME`
+  R_INCL="" #`R CMD config --cppflags`
+  R_LIB="" #`R CMD config --ldflags`
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: System R found: $SYS_R" >&5
 printf "%s\n" "$as_me: System R found: $SYS_R" >&6;}
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: R_INCL flags: $R_INCL" >&5
@@ -1797,7 +1796,7 @@ else
   as_fn_error $? "System R not found." "$LINENO" 5
 fi
 
-
+#AC_SUBST(R_HOME)
 
 
 

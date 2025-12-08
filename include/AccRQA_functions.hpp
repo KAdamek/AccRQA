@@ -422,6 +422,18 @@ void accrqa_RP(
 	Accrqa_Error *error
 );
 
+
+void accrqa_RP(
+	int *output, 
+	double *input_data, size_t data_size, 
+	int tau,
+	int emb,
+	double threshold,
+	Accrqa_Distance distance_type,
+	Accrqa_Error *error
+);
+
+
 /**
  * @brief Calculates size of RR output array in number of elements.
  *

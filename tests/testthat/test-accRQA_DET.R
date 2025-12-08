@@ -8,8 +8,8 @@ test_that("DET computation: function throws an error when input is NULL",{
                        emb_values,
                        lmin_values,
                        threshold,
-                       norm = "maximal",
-                       platform = "cpu"
+                       distance_type = "maximal",
+                       comp_platform = "cpu"
                        ),
                regexp = ":  input"
 )
@@ -26,8 +26,8 @@ test_that("DET computation: function throws an error when used not defined norma
                           emb_values,
                           lmin_values,
                           threshold,
-                          norm = "maxima",
-                          platform = "cpu"
+                          distance_type = "maxima",
+                          comp_platform = "cpu"
   ),
   regexp = "Normalization method"
   )
@@ -44,8 +44,8 @@ test_that("DET computation: function throws an error when platform not recognize
                           emb_values,
                           lmin_values,
                           threshold,
-                          norm = "maximal",
-                          platform = "cp"
+                          distance_type = "maximal",
+                          comp_platform = "cp"
   ),
   regexp = "Platform to compute not recognized"
   )
@@ -62,8 +62,8 @@ test_that("DET computation: function throws an error when tau is NULL or negativ
                           emb_values,
                           lmin_values,
                           threshold,
-                          norm = "maximal",
-                          platform = "cpu"
+                          distance_type = "maximal",
+                          comp_platform = "cpu"
                           ),
                regexp = ":  tau"
   )
@@ -73,8 +73,8 @@ test_that("DET computation: function throws an error when tau is NULL or negativ
                           emb_values,
                           lmin_values,
                           threshold,
-                          norm = "maximal",
-                          platform = "cpu"
+                          distance_type = "maximal",
+                          comp_platform = "cpu"
   ),
   regexp = ":  tau"
   )
@@ -92,8 +92,8 @@ test_that("DET computation is correct for constant input",{
                        emb_values,
                        lmin_values,
                        threshold,
-                       norm = "maximal",
-                       platform = "cpu"
+                       distance_type = "maximal",
+                       comp_platform = "cpu"
                        )
   
   expect_type(result, "list") # Fails if the function does not return a data.frame

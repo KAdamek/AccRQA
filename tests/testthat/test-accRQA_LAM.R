@@ -8,9 +8,9 @@ test_that("LAM computation: function throws an error when input is NULL",{
                           emb_values,
                           vmin_values,
                           threshold,
-                          norm = "maximal",
+                          distance_type = "maximal",
                           TRUE,
-                          platform = "cpu"
+                          comp_platform = "cpu"
   ),
   regexp = ":  input"
   )
@@ -27,9 +27,9 @@ test_that("LAM computation: function throws an error when used not defined norma
                           emb_values,
                           vmin_values,
                           threshold,
-                          norm = "maxima",
+                          distance_type = "maxima",
                           TRUE,
-                          platform = "cpu"
+                          comp_platform = "cpu"
   ),
   regexp = "Normalization method"
   )
@@ -46,9 +46,9 @@ test_that("LAM computation: function throws an error when used not known platfor
                           emb_values,
                           vmin_values,
                           threshold,
-                          norm = "maximal",
+                          distance_type = "maximal",
                           TRUE,
-                          platform = "cp"
+                          comp_platform = "cp"
   ),
   regexp = "Platform to compute not recognized"
   )
@@ -65,9 +65,9 @@ test_that("LAM computation: function throws an error when tau is NULL or negativ
                           emb_values,
                           vmin_values,
                           threshold,
-                          norm = "maximal",
+                          distance_type = "maximal",
                           TRUE,
-                          platform = "cpu"
+                          comp_platform = "cpu"
   ),
   regexp = ":  tau"
   )
@@ -77,9 +77,9 @@ test_that("LAM computation: function throws an error when tau is NULL or negativ
                           emb_values,
                           vmin_values,
                           threshold,
-                          norm = "maximal",
+                          distance_type = "maximal",
                           TRUE,
-                          platform = "cpu"
+                          comp_platform = "cpu"
   ),
   regexp = ":  tau"
   )
@@ -97,9 +97,9 @@ test_that("LAM computation is correct for constant input",{
                        emb_values,
                        vmin_values,
                        threshold,
-                       norm = "maximal",
+                       distance_type = "maximal",
                        TRUE,
-                       platform = "cpu"
+                       comp_platform = "cpu"
   )
   
   expect_type(result, "list") # Fails if the function does not return a data.frame

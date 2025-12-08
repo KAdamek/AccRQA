@@ -192,7 +192,7 @@ extern "C" {
   }
   
 	void R_double_accrqa_RP(
-		char *output,
+		int *output,
 		double *input,
 		int    *input_size,
 		int    *tau,
@@ -201,7 +201,7 @@ extern "C" {
 		int    *int_distance_type
 	){
 		size_t local_input_size = (size_t) input_size[0];
-		int local_thresholds = threshold[0];
+		double local_threshold = threshold[0];
 		int local_tau = tau[0];
 		int local_emb = emb[0];
 		int local_int_distance_type = int_distance_type[0];
@@ -209,7 +209,12 @@ extern "C" {
 		
 		Accrqa_Distance distance_type = check_distance_type2(local_int_distance_type, &error);
 		if(error != SUCCESS)  return;
-		
+
+		size_t corrected_size = local_input_size - ((local_emb - 1)*local_tau);
+		size_t local_output_size = corrected_size*corrected_size;
+
+//		char *tmp = new char[local_output_size];
+
 		accrqa_RP(
 			output,
 			input,
@@ -220,12 +225,19 @@ extern "C" {
 			distance_type,
 			&error
 		);
+
+//		for (size_t i = 0; i < local_output_size; i++){
+//			output[i] = (int) tmp[i];
+//		}
+
+//		delete[] tmp;
 	}
 
   R_CMethodDef cMethods[] = {
     {"R_double_accrqa_DET", (DL_FUNC) &R_double_accrqa_DET, 14},
     {"R_double_accrqa_LAM", (DL_FUNC) &R_double_accrqa_LAM, 14},
     {"R_double_accrqa_RR", (DL_FUNC) &R_double_accrqa_RR, 11},
+    {"R_double_accrqa_RP", (DL_FUNC) &R_double_accrqa_RP, 7},
     {NULL, NULL, 0}
   };
   

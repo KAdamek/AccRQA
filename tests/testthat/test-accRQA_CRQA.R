@@ -12,8 +12,8 @@ test_that("AccRQA results match CRQA -- RR, euclidean",{
                        tau_values = tau,
                        emb_values = emb,
                        threshold_values = threshold,
-                       norm = "euclidean",
-                       platform = "cpu")
+                       distance_type = "euclidean",
+                       comp_platform = "cpu")
   
 
   expect_equal(results_RR, expected_RR, tolerance = tolerance)
@@ -27,8 +27,8 @@ test_that("AccRQA results match CRQA -- RR, maximal",{
                           tau_values = tau,
                           emb_values = emb,
                           threshold_values = threshold,
-                          norm = "maximal",
-                          platform = "cpu")
+                          distance_type = "maximal",
+                          comp_platform = "cpu")
   
   
   expect_equal(results_RR, expected_RR, tolerance = tolerance)
@@ -43,9 +43,9 @@ test_that("AccRQA results match CRQA -- DET, euclidean",{
                             emb_values = emb,
                             lmin_values = c(2),
                             threshold_values = threshold,
-                            norm = "euclidean",
-                            calc_ENTR = TRUE,
-                            platform = "cpu")
+                            distance_type = "euclidean",
+                            calculate_ENTR = TRUE,
+                            comp_platform = "cpu")
   
   results_DET <- subset(results_DET, select = -c(Lmax))
   expect_equal(results_DET, expected_DET, tolerance = tolerance)
@@ -61,9 +61,9 @@ test_that("AccRQA results match CRQA -- DET, maximal",{
                             emb_values = emb,
                             lmin_values = c(2),
                             threshold_values = threshold,
-                            norm = "maximal",
-                            calc_ENTR = TRUE,
-                            platform = "cpu")
+                            distance_type = "maximal",
+                            calculate_ENTR = TRUE,
+                            comp_platform = "cpu")
   
   results_DET <- subset(results_DET, select = -c(Lmax))
   expect_equal(results_DET, expected_DET, tolerance = tolerance)
@@ -80,9 +80,9 @@ test_that("AccRQA results match CRQA -- LAM, euclidean",{
                             emb_values = emb,
                             vmin_values = 2,
                             threshold_values = threshold,
-                            norm = "euclidean",
-                            calc_ENTR = TRUE,
-                            platform = "cpu")
+                            distance_type = "euclidean",
+                            calculate_ENTR = TRUE,
+                            comp_platform = "cpu")
   
   results_LAM <- subset(results_LAM, select = -c(ENTR, TTmax))
   expect_equal(results_LAM, expected_LAM, tolerance = tolerance)
@@ -98,9 +98,9 @@ test_that("AccRQA results match CRQA -- LAM, maximal",{
                             emb_values = emb,
                             vmin_values = 2,
                             threshold_values = threshold,
-                            norm = "maximal",
-                            calc_ENTR = TRUE,
-                            platform = "cpu")
+                            distance_type = "maximal",
+                            calculate_ENTR = TRUE,
+                            comp_platform = "cpu")
   
   results_LAM <- subset(results_LAM, select = -c(ENTR, TTmax))
   expect_equal(results_LAM, expected_LAM, tolerance = tolerance)
