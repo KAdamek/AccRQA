@@ -76,6 +76,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#accrqa.RR"><code class="docutils literal notranslate"><span class="pre">RR()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accrqa.LAM"><code class="docutils literal notranslate"><span class="pre">LAM()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accrqa.DET"><code class="docutils literal notranslate"><span class="pre">DET()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa.RR_target"><code class="docutils literal notranslate"><span class="pre">RR_target()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accrqa.accrqaDistance"><code class="docutils literal notranslate"><span class="pre">accrqaDistance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accrqa.accrqaCompPlatform"><code class="docutils literal notranslate"><span class="pre">accrqaCompPlatform()</span></code></a></li>
 </ul>
@@ -718,6 +719,70 @@ RQA ID  RQA measure:
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa.RR_target">
+<span class="sig-prename descclassname"><span class="pre">accrqa.</span></span><span class="sig-name descname"><span class="pre">RR_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_RR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon=0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform=&lt;accrqa.accrqa_compplatform.accrqaCompPlatform</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter=20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_min=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_max=10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa.RR_target" title="Link to this definition"></a></dt>
+<dd><p>Finds the recurrence rate threshold associated with a target recurrence rate (RR) value
+using a bisection search algorithm within specified precision.</p>
+<p>This function performs a binary search between threshold_min and threshold_max to find
+the threshold value that yields a recurrence rate closest to the target_RR within the
+specified epsilon tolerance or maximum number of iterations.</p>
+<section id="parameters">
+<h3>Parameters:<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>input_data<span class="classifier">NDArray</span></dt><dd><p>Input time series data as a numpy array</p>
+</dd>
+<dt>tau<span class="classifier">int</span></dt><dd><p>Time delay parameter for phase space reconstruction (must be &gt; 0)</p>
+</dd>
+<dt>emb<span class="classifier">int</span></dt><dd><p>Embedding dimension for phase space reconstruction (must be &gt; 0)</p>
+</dd>
+<dt>target_RR<span class="classifier">float</span></dt><dd><p>Target recurrence rate value between 0 and 1</p>
+</dd>
+<dt>distance_type<span class="classifier">accrqaDistance</span></dt><dd><p>Distance metric instance for recurrence plot calculations</p>
+</dd>
+<dt>epsilon<span class="classifier">float, optional</span></dt><dd><p>Precision tolerance for convergence (default: 0.01, must be &gt; 0)</p>
+</dd>
+<dt>comp_platform<span class="classifier">accrqaCompPlatform, optional</span></dt><dd><p>Computational platform instance (default: NVIDIA GPU)</p>
+</dd>
+<dt>max_iter<span class="classifier">int, optional</span></dt><dd><p>Maximum number of bisection iterations (default: 20, must be &gt; 0)</p>
+</dd>
+<dt>threshold_min<span class="classifier">float, optional</span></dt><dd><p>Lower bound for threshold search range (default: 0)</p>
+</dd>
+<dt>threshold_max<span class="classifier">float, optional</span></dt><dd><p>Upper bound for threshold search range (default: 10)</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>float</dt><dd><p>The threshold value that produces a recurrence rate closest to target_RR
+within the specified epsilon tolerance</p>
+</dd>
+<dt>float</dt><dd><p>The RR for given threshold.</p>
+</dd>
+</dl>
+</section>
+<section id="raises">
+<h3>Raises:<a class="headerlink" href="#raises" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>TypeError</dt><dd><ul class="simple">
+<li><p>If distance_type is not an accrqaDistance instance</p></li>
+<li><p>If comp_platform is not an accrqaCompPlatform instance</p></li>
+<li><p>If input_data is not a numpy array</p></li>
+<li><p>If tau or emb are &lt;= 0</p></li>
+<li><p>If target_RR is not between 0 and 1</p></li>
+<li><p>If epsilon &lt;= 0</p></li>
+<li><p>If max_iter &lt;= 0</p></li>
+<li><p>If threshold_min &gt;= threshold_max</p></li>
+<li><p>If threshold_min yields RR &gt; target_RR</p></li>
+<li><p>If threshold_max yields RR &lt; target_RR</p></li>
+<li><p>If threshold_min and threshold_max yield identical RR values</p></li>
+</ul>
+</dd>
+</dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
