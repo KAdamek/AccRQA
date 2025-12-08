@@ -19,6 +19,8 @@ Python
 
 .. autofunction:: accrqa.DET
 
+.. autofunction:: accrqa.RR_target
+
 .. autofunction:: accrqa.accrqaDistance
 
 .. autofunction:: accrqa.accrqaCompPlatform
