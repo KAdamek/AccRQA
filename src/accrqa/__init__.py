@@ -15,6 +15,7 @@ from accrqa.accrqa import RP
 from accrqa.accrqa import RR
 from accrqa.accrqa import DET
 from accrqa.accrqa import LAM
+from accrqa.accrqa import RR_target
 
 
 
