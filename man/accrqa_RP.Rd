@@ -55,5 +55,6 @@ of the (possibly embedded) time series. It can be visualised with
 ts <- sin(2 * pi * (1:100) / 20)
 rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.5, distance_type = "euclidean")
 plot(rp)
+plot(rp, summary = TRUE)
 
 }

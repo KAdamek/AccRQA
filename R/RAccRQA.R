@@ -251,6 +251,7 @@ accrqa_RR_target <- function(
 #' ts <- sin(2 * pi * (1:100) / 20)
 #' rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.5, distance_type = "euclidean")
 #' plot(rp)
+#' plot(rp, summary = TRUE)
 #'
 #' @export
 accrqa_RP <- function(input_data, tau, emb, threshold, 
@@ -459,7 +460,7 @@ plot.accrqa_rp <- function(x,
                      threshold_values   = x$threshold,
                      distance_type      = x$distance_type,
 		     lmin_values        = 2,
-                     comp_platform      = "nv_gpu"
+                     comp_platform      = "cpu"
   )
   lam_df <- accrqa_LAM(
                      input_data         = x$input,
@@ -468,7 +469,7 @@ plot.accrqa_rp <- function(x,
                      threshold_values   = x$threshold,
                      distance_type      = x$distance_type,
 		     vmin_values        = 2,
-                     comp_platform      = "nv_gpu"
+                     comp_platform      = "cpu"
   )
   info_df <- data.frame(
 		label = c(

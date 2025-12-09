@@ -1,0 +1,53 @@
+## src/Makevars.in – template, processed by configure
+
+CXX_STD = CXX17
+
+NVCC            = /usr/sbin/nvcc
+ACCRQA_USE_CUDA = yes
+NVCC_FLAGS = 
+
+## R flags detected in configure
+#PKG_CXXFLAGS =  -DACCRQA_R_FOUND -DCUDA_FOUND
+PKG_CXXFLAGS = -O3 -Wall -fopenmp -fPIC -DACCRQA_R_FOUND \
+  -DACCRQA_VER_MAJOR=0 \
+  -DACCRQA_VER_MINOR=9 \
+  -DACCRQA_VER_PATCH=9
+
+#PKG_LIBS = 
+
+## List CPU object files explicitly (so R knows exactly what to link)
+CPP_FILES   := $(wildcard *.cpp)
+CPU_OBJS = $(CPP_FILES:.cpp=.o)
+#CPU_OBJS = \
+#  AccRQA_CPU_function.o \
+#  AccRQA_functions.o \
+#  AccRQA_python_bindings.o \
+#  AccRQA_R_bindings.o \
+#  AccRQA_utilities_mem.o
+
+## Default: CPU-only
+OBJECTS = $(CPU_OBJS)
+
+## CUDA support
+ifeq ($(strip $(ACCRQA_USE_CUDA)),yes)
+  PKG_CXXFLAGS += -I/usr/local/cuda/include -DCUDA_FOUND
+  PKG_LIBS     += -L/usr/local/cuda/lib64 -lcudart -lcuda -lcublas -lcurand
+
+  CU_FILES := $(wildcard *.cu)
+  CU_OBJS := $(CU_FILES:.cu=.o) #AccRQA-GPU-HST.o AccRQA-GPU-RR.o
+  OBJECTS += $(CU_OBJS)
+endif
+
+## Debug info (just printed once when make starts)
+$(info --> ACCRQA_USE_CUDA = $(ACCRQA_USE_CUDA))
+$(info CPU_OBJS: $(CPU_OBJS))
+$(info CUDA_OBJS: $(CU_OBJS))
+$(info OBJECTS: $(OBJECTS))
+$(info PKG_CXXFLAGS: $(PKG_CXXFLAGS))
+$(info PKG_LIBS: $(PKG_LIBS))
+
+## Tell make how to build CUDA object files.
+## R's own rules handle .cpp -> .o and linking AccRQA.so.
+%.o: %.cu
+	$(NVCC) -O3 $(NVCC_FLAGS) -c $< -o $@ -Xcompiler "-fPIC"
+

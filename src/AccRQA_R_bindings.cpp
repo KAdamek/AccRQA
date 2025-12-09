@@ -211,9 +211,6 @@ extern "C" {
 		if(error != SUCCESS)  return;
 
 		size_t corrected_size = local_input_size - ((local_emb - 1)*local_tau);
-		size_t local_output_size = corrected_size*corrected_size;
-
-//		char *tmp = new char[local_output_size];
 
 		accrqa_RP(
 			output,
@@ -226,11 +223,6 @@ extern "C" {
 			&error
 		);
 
-//		for (size_t i = 0; i < local_output_size; i++){
-//			output[i] = (int) tmp[i];
-//		}
-
-//		delete[] tmp;
 	}
 
   R_CMethodDef cMethods[] = {

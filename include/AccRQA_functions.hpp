@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <vector>
 #include <set>
+#include <cstdint>
 
 #include "AccRQA_utilities_error.hpp"
 #include "AccRQA_utilities_comp_platform.hpp"

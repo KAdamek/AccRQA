@@ -104,6 +104,8 @@ AccRQA’s R interface depends on the following CRAN packages:
 - Rcpp
 - dplyr
 - tidyr
+- ggplot2
+- patchwork
 
 You can install them from within R (or RStudio) using:
      install.packages(c("Rcpp", "dplyr", "tidyr"))
@@ -135,7 +137,7 @@ You can install the **AccRQA R package** either from a downloaded source archive
 
      ```r
 
-     install.packages(c("Rcpp", "dplyr", "tidyr"))
+     install.packages(c("Rcpp", "dplyr", "tidyr", "ggplot2", "patchwork"))
      ```
 
 3. Go to **Tools → Install Packages**.
