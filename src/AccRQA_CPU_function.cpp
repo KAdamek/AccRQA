@@ -221,7 +221,25 @@ int rqa_CPU_R_matrix_ref(
 	return(0);
 }
 
-
+template <typename input_type, typename output_type>
+int rqa_CPU_R_matrix_parallel(
+	output_type *R_matrix, 
+	input_type *time_series, 
+	int64_t corrected_size, 
+	input_type threshold, 
+	int tau, 
+	int emb, 
+	int distance_type
+){
+	#pragma omp parallel for shared(R_matrix, time_series, tau, emb, threshold, distance_type)
+	for(int64_t i = 0; i < corrected_size; i++){
+		for(int64_t j = 0; j < corrected_size; j++){
+			size_t r_pos = i*corrected_size + j;
+			R_matrix[r_pos] = (output_type) R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
+		}
+	}
+	return(0);
+}
 
 template <typename input_type>
 int rqa_CPU_R_matrix(
