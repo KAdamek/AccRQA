@@ -70,3 +70,8 @@ autom4te.cache/
 
 # Custom placeholder
 src/accrqa.egg-info/
+
+# renormalize
+*.sh	text eol=lf
+configure	text eol=lf
+Makefile.in	text eol=lf
