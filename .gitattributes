@@ -1,0 +1,5 @@
+configure.ac text eol=lf
+configure     text eol=lf
+configure.win text eol=lf
+*.sh          text eol=lf
+src/Makevars* text eol=lf

@@ -623,6 +623,8 @@ ACCRQA_USE_CUDA
 NVCC_FLAGS
 CUDA_HOME
 NVCC
+OPENMP_CXXFLAGS
+ACCRQA_USE_OPENMP
 R_LIB
 R_INCL
 ACCRQA_VERSION_STRING
@@ -1791,6 +1793,30 @@ printf "%s\n" "$as_me: System R found: $SYS_R" >&6;}
 else
   as_fn_error $? "System R not found." "$LINENO" 5
 fi
+
+
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for OpenMP flags from R" >&5
+printf %s "checking for OpenMP flags from R... " >&6; }
+OPENMP_CXXFLAGS=`"$SYS_R" CMD config SHLIB_OPENMP_CXXFLAGS 2>/dev/null`
+
+if test -n "$OPENMP_CXXFLAGS"; then
+  ACCRQA_USE_OPENMP=yes
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $OPENMP_CXXFLAGS" >&5
+printf "%s\n" "$OPENMP_CXXFLAGS" >&6; }
+else
+  ACCRQA_USE_OPENMP=no
+  OPENMP_CXXFLAGS=""
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: none" >&5
+printf "%s\n" "none" >&6; }
+fi
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Use OpenMP: $ACCRQA_USE_OPENMP" >&5
+printf "%s\n" "$as_me: Use OpenMP: $ACCRQA_USE_OPENMP" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: OpenMP CXX flags: $OPENMP_CXXFLAGS" >&5
+printf "%s\n" "$as_me: OpenMP CXX flags: $OPENMP_CXXFLAGS" >&6;}
 
 
 

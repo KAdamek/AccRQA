@@ -58,6 +58,28 @@ AC_SUBST([R_INCL])
 AC_SUBST([R_LIB])
 
 dnl ============================================================
+dnl  OpenMP detection via R (CRAN-safe)
+dnl ============================================================
+
+AC_MSG_CHECKING([for OpenMP flags from R])
+OPENMP_CXXFLAGS=`"$SYS_R" CMD config SHLIB_OPENMP_CXXFLAGS 2>/dev/null`
+
+if test -n "$OPENMP_CXXFLAGS"; then
+  ACCRQA_USE_OPENMP=yes
+  AC_MSG_RESULT([$OPENMP_CXXFLAGS])
+else
+  ACCRQA_USE_OPENMP=no
+  OPENMP_CXXFLAGS=""
+  AC_MSG_RESULT([none])
+fi
+
+AC_MSG_NOTICE([Use OpenMP: $ACCRQA_USE_OPENMP])
+AC_MSG_NOTICE([OpenMP CXX flags: $OPENMP_CXXFLAGS])
+
+AC_SUBST([ACCRQA_USE_OPENMP])
+AC_SUBST([OPENMP_CXXFLAGS])
+
+dnl ============================================================
 dnl  CUDA / nvcc detection (optional)
 dnl ============================================================
 

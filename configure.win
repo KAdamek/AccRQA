@@ -22,6 +22,28 @@ PATCH=`echo "$VERSION" | cut -d. -f3`
 echo "  Detected version: $VERSION ($MAJOR.$MINOR.$PATCH)"
 
 ## ------------------------------------------------------------
+##  Detect OpenMP flags via R (CRAN-safe)
+##  On Windows, R exposes these via SHLIB_OPENMP_CXXFLAGS if supported.
+## ------------------------------------------------------------
+
+OPENMP_CXXFLAGS=""
+
+R_EXE="${R_HOME}/bin${R_ARCH_BIN}/R"
+if [ -x "$R_EXE" ]; then
+  OPENMP_CXXFLAGS=`"$R_EXE" CMD config SHLIB_OPENMP_CXXFLAGS 2>/dev/null`
+fi
+
+if [ -n "$OPENMP_CXXFLAGS" ]; then
+  USE_OPENMP="yes"
+else
+  USE_OPENMP="no"
+  OPENMP_CXXFLAGS=""
+fi
+
+echo "  Use OpenMP: $USE_OPENMP"
+echo "  OpenMP CXX flags: ${OPENMP_CXXFLAGS:-none}"
+
+## ------------------------------------------------------------
 ##  Build object list from src/*.cpp (portable, no wildcard in Makevars)
 ## ------------------------------------------------------------
 
@@ -52,11 +74,12 @@ CXX_STD = CXX17
 PKG_CPPFLAGS = -DACCRQA_R_FOUND \\
   -DACCRQA_VER_MAJOR=$MAJOR \\
   -DACCRQA_VER_MINOR=$MINOR \\
-  -DACCRQA_VER_PATCH=$PATCH
+  -DACCRQA_VER_PATCH=$PATCH \\
+  $OPENMP_CXXFLAGS
 
 PKG_OBJECTS = $OBJECTS
 
-PKG_LIBS =
+PKG_LIBS = $OPENMP_CXXFLAGS
 EOF
 
 echo "  Generated src/Makevars.win"
