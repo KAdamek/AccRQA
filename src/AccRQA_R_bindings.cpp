@@ -210,8 +210,6 @@ extern "C" {
 		Accrqa_Distance distance_type = check_distance_type2(local_int_distance_type, &error);
 		if(error != SUCCESS)  return;
 
-		size_t corrected_size = local_input_size - ((local_emb - 1)*local_tau);
-
 		accrqa_RP(
 			output,
 			input,

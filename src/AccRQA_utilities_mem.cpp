@@ -11,6 +11,13 @@
 #include <cuda_runtime_api.h>
 #endif
 
+#ifdef ACCRQA_R_FOUND
+	#include <Rmath.h>
+	#define ACCRQA_RAND() unif_rand()
+#else
+	#define ACCRQA_RAND() rand()
+#endif
+
 typedef struct Mem Mem;
 typedef enum MemType MemType;
 typedef enum MemLocation MemLocation;
@@ -304,13 +311,13 @@ void mem_random_fill(Mem *mem, Accrqa_Error *status) {
 		float *data = (float *)mem->data;
 		for (int64_t i = 0; i < num_elements; ++i) {
 			// NOLINTNEXTLINE: rand() is not a problem for our use case.
-			data[i] = (float)rand() / (float)RAND_MAX;
+			data[i] = (float)ACCRQA_RAND() / (float)RAND_MAX;
 		}
 	} else if (precision == MEM_DOUBLE) {
 		double *data = (double *)mem->data;
 		for (int64_t i = 0; i < num_elements; ++i) {
 			// NOLINTNEXTLINE: rand() is not a problem for our use case.
-			data[i] = (double)rand() / (double)RAND_MAX;
+			data[i] = (double)ACCRQA_RAND() / (double)RAND_MAX;
 		}
 	}
 }
