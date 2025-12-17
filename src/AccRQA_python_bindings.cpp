@@ -4,6 +4,7 @@
 #include "../include/AccRQA_utilities_error.hpp"
 #include "../include/AccRQA_utilities_comp_platform.hpp"
 #include "../include/AccRQA_utilities_distance.hpp"
+#include "../include/AccRQA_printf.hpp"
 
 /**
  * @brief Checks that distance to Line of Identity selected is valid or issues en error if not.
@@ -22,7 +23,7 @@ Accrqa_Distance check_distance_type(int int_distance_type, Accrqa_Error *error){
 	}
 	else {
 		distance_type = DST_ERROR;
-		printf("Error: Invalid distance type.\n");
+		ACCRQA_PRINT("Error: Invalid distance type.\n");
 		*error = ERR_INVALID_ARGUMENT;
 	}
 	return(distance_type);
@@ -44,7 +45,7 @@ Accrqa_CompPlatform check_comp_platform(int int_comp_platform, Accrqa_Error *err
 		comp_platform = PLT_NV_GPU;
 	}
 	else {
-		printf("Error: Invalid computing platform.\n");
+		ACCRQA_PRINT("Error: Invalid computing platform.\n");
 		comp_platform = PLT_ERROR;
 		*error = ERR_INVALID_ARGUMENT;
 	}
@@ -87,31 +88,31 @@ void py_accrqa_RP(
 		mem_location(mem_output_RP) != MEM_CPU 
 		|| mem_location(mem_input) != MEM_CPU 
 	){
-		printf("ERROR! Data are stored in wrong destination.\n");
+		ACCRQA_PRINT("ERROR! Data are stored in wrong destination.\n");
 		*error = ERR_MEM_LOCATION;
 		return;
 	} 
 	
 	if(tau <= 0 || emb <=0){
-		printf("ERROR! Values of tau and emb must be non-zero.\n");
+		ACCRQA_PRINT("ERROR! Values of tau and emb must be non-zero.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
 	
 	if(mem_num_dims(mem_input) != 1) {
-		printf("input must be one-dimensional array.\n");
+		ACCRQA_PRINT("input must be one-dimensional array.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
 	
 	if( mem_num_dims(mem_output_RP) != 2 ){
-		printf("mem_output_RP must be two-dimensional.\n");
+		ACCRQA_PRINT("mem_output_RP must be two-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
 	
 	if(mem_shape_dim(mem_input, 0) == 0) {
-		printf("input number of elements must be non zero.\n");
+		ACCRQA_PRINT("input number of elements must be non zero.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -136,7 +137,7 @@ void py_accrqa_RP(
 		accrqa_RP(output, input_data, input_size, tau, emb, local_threshold, distance_type, error);
 	}
 	else {
-		printf("ERROR! Unsupported data type.\n");
+		ACCRQA_PRINT("ERROR! Unsupported data type.\n");
 		*error = ERR_DATA_TYPE;
 	}
 }
@@ -188,7 +189,7 @@ void py_accrqa_RR(
 		|| mem_location(mem_emb_values) != MEM_CPU 
 		|| mem_location(mem_threshold_values) != MEM_CPU
 	){
-		printf("ERROR! Data are stored in wrong destination.\n");
+		ACCRQA_PRINT("ERROR! Data are stored in wrong destination.\n");
 		*error = ERR_MEM_LOCATION;
 		return;
 	} 
@@ -197,7 +198,7 @@ void py_accrqa_RR(
 		mem_type(mem_input) != mem_type(mem_output_RR) 
 		|| mem_type(mem_input) != mem_type(mem_threshold_values) 
 	) {
-		printf("ERROR! Input, output and threshold values must have the same data type.\n");
+		ACCRQA_PRINT("ERROR! Input, output and threshold values must have the same data type.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
@@ -206,7 +207,7 @@ void py_accrqa_RR(
 		mem_type(mem_tau_values) != MEM_INT 
 		|| mem_type(mem_emb_values) != MEM_INT
 	) {
-		printf("ERROR! tau and emb must be integers.\n");
+		ACCRQA_PRINT("ERROR! tau and emb must be integers.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
@@ -217,13 +218,13 @@ void py_accrqa_RR(
 		|| mem_num_dims(mem_threshold_values) != 1
 		|| mem_num_dims(mem_input) != 1
 	) {
-		printf("input, tau, emb and threshold must be one-dimensional.\n");
+		ACCRQA_PRINT("input, tau, emb and threshold must be one-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
 	
 	if( mem_num_dims(mem_output_RR) != 3 ){
-		printf("mem_output_RR must be three-dimensional.\n");
+		ACCRQA_PRINT("mem_output_RR must be three-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -234,7 +235,7 @@ void py_accrqa_RR(
 		|| mem_shape_dim(mem_emb_values, 0) == 0
 		|| mem_shape_dim(mem_threshold_values, 0) == 0
 	) {
-		printf("input, tau, emb and threshold number of elements must be non zero.\n");
+		ACCRQA_PRINT("input, tau, emb and threshold number of elements must be non zero.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -269,7 +270,7 @@ void py_accrqa_RR(
 		accrqa_RR(output, input_data, input_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, comp_platform, error);
 	}
 	else {
-		printf("ERROR! Unsupported data type.\n");
+		ACCRQA_PRINT("ERROR! Unsupported data type.\n");
 		*error = ERR_DATA_TYPE;
 	}
 }
@@ -328,7 +329,7 @@ void py_accrqa_DET(
 		|| mem_location(mem_lmin_values) != MEM_CPU 
 		|| mem_location(mem_threshold_values) != MEM_CPU
 	){
-		printf("ERROR! Data are stored in wrong destination.\n");
+		ACCRQA_PRINT("ERROR! Data are stored in wrong destination.\n");
 		*error = ERR_MEM_LOCATION;
 		return;
 	}
@@ -337,7 +338,7 @@ void py_accrqa_DET(
 		mem_type(mem_input) != mem_type(mem_output_DET) 
 		|| mem_type(mem_input) != mem_type(mem_threshold_values) 
 	) {
-		printf("ERROR! Input, output and threshold values must have the same data type.\n");
+		ACCRQA_PRINT("ERROR! Input, output and threshold values must have the same data type.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
@@ -347,7 +348,7 @@ void py_accrqa_DET(
 		|| mem_type(mem_emb_values) != MEM_INT
 		|| mem_type(mem_lmin_values) != MEM_INT
 	) {
-		printf("ERROR! tau, emb and lmin must be integers.\n");
+		ACCRQA_PRINT("ERROR! tau, emb and lmin must be integers.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
@@ -359,13 +360,13 @@ void py_accrqa_DET(
 		|| mem_num_dims(mem_threshold_values) != 1
 		|| mem_num_dims(mem_input) != 1
 	) {
-		printf("input, tau, emb and threshold must be one-dimensional.\n");
+		ACCRQA_PRINT("input, tau, emb and threshold must be one-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
 	
 	if( mem_num_dims(mem_output_DET) != 5 ){
-		printf("mem_output_DET must be four-dimensional.\n");
+		ACCRQA_PRINT("mem_output_DET must be four-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -377,7 +378,7 @@ void py_accrqa_DET(
 		|| mem_shape_dim(mem_lmin_values, 0) == 0
 		|| mem_shape_dim(mem_threshold_values, 0) == 0
 	) {
-		printf("input, tau, emb and threshold number of elements must be non zero.\n");
+		ACCRQA_PRINT("input, tau, emb and threshold number of elements must be non zero.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -414,7 +415,7 @@ void py_accrqa_DET(
 		accrqa_DET(output, input_data, input_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, comp_platform, error);
 	}
 	else {
-		printf("ERROR! Unsupported data type.\n");
+		ACCRQA_PRINT("ERROR! Unsupported data type.\n");
 		*error = ERR_DATA_TYPE;
 	}
 }
@@ -473,7 +474,7 @@ void py_accrqa_LAM(
 		|| mem_location(mem_vmin_values) != MEM_CPU 
 		|| mem_location(mem_threshold_values) != MEM_CPU
 	){
-		printf("ERROR! Data are stored in wrong destination.\n");
+		ACCRQA_PRINT("ERROR! Data are stored in wrong destination.\n");
 		*error = ERR_MEM_LOCATION;
 		return;
 	}
@@ -482,7 +483,7 @@ void py_accrqa_LAM(
 		mem_type(mem_input) != mem_type(mem_output_LAM) 
 		|| mem_type(mem_input) != mem_type(mem_threshold_values) 
 	) {
-		printf("ERROR! Input, output and threshold values must have the same data type.\n");
+		ACCRQA_PRINT("ERROR! Input, output and threshold values must have the same data type.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
@@ -492,7 +493,7 @@ void py_accrqa_LAM(
 		|| mem_type(mem_emb_values) != MEM_INT
 		|| mem_type(mem_vmin_values) != MEM_INT
 	) {
-		printf("ERROR! tau, emb and lmin must be integers.\n");
+		ACCRQA_PRINT("ERROR! tau, emb and lmin must be integers.\n");
 		*error = ERR_DATA_TYPE;
 		return;
 	}
@@ -504,13 +505,13 @@ void py_accrqa_LAM(
 		|| mem_num_dims(mem_threshold_values) != 1
 		|| mem_num_dims(mem_input) != 1
 	) {
-		printf("input, tau, emb and threshold must be one-dimensional.\n");
+		ACCRQA_PRINT("input, tau, emb and threshold must be one-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
 	
 	if( mem_num_dims(mem_output_LAM) != 5 ){
-		printf("mem_output_LAM must be four-dimensional.\n");
+		ACCRQA_PRINT("mem_output_LAM must be four-dimensional.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -522,7 +523,7 @@ void py_accrqa_LAM(
 		|| mem_shape_dim(mem_vmin_values, 0) == 0
 		|| mem_shape_dim(mem_threshold_values, 0) == 0
 	) {
-		printf("input, tau, emb and threshold number of elements must be non zero.\n");
+		ACCRQA_PRINT("input, tau, emb and threshold number of elements must be non zero.\n");
 		*error = ERR_INVALID_ARGUMENT;
 		return;
 	}
@@ -559,7 +560,7 @@ void py_accrqa_LAM(
 		accrqa_LAM(output, input_data, input_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, comp_platform, error);
 	}
 	else {
-		printf("ERROR! Unsupported data type.\n");
+		ACCRQA_PRINT("ERROR! Unsupported data type.\n");
 		*error = ERR_DATA_TYPE;
 	}
 }
