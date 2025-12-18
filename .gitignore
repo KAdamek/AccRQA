@@ -76,3 +76,5 @@ src/accrqa.egg-info/
 configure	text eol=lf
 Makefile.in	text eol=lf
 inst/doc
+/doc/
+/Meta/

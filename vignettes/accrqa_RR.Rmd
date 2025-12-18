@@ -3,7 +3,7 @@ title: "AccRQA function: RR"
 output: rmarkdown::html_vignette
 author: "Karel Adámek, Jan Novotný"
 vignette: >
-  %\VignetteIndexEntry{accrqa_functions}
+  %\VignetteIndexEntry{AccRQA function: RR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -13,6 +13,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+```
+
+```{r setup}
+library(AccRQA)
 ```
 
 ## Recurrence rate computation
