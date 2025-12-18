@@ -2,19 +2,16 @@
 
 echo "Configuring AccRQA for Windows (CPU-only)..."
 
-## ------------------------------------------------------------
-##  Extract version from version.txt
-## ------------------------------------------------------------
-
+# ------------------------------------------------------------
+# Extract version from version.txt
+# ------------------------------------------------------------
 VERSION_FILE="version.txt"
-
 if [ ! -f "$VERSION_FILE" ]; then
   echo "ERROR: version.txt not found"
   exit 1
 fi
 
 VERSION=`sed -n '1p' "$VERSION_FILE" | tr -d '[:space:]'`
-
 MAJOR=`echo "$VERSION" | cut -d. -f1`
 MINOR=`echo "$VERSION" | cut -d. -f2`
 PATCH=`echo "$VERSION" | cut -d. -f3`
@@ -22,13 +19,15 @@ PATCH=`echo "$VERSION" | cut -d. -f3`
 echo "  Detected version: $VERSION ($MAJOR.$MINOR.$PATCH)"
 
 # ------------------------------------------------------------
-# Detect compiler (R typically provides CXX; fallback is OK)
+# Compiler
 # ------------------------------------------------------------
 : ${CXX:=g++}
 echo "  Using CXX: $CXX"
+CXX_VER=`"$CXX" --version 2>/dev/null | head -n 1 | tr -d '\r'`
+[ -n "$CXX_VER" ] && echo "  CXX version: $CXX_VER"
 
 # ------------------------------------------------------------
-# Check OpenMP support by test compilation (robust on Windows)
+# OpenMP probe (compile-based)
 # ------------------------------------------------------------
 echo "  Checking OpenMP support by test compile..."
 
@@ -37,9 +36,13 @@ USE_OPENMP="no"
 
 TMP_CXX="conftest_openmp.cpp"
 TMP_EXE="conftest_openmp.exe"
+TMP_LOG="conftest_openmp.log"
 
 cat > "$TMP_CXX" <<EOF
 #include <omp.h>
+#ifndef _OPENMP
+#error "_OPENMP not defined"
+#endif
 int main(void) {
   int n = 0;
   #pragma omp parallel reduction(+:n)
@@ -48,38 +51,70 @@ int main(void) {
 }
 EOF
 
-# Candidate flags (order matters)
-for ompflag in "-fopenmp" "-fopenmp=libomp" "-openmp" "/openmp"; do
-  echo "    trying $ompflag"
-  if "$CXX" $ompflag "$TMP_CXX" -o "$TMP_EXE" >/dev/null 2>&1; then
+CANDIDATES="-fopenmp -fopenmp=libomp -openmp /openmp"
+
+for ompflag in $CANDIDATES; do
+  echo "    --------------------------------------------------"
+  echo "    Trying OpenMP flag: $ompflag"
+
+  CMD="$CXX $ompflag $TMP_CXX -o $TMP_EXE"
+  echo "    Compile cmd: $CMD"
+
+  sh -c "$CMD" >"$TMP_LOG" 2>&1
+  rc=$?
+
+  if [ $rc -eq 0 ]; then
+    echo "    Result: SUCCESS"
     OPENMP_CXXFLAGS="$ompflag"
     USE_OPENMP="yes"
     break
+  else
+    echo "    Result: FAIL (exit code $rc)"
+    echo "    Compiler output (last 20 lines):"
+    tail -n 20 "$TMP_LOG" | tr -d '\r' | sed 's/^/      /'
   fi
 done
 
-rm -f "$TMP_CXX" "$TMP_EXE"
+rm -f "$TMP_CXX" "$TMP_EXE" "$TMP_LOG"
+
+# ------------------------------------------------------------
+# If compile probe failed, optionally try R CMD config as fallback
+# (guard against garbage output like “see man …”)
+# ------------------------------------------------------------
+looks_like_flags() {
+  echo "$1" | tr -d '\r' | grep -qE '(^|[[:space:]])[-/][A-Za-z]'
+}
+
+if [ "$USE_OPENMP" = "no" ]; then
+  R_OPENMP_CXXFLAGS_RAW=`R CMD config SHLIB_OPENMP_CXXFLAGS 2>&1 | tr -d '\r'`
+  R_OPENMP_CXXLIBS_RAW=`R CMD config SHLIB_OPENMP_CXXLIBS  2>&1 | tr -d '\r'`
+
+  echo "  R CMD config SHLIB_OPENMP_CXXFLAGS (raw first line): `echo "$R_OPENMP_CXXFLAGS_RAW" | head -n 1`"
+  echo "  R CMD config SHLIB_OPENMP_CXXLIBS  (raw first line): `echo "$R_OPENMP_CXXLIBS_RAW"  | head -n 1`"
+
+  if looks_like_flags "$R_OPENMP_CXXFLAGS_RAW"; then
+    echo "  R-reported OpenMP flags look valid; trying them..."
+    # (We don't set PKG_LIBS here unless you *really* need it on Windows)
+    OPENMP_CXXFLAGS=`echo "$R_OPENMP_CXXFLAGS_RAW" | head -n 1`
+    USE_OPENMP="yes"
+  else
+    echo "  R-reported OpenMP flags look invalid/empty; OpenMP will be disabled."
+  fi
+fi
 
 echo "  Use OpenMP: $USE_OPENMP"
 echo "  OpenMP CXX flags: ${OPENMP_CXXFLAGS:-none}"
 
 # ------------------------------------------------------------
-# Build object list from src/*.cpp (portable, no wildcards in Makevars)
-# Skip CUDA/GPU-related translation units by filename pattern.
+# Build object list from src/*.cpp (portable)
 # ------------------------------------------------------------
 OBJECTS=""
-
 for f in src/*.cpp; do
   [ -f "$f" ] || continue
-
   base=`basename "$f" .cpp`
-
   case "$base" in
-    *CUDA*|*cuda*|*GPU*|*gpu*|*NVCC*|*nvcc*)
-      continue
-      ;;
+    *CUDA*|*cuda*|*GPU*|*gpu*|*NVCC*|*nvcc*) continue ;;
   esac
-
   if [ -z "$OBJECTS" ]; then
     OBJECTS="$base.o"
   else
@@ -102,19 +137,14 @@ cat > src/Makevars.win <<EOF
 
 CXX_STD = CXX17
 
-## Preprocessor flags (defines/includes only)
 PKG_CPPFLAGS = -DACCRQA_R_FOUND \\
   -DACCRQA_VER_MAJOR=$MAJOR \\
   -DACCRQA_VER_MINOR=$MINOR \\
   -DACCRQA_VER_PATCH=$PATCH
 
-## Compiler flags (OpenMP belongs here)
 PKG_CXXFLAGS = $OPENMP_CXXFLAGS
+PKG_LIBS = $OPENMP_CXXFLAGS
 
-## Linker flags (leave empty unless you have a proven need on Windows)
-PKG_LIBS =
-
-## Explicit objects (no wildcard expansion in Makevars)
 PKG_OBJECTS = $OBJECTS
 EOF
 
