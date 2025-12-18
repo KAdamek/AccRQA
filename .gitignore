@@ -75,3 +75,4 @@ src/accrqa.egg-info/
 *.sh	text eol=lf
 configure	text eol=lf
 Makefile.in	text eol=lf
+inst/doc

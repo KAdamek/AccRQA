@@ -1,0 +1,163 @@
+---
+title: "AccRQA: Target recurrence rate (RR) threshold search"
+output: rmarkdown::html_vignette
+author: "Karel Adámek, Jan Novotný"
+vignette: >
+  %\VignetteIndexEntry{AccRQA: Target recurrence rate (RR) threshold search}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(AccRQA)
+```
+
+## Threshold selection via target RR
+
+### Motivation
+
+In recurrence quantification analysis (RQA), the **threshold** used to define
+recurrence points strongly controls the resulting **recurrence rate (RR)**. Because
+RR affects downstream measures (e.g., DET, LAM, ENTR), a common strategy is to choose
+the threshold *implicitly* by enforcing a **target RR** (for example 1–10%), rather
+than selecting a fixed threshold value.
+
+AccRQA provides `accrqa_RR_target()` to automatically find a threshold that yields a
+desired RR for a given time series and embedding configuration.
+
+---
+
+## Function interface
+
+```r
+accrqa_RR_target(
+  input_data,
+  tau,
+  emb,
+  target_RR,
+  epsilon = 0.01,
+  distance_type = "euclidean",
+  comp_platform = "cpu",
+  max_iter = 20,
+  threshold_min = 0,
+  threshold_max = NULL,
+  n_threshold = 10,
+  verbose = FALSE,
+  ...
+)
+```
+
+---
+
+## Arguments
+
+- **`input_data`**  
+  Numeric vector representing the input time series.
+
+- **`tau`**  
+  Delay (integer scalar).
+
+- **`emb`**  
+  Embedding dimension (integer scalar).
+
+- **`target_RR`**  
+  Target recurrence rate(s). Can be a single numeric value or a numeric vector to
+  compute multiple targets in one call.
+
+- **`epsilon`**  
+  Allowed error tolerance for the target RR (default: `0.01`).
+
+- **`distance_type`** *(character, optional)*  
+  Distance norm used for recurrence detection. Supported values include:
+  - `"euclidean"` (default)
+  - `"maximal"`
+
+- **`comp_platform`** *(character)*  
+  Computational platform (e.g., `"cpu"` or `"nv_gpu"`). Default is `"cpu"`.
+
+- **`max_iter`**  
+  Maximum number of search iterations before stopping (default: `20`).
+
+- **`threshold_min`**  
+  Lower bound for threshold search (default: `0`).
+
+- **`threshold_max`**  
+  Upper bound for threshold search. If `NULL`, an upper bound is estimated
+  automatically (default: `NULL`).
+
+- **`n_threshold`**  
+  Number of candidate thresholds evaluated per iteration (default: `10`).
+
+- **`verbose`**  
+  If `TRUE`, prints progress of the search (default: `FALSE`).
+
+- **`...`**  
+  Further arguments (currently ignored but kept for compatibility).
+
+---
+
+## Returned value
+
+A `data.frame` containing (typically one row per `target_RR`):
+
+- **`target_RR`** — requested target recurrence rate
+- **`threshold`** — estimated threshold that achieves the target RR
+- **`RR_found`** — RR obtained at the estimated threshold
+
+---
+
+## Examples
+
+### Single target RR
+
+```{r}
+set.seed(1)
+
+x <- runif(1000)
+
+res1 <- accrqa_RR_target(
+  input_data = x,
+  tau = 1,
+  emb = 2,
+  target_RR = 0.5,
+  epsilon = 0.001,
+  distance_type = "euclidean",
+  comp_platform = "cpu"
+)
+
+print(res1)
+```
+
+### Multiple target RRs in one call
+
+```{r}
+res2 <- accrqa_RR_target(
+  input_data = x,
+  tau = 1,
+  emb = 2,
+  target_RR = c(0.1, 0.5, 0.8),
+  epsilon = 0.001,
+  distance_type = "euclidean",
+  comp_platform = "cpu"
+)
+
+print(res2)
+```
+
+---
+
+## Notes
+
+- Threshold search may fail to reach the requested tolerance within `max_iter`
+  iterations for some datasets or parameter combinations; in such cases the returned
+  `RR_found` can be used to assess how close the solution is to the target.
+- For comparative studies across conditions or subjects, selecting thresholds via a
+  fixed **RR** often improves comparability relative to using a fixed threshold value.
+

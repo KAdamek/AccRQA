@@ -1,0 +1,155 @@
+---
+title: "AccRQA: Determinism (DET) and diagonal-line measures"
+output: rmarkdown::html_vignette
+author: "Karel Adámek, Jan Novotný"
+vignette: >
+  %\VignetteIndexEntry{AccRQA: Determinism (DET) and diagonal-line measures}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(AccRQA)
+```
+
+## Determinism computation
+
+### Determinism (DET)
+
+**Determinism (DET)** is a central measure in recurrence quantification analysis (RQA)
+and cross-recurrence quantification analysis (CRQA). It quantifies the proportion of
+recurrence points that form **diagonal line structures** in a recurrence plot.
+Diagonal lines indicate deterministic and predictable evolution of the underlying
+dynamical system.
+
+In **AccRQA**, DET and the associated diagonal-line statistics are computed using a
+compiled backend for efficiency, optionally accelerated on supported computational
+platforms. The implementation supports cross-recurrence analysis and is optimized for
+parameter sweeps over delays, embedding dimensions, line-length thresholds, and
+recurrence thresholds.
+
+DET and related quantities are exposed to the user through the function
+`accrqa_DET()`.
+
+---
+
+### Function interface
+
+```r
+accrqa_DET(
+  input_data,
+  tau_values,
+  emb_values,
+  lmin_values,
+  threshold_values,
+  distance_type = "euclidean",
+  calculate_ENTR = TRUE,
+  comp_platform
+)
+```
+
+The interface is platform-agnostic: the same function call can be used for CPU and GPU
+execution. The computational backend is selected via a single argument.
+
+---
+
+### Arguments
+
+- **`input_data`**  
+  A numeric matrix or data frame representing the input data for CRQA analysis.
+
+- **`tau_values`**  
+  A numeric vector specifying the time delay values (τ).
+
+- **`emb_values`**  
+  A numeric vector specifying the embedding dimensions (m).
+
+- **`lmin_values`**  
+  A numeric vector specifying the minimum diagonal line lengths used for DET
+  computation.
+
+- **`threshold_values`**  
+  A numeric vector specifying the threshold values for recurrence detection.
+
+- **`distance_type`** *(character, optional)*  
+  Distance norm used for phase-space reconstruction. Supported values include:
+  - `"euclidean"`: Euclidean distance (default)
+  - `"maximal"`: Maximum (Chebyshev) norm
+
+- **`calculate_ENTR`** *(logical, optional)*  
+  Whether to compute entropy (ENTR) of the diagonal line-length distribution.
+  Default is `TRUE`.
+
+- **`comp_platform`** *(character)*  
+  Computational platform to be used (e.g., `"cpu"` or `"nv_gpu"`).
+
+If the requested computational platform is not available, AccRQA automatically
+falls back to CPU execution.
+
+---
+
+### Returned value
+
+A `data.frame` with one row per parameter combination, typically containing:
+
+- **`Delay`** — delay value (τ)
+- **`Embedding`** — embedding dimension (m)
+- **`Lmin`** — minimum diagonal line length
+- **`DET`** — determinism value
+- **`ENTR`** — entropy of diagonal line-length distribution (if `calculate_ENTR = TRUE`)
+- **`RR`** — recurrence rate
+
+---
+
+### Example
+
+The following example demonstrates DET computation for a simple synthetic data set
+using CPU execution. The example is intentionally small to remain suitable for
+automated package checks.
+
+```{r}
+set.seed(1)
+
+# Input data for CRQA
+input_data <- matrix(runif(100), nrow = 10)
+
+# Parameter values
+tau_values <- c(1, 2)
+emb_values <- c(2, 3)
+lmin_values <- 1
+threshold_values <- 1
+
+# Compute determinism and related diagonal-line measures
+results <- accrqa_DET(
+  input_data       = input_data,
+  tau_values       = tau_values,
+  emb_values       = emb_values,
+  lmin_values      = lmin_values,
+  threshold_values = threshold_values,
+  distance_type    = "euclidean",
+  calculate_ENTR   = TRUE,
+  comp_platform    = "cpu"
+)
+
+print(results)
+```
+
+---
+
+### Notes on performance and validation
+
+The function performs internal validation of input dimensions and reconstruction
+parameters to ensure consistency of the phase-space representation. All computations
+are delegated to a compiled backend, making the function suitable for repeated
+evaluations over large parameter grids.
+
+GPU execution can significantly reduce computation time for large inputs, but is not
+required for correct usage of the function.
+

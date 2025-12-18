@@ -29,5 +29,8 @@ LinkingTo:
   Rcpp
 Suggests: 
     testthat (>= 3.0.0),
-    dplyr
+    dplyr,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
+VignetteBuilder: knitr
