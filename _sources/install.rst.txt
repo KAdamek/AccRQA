@@ -52,6 +52,7 @@ To compile tests use ``-DBUILD_TESTS=ON`` which compiles test executable perform
 
 An example application that uses the AccRQA library can be compiled with a flag ``-DBUILD_APPLICATIONS=ON``.
 
+
 Windows
 -------
 
@@ -69,6 +70,17 @@ In command line you can build AccRQA by
      cmake .. [OPTIONS]
      cmake --build .
      cmake --install .
+
+
+MacOS
+-----
+To get openMP support on MacOS you will need to install llvm and libomp:
+
+  .. code-block:: bash
+
+     brew update
+     brew install llvm libomp
+
 
 Python package
 ==============
@@ -152,6 +164,16 @@ To install from the local repository in command line:
   .. code-block:: bash
 
      py -m pip install .
+
+MacOS
+-----
+
+To get openMP support on MacOS you will need to install llvm and libomp:
+
+  .. code-block:: bash
+
+     brew update
+     brew install llvm libomp
 
 R package
 =========

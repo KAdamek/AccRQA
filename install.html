@@ -49,6 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#the-c-library">The C library</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#linux">Linux</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#windows">Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#macos">MacOS</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#python-package">Python package</a><ul>
@@ -57,6 +58,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#install-from-the-local-repository">Install from the local repository</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#uninstalling">Uninstalling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#installing-on-windows">Installing on Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">MacOS</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#r-package">R package</a><ul>
@@ -171,6 +173,16 @@ cmake<span class="w"> </span>--install<span class="w"> </span>.
 </div>
 </div></blockquote>
 </section>
+<section id="macos">
+<h3>MacOS<a class="headerlink" href="#macos" title="Link to this heading"></a></h3>
+<p>To get openMP support on MacOS you will need to install llvm and libomp:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>update
+brew<span class="w"> </span>install<span class="w"> </span>llvm<span class="w"> </span>libomp
+</pre></div>
+</div>
+</div></blockquote>
+</section>
 </section>
 <section id="python-package">
 <h2>Python package<a class="headerlink" href="#python-package" title="Link to this heading"></a></h2>
@@ -250,6 +262,16 @@ environment variable <code class="docutils literal notranslate"><span class="pre
 <p>To install from the local repository in command line:</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>py<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="id1">
+<h3>MacOS<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>To get openMP support on MacOS you will need to install llvm and libomp:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>update
+brew<span class="w"> </span>install<span class="w"> </span>llvm<span class="w"> </span>libomp
 </pre></div>
 </div>
 </div></blockquote>

@@ -82,9 +82,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#r">R</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#accrqa_DET"><code class="docutils literal notranslate"><span class="pre">accrqa_DET()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#accrqa_LAM"><code class="docutils literal notranslate"><span class="pre">accrqa_LAM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa_RP"><code class="docutils literal notranslate"><span class="pre">accrqa_RP()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accrqa_RR"><code class="docutils literal notranslate"><span class="pre">accrqa_RR()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa_LAM"><code class="docutils literal notranslate"><span class="pre">accrqa_LAM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa_DET"><code class="docutils literal notranslate"><span class="pre">accrqa_DET()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accrqa_RR_target"><code class="docutils literal notranslate"><span class="pre">accrqa_RR_target()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -831,152 +833,61 @@ to integer identifiers.</p>
 <section id="r">
 <h2>R<a class="headerlink" href="#r" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="accrqa_DET">
-<span class="sig-name descname"><span class="pre">accrqa_DET</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmin_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_DET" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="accrqa_RP">
+<span class="sig-name descname"><span class="pre">accrqa_RP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_RP" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<p>This function calculates the determinism (DET) for cross-recurrence quantification analysis (CRQA)
-based on a set of input parameters, including time delay, embedding dimensions, minimum line length,
-threshold values, and normalization.</p>
-<p>The function performs cross-recurrence quantification analysis (CRQA) using the specified parameters.
-DET measures the proportion of recurrent points forming diagonal lines in the recurrence plot,
-which indicates deterministic structures in the data. If <code class="docutils literal notranslate"><span class="pre">calc_ENTR</span></code> is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, the entropy of diagonal
-line lengths is also computed.</p>
+<p>Calculates recurrence plot from supplied time-series and return the RP plot.</p>
+<p>The choice of <code class="docutils literal notranslate"><span class="pre">threshold</span></code> strongly controls the recurrence rate (RR).
+Smaller thresholds produce sparser plots (low RR), larger thresholds denser
+plots (high RR). Typical practice is to choose <code class="docutils literal notranslate"><span class="pre">threshold</span></code> such that
+RR is in a reasonable range (e.g. 1-5-10%) and then compute DET, LAM, ENTR
+on the resulting RP.</p>
+<p>The returned RP is an NxN matrix, where N is the length
+of the (possibly embedded) time series. It can be visualised with
+<code class="docutils literal notranslate"><span class="pre">plot}()</span></code> or your own plotting routines.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><cite>input</cite><span class="classifier"><strong>numeric matrix or data frame</strong></span></dt><dd><p>A numeric matrix or data frame representing the input data for CRQA analysis.</p>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">input_data</span></code><span class="classifier">Numeric vector</span></dt><dd><p>Numeric vector with the time series.</p>
 </dd>
-<dt><cite>tau_values</cite><span class="classifier"><strong>numeric vector</strong></span></dt><dd><p>A numeric vector specifying the time delay(s) to be used in the analysis.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">tau</span></code><span class="classifier">numeric</span></dt><dd><p>Delay (integer, scalar).</p>
 </dd>
-<dt><cite>emb_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the embedding dimensions to be tested.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">emb</span></code><span class="classifier">numeric</span></dt><dd><p>Embedding dimension (integer, scalar).</p>
 </dd>
-<dt><cite>lmin_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the minimum diagonal line lengths for DET computation.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold</span></code><span class="classifier">numeric</span></dt><dd><p>Threshold for recurrence (numeric, scalar).</p>
 </dd>
-<dt><cite>threshold_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the threshold values for recurrence computation.</p>
-</dd>
-<dt><cite>norm</cite><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the normalization method to be used. Options may include <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;maximal&quot;</span></code>, etc. Default is <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.</p>
-</dd>
-<dt><cite>calc_ENTR</cite><span class="classifier">logical, optional</span></dt><dd><p>A logical value indicating whether to calculate entropy (ENTR) along with DET. Default is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
-</dd>
-<dt><cite>platform</cite><span class="classifier">character string</span></dt><dd><p>A character string specifying the computing platform. Options may include <code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nv_gpu&quot;</span></code>, etc.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">distance_type</span></code><span class="classifier">character string</span></dt><dd><p>Character string specifying distance: one of “euclidean” or “maximal”.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><cite>data.frame</cite></dt><dd><p>A data frame containing:</p>
-<ul class="simple">
-<li><p><strong>Delay</strong>: Specific time delay from the values set in the parameters.</p></li>
-<li><p><strong>Embedding</strong>: Specific embedding dimension from the values set in the parameters.</p></li>
-<li><p><strong>Lmin</strong>: Minimal diagonal line lengths set for DET computation.</p></li>
-<li><p><strong>DET</strong>: The determinism values computed for the given input parameters.</p></li>
-<li><p><strong>ENTR</strong> (if <code class="docutils literal notranslate"><span class="pre">calc_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>): The entropy values corresponding to the DET computations.</p></li>
-<li><p><strong>RR</strong>: RR values.</p></li>
+<dd class="field-even"><p><cite>class</cite> <strong>accrqa_rp</strong> containing:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>output</strong>: Integer vector of length code{rp_size^2} with RP (0/1).</p></li>
+<li><p><strong>input</strong>: Original input data (numeric vector).</p></li>
+<li><p><strong>input_size</strong>: Length of the input series.</p></li>
+<li><p><strong>tau</strong>: Delay (integer).</p></li>
+<li><p><strong>emb</strong>: Embedding dimension (integer).</p></li>
+<li><p><strong>threshold</strong>: Threshold used.</p></li>
+<li><p><strong>distance_type</strong>: Distance type as character.</p></li>
+<li><p><strong>rp_size</strong>: Effective RP side length after embedding.</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </dd>
 <dt class="field-odd">Example<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example usage</span>
-<span class="n">input_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">runif</span><span class="p">(</span><span class="m">100</span><span class="p">),</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span>
-<span class="n">tau</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
-<span class="n">emb</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
-<span class="n">lmin</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
-<span class="n">threshold</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
-<span class="n">norm_method</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;euclidean&quot;</span>
-<span class="n">calculate_entropy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">TRUE</span>
-<span class="n">comp_platform</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;cpu&quot;</span>
-
-<span class="n">results</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_DET</span><span class="p">(</span>
-<span class="w">  </span><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_data</span><span class="p">,</span>
-<span class="w">  </span><span class="n">tau_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tau</span><span class="p">,</span>
-<span class="w">  </span><span class="n">emb_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">emb</span><span class="p">,</span>
-<span class="w">  </span><span class="n">lmin_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lmin</span><span class="p">,</span>
-<span class="w">  </span><span class="n">threshold_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threshold</span><span class="p">,</span>
-<span class="w">  </span><span class="n">norm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">norm_method</span><span class="p">,</span>
-<span class="w">  </span><span class="n">calc_ENTR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_entropy</span><span class="p">,</span>
-<span class="w">  </span><span class="n">platform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">comp_platform</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<dl class="py function">
-<dt class="sig sig-object py" id="accrqa_LAM">
-<span class="sig-name descname"><span class="pre">accrqa_LAM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_LAM" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<p>This function computes laminarity (LAM) based on the given input time series and RQA parameters.</p>
-<p>Laminarity (LAM) is a measure in recurrence quantification analysis that describes the tendency of points
-to form vertical lines in the recurrence plot. This function provides configurable parameters for
-calculating LAM with options for normalization and entropy computation.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><cite>input</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector representing the input time series data.</p>
-</dd>
-<dt><cite>tau_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of time delay values.</p>
-</dd>
-<dt><cite>emb_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of embedding dimension values.</p>
-</dd>
-<dt><cite>vmin_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of minimum vertical line lengths.</p>
-</dd>
-<dt><cite>threshold_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of threshold values for recurrence detection.</p>
-</dd>
-<dt><cite>norm</cite><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the distance norm to use. Possible values are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>: Euclidean distance.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;maximal&quot;</span></code>: Maximum norm (Chebyshev distance).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code>: No normalization.</p></li>
-</ul>
-<p>Default is <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.</p>
-</dd>
-<dt><cite>calc_ENTR</cite><span class="classifier">logical, optional</span></dt><dd><p>A logical value indicating whether to calculate entropy (<code class="docutils literal notranslate"><span class="pre">TRUE</span></code> or <code class="docutils literal notranslate"><span class="pre">FALSE</span></code>). Default is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
-</dd>
-<dt><cite>platform</cite><span class="classifier">character string</span></dt><dd><p>A character string specifying the computing platform. Options may include
-<code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nv_gpu&quot;</span></code>, etc.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>data.frame</dt><dd><p>A data frame with the following columns:</p>
-<ul class="simple">
-<li><p><strong>LAM</strong>: Laminarity percentage.</p></li>
-<li><p><strong>V</strong>: Mean vertical line length.</p></li>
-<li><p><strong>Vmax</strong>: Maximum vertical line length.</p></li>
-<li><p><strong>ENTR</strong>: Entropy of the vertical line length distribution (if <code class="docutils literal notranslate"><span class="pre">calc_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>).</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt class="field-odd">Example<span class="colon">:</span></dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example usage of accrqa_LAM</span>
-<span class="n">input</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1.0</span><span class="p">,</span><span class="w"> </span><span class="m">2.0</span><span class="p">,</span><span class="w"> </span><span class="m">3.0</span><span class="p">,</span><span class="w"> </span><span class="m">4.0</span><span class="p">)</span>
-<span class="n">tau_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
-<span class="n">emb_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
-<span class="n">vmin_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
-<span class="n">threshold_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0.1</span><span class="p">,</span><span class="w"> </span><span class="m">0.2</span><span class="p">)</span>
-<span class="n">norm</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;euclidean&quot;</span>
-<span class="n">calc_ENTR</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">TRUE</span>
-
-<span class="n">result</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_LAM</span><span class="p">(</span>
-<span class="w">  </span><span class="n">input</span><span class="p">,</span>
-<span class="w">  </span><span class="n">tau_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">emb_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">vmin_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">threshold_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">norm</span><span class="p">,</span>
-<span class="w">  </span><span class="n">calc_ENTR</span>
-<span class="p">)</span>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sin</span><span class="p">(</span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kc">pi</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="m">100</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">20</span><span class="p">)</span>
+<span class="n">rp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_RP</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="w"> </span><span class="n">tau</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">emb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">threshold</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">distance_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;euclidean&quot;</span><span class="p">)</span>
+<span class="nf">plot</span><span class="p">(</span><span class="n">rp</span><span class="p">)</span>
+<span class="nf">plot</span><span class="p">(</span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="accrqa_RR">
-<span class="sig-name descname"><span class="pre">accrqa_RR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_RR" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">accrqa_RR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_RR" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <p>This function computes the recurrence rate (RR) for a given input time series based on the specified
@@ -989,22 +900,22 @@ are integers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><cite>input</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector representing the input time series.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">input_data</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector representing the input time series.</p>
 </dd>
-<dt><cite>tau_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of time delay (τ) values.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">tau_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of time delay (τ) values.</p>
 </dd>
-<dt><cite>emb_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of embedding dimension (m) values.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">emb_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of embedding dimension (m) values.</p>
 </dd>
-<dt><cite>threshold_values</cite><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of threshold values for recurrence detection.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of threshold values for recurrence detection.</p>
 </dd>
-<dt><cite>norm</cite><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the normalization method. Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.
+<dt><code class="docutils literal notranslate"><span class="pre">distance_type</span></code><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the normalization method. Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.
 Possible values are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>: Euclidean distance.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;maximal&quot;</span></code>: Maximum norm (Chebyshev distance).</p></li>
 </ul>
 </dd>
-<dt><cite>platform</cite><span class="classifier">character string</span></dt><dd><p>A character string specifying the computational platform. Possible values are:</p>
+<dt><code class="docutils literal notranslate"><span class="pre">comp_platform</span></code><span class="classifier">character string</span></dt><dd><p>A character string specifying the computational platform. Possible values are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>: Use the CPU for computations.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;nv_gpu&quot;</span></code>: Use an NVIDIA GPU for computations.</p></li>
@@ -1028,22 +939,216 @@ Possible values are:</p>
 <dd class="field-odd"><p></p></dd>
 </dl>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example usage of accrqa_RR</span>
-<span class="n">input</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1.0</span><span class="p">,</span><span class="w"> </span><span class="m">2.0</span><span class="p">,</span><span class="w"> </span><span class="m">3.0</span><span class="p">,</span><span class="w"> </span><span class="m">4.0</span><span class="p">)</span>
+<span class="n">input</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
 <span class="n">tau_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
 <span class="n">emb_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
 <span class="n">threshold_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0.1</span><span class="p">,</span><span class="w"> </span><span class="m">0.2</span><span class="p">)</span>
 <span class="n">norm</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;euclidean&quot;</span>
 <span class="n">platform</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;cpu&quot;</span>
-
-<span class="n">result</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_RR</span><span class="p">(</span>
-<span class="w">  </span><span class="n">input</span><span class="p">,</span>
-<span class="w">  </span><span class="n">tau_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">emb_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">threshold_values</span><span class="p">,</span>
-<span class="w">  </span><span class="n">norm</span><span class="p">,</span>
-<span class="w">  </span><span class="n">platform</span>
-<span class="p">)</span>
+<span class="n">result</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_RR</span><span class="p">(</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="n">tau_values</span><span class="p">,</span><span class="w"> </span><span class="n">emb_values</span><span class="p">,</span><span class="w"> </span><span class="n">threshold_values</span><span class="p">,</span><span class="w"> </span><span class="n">norm</span><span class="p">,</span><span class="w"> </span><span class="n">platform</span><span class="p">)</span>
 <span class="nf">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa_LAM">
+<span class="sig-name descname"><span class="pre">accrqa_LAM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_LAM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>This function computes laminarity (LAM) based on the given input time series and RQA parameters.</p>
+<p>Laminarity (LAM) is a measure in recurrence quantification analysis that describes the tendency of points
+to form vertical lines in the recurrence plot. This function provides configurable parameters for
+calculating LAM with options for normalization and entropy computation.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">input_data</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector representing the input time series data.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">tau_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of time delay values.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">emb_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of embedding dimension values.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">vmin_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of minimum vertical line lengths.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector of threshold values for recurrence detection.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">distance_type</span></code><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the distance norm to use. Possible values are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>: Euclidean distance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;maximal&quot;</span></code>: Maximum norm (Chebyshev distance).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code>: No normalization.</p></li>
+</ul>
+<p>Default is <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">calculate_ENTR</span></code><span class="classifier">logical, optional</span></dt><dd><p>A logical value indicating whether to calculate entropy (<code class="docutils literal notranslate"><span class="pre">TRUE</span></code> or <code class="docutils literal notranslate"><span class="pre">FALSE</span></code>). Default is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">comp_platform</span></code><span class="classifier">character string</span></dt><dd><p>A character string specifying the computing platform. Options may include
+<code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nv_gpu&quot;</span></code>, etc.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>data.frame</dt><dd><p>A data frame with the following columns:</p>
+<ul class="simple">
+<li><p><strong>LAM</strong>: Laminarity percentage.</p></li>
+<li><p><strong>V</strong>: Mean vertical line length.</p></li>
+<li><p><strong>Vmax</strong>: Maximum vertical line length.</p></li>
+<li><p><strong>ENTR</strong>: Entropy of the vertical line length distribution (if <code class="docutils literal notranslate"><span class="pre">calculate_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>).</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example usage of accrqa_LAM</span>
+<span class="n">input</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
+<span class="n">tau_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
+<span class="n">emb_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="n">vmin_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="n">threshold_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0.1</span><span class="p">,</span><span class="w"> </span><span class="m">0.2</span><span class="p">)</span>
+<span class="n">norm</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;euclidean&quot;</span>
+<span class="n">calculate_ENTR</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">TRUE</span>
+<span class="n">comp_platform</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;cpu&quot;</span>
+<span class="n">result</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_LAM</span><span class="p">(</span>
+<span class="w">  </span><span class="n">input</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tau_values</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="n">tau_values</span><span class="p">,</span>
+<span class="w">  </span><span class="n">emb_values</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="n">emb_values</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vmin_values</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">vmin_values</span><span class="p">,</span>
+<span class="w">  </span><span class="n">threshold_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threshold_values</span><span class="p">,</span>
+<span class="w">  </span><span class="n">distance_type</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">norm</span><span class="p">,</span>
+<span class="w">  </span><span class="n">calculate_ENTR</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_ENTR</span><span class="p">,</span>
+<span class="w">  </span><span class="n">comp_platform</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">comp_platform</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa_DET">
+<span class="sig-name descname"><span class="pre">accrqa_DET</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmin_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_DET" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>This function calculates the determinism (DET) for cross-recurrence quantification analysis (CRQA)
+based on a set of input parameters, including time delay, embedding dimensions, minimum line length,
+threshold values, and normalization.</p>
+<p>The function performs cross-recurrence quantification analysis (CRQA) using the specified parameters.
+DET measures the proportion of recurrent points forming diagonal lines in the recurrence plot,
+which indicates deterministic structures in the data. If <code class="docutils literal notranslate"><span class="pre">calculate_ENTR</span></code> is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, the entropy of diagonal
+line lengths is also computed.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">input_data</span></code><span class="classifier"><strong>numeric matrix or data frame</strong></span></dt><dd><p>A numeric matrix or data frame representing the input data for CRQA analysis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">tau_values</span></code><span class="classifier"><strong>numeric vector</strong></span></dt><dd><p>A numeric vector specifying the time delay(s) to be used in the analysis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">emb_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the embedding dimensions to be tested.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lmin_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the minimum diagonal line lengths for DET computation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold_values</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the threshold values for recurrence computation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">distance_type</span></code><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the normalization method to be used. Options may include <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;maximal&quot;</span></code>, etc. Default is <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">calculate_ENTR</span></code><span class="classifier">logical, optional</span></dt><dd><p>A logical value indicating whether to calculate entropy (ENTR) along with DET. Default is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">comp_platform</span></code><span class="classifier">character string</span></dt><dd><p>A character string specifying the computing platform. Options may include <code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nv_gpu&quot;</span></code>, etc.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><cite>data.frame</cite></dt><dd><p>A data frame containing:</p>
+<ul class="simple">
+<li><p><strong>Delay</strong>: Specific time delay from the values set in the parameters.</p></li>
+<li><p><strong>Embedding</strong>: Specific embedding dimension from the values set in the parameters.</p></li>
+<li><p><strong>Lmin</strong>: Minimal diagonal line lengths set for DET computation.</p></li>
+<li><p><strong>DET</strong>: The determinism values computed for the given input parameters.</p></li>
+<li><p><strong>ENTR</strong> (if <code class="docutils literal notranslate"><span class="pre">calculate_ENTR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>): The entropy values corresponding to the DET computations.</p></li>
+<li><p><strong>RR</strong>: RR values.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example usage</span>
+<span class="n">input_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">runif</span><span class="p">(</span><span class="m">100</span><span class="p">),</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span>
+<span class="n">tau</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
+<span class="n">emb</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="n">lmin</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">threshold</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">norm_method</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;euclidean&quot;</span>
+<span class="n">calculate_entropy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">TRUE</span>
+<span class="n">comp_platform</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;cpu&quot;</span>
+
+<span class="n">results</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">accrqa_DET</span><span class="p">(</span>
+<span class="w">  </span><span class="n">input_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_data</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tau_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tau</span><span class="p">,</span>
+<span class="w">  </span><span class="n">emb_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">emb</span><span class="p">,</span>
+<span class="w">  </span><span class="n">lmin_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lmin</span><span class="p">,</span>
+<span class="w">  </span><span class="n">threshold_values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threshold</span><span class="p">,</span>
+<span class="w">  </span><span class="n">distance_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">norm_method</span><span class="p">,</span>
+<span class="w">  </span><span class="n">calculate_ENTR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_entropy</span><span class="p">,</span>
+<span class="w">  </span><span class="n">comp_platform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">comp_platform</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="accrqa_RR_target">
+<span class="sig-name descname"><span class="pre">accrqa_RR_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_RR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span> <span class="pre">=</span> <span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_type</span> <span class="pre">=</span> <span class="pre">&quot;euclidean&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp_platform</span> <span class="pre">=</span> <span class="pre">&quot;cpu&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span> <span class="pre">=</span> <span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_min</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_max</span> <span class="pre">=</span> <span class="pre">NULL</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threshold</span> <span class="pre">=</span> <span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span> <span class="pre">=</span> <span class="pre">FALSE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#accrqa_RR_target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>Find threshold that yields target RR (recurrence rate)</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">input_data</span></code><span class="classifier"><strong>Numeric vector</strong></span></dt><dd><p>A numeric matrix or data frame representing the input data for CRQA analysis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">tau</span></code><span class="classifier">numeric</span></dt><dd><p>Delay (integer, scalar).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">emb</span></code><span class="classifier">numeric</span></dt><dd><p>Embedding dimension (integer, scalar).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">target_RR</span></code><span class="classifier">numeric vector</span></dt><dd><p>A numeric vector specifying the minimum diagonal line lengths for DET computation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">epsilon</span></code><span class="classifier">numeric</span></dt><dd><p>Allowed error to find the desired RR. Default: 0.01</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">distance_type</span></code><span class="classifier">character string, optional</span></dt><dd><p>A character string specifying the normalization method to be used. Options may include <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;maximal&quot;</span></code>, etc. Default is <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">comp_platform</span></code><span class="classifier">character string</span></dt><dd><p>A character string specifying the computing platform. Options may include <code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nv_gpu&quot;</span></code>, etc.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">max_iter</span></code><span class="classifier">numeric</span></dt><dd><p>Maximum iterations to find the threshold before give up. Default: 20</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold_min</span></code><span class="classifier">numeric</span></dt><dd><p>Lower bound for search. Default: 0</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">threshold_max</span></code><span class="classifier">numeric</span></dt><dd><p>Upper bound for search (set automatically if NULL). Default: NULL</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">n_threshold</span></code><span class="classifier">numeric</span></dt><dd><p>How many thresholds per iteration (e.g. 10). Default: 10</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">verbose</span></code><span class="classifier">binary</span></dt><dd><p>If TRUE, prints progress. Default: FALSE</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">...</span></code> :</dt><dd><p>Further arguments (currently ignored but kept for S3 compatibility).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><cite>data.frame</cite></dt><dd><p>A data frame containing:</p>
+<ul class="simple">
+<li><p><strong>target_RR</strong>: Target RR.</p></li>
+<li><p><strong>threshold</strong>: Threshold to achieve desired RR.</p></li>
+<li><p><strong>RR_found</strong>: RR at the found threshold.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1000</span><span class="p">)</span>
+<span class="nf">accrqa_RR_target</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">tau</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">emb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">target_RR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">epsilon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.001</span><span class="p">)</span>
+<span class="c1"># multiple targets</span>
+<span class="nf">accrqa_RR_target</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">tau</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">emb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">target_RR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0.1</span><span class="p">,</span><span class="m">0.5</span><span class="p">,</span><span class="m">0.8</span><span class="p">),</span><span class="w"> </span><span class="n">epsilon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.001</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
