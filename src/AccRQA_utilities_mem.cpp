@@ -6,6 +6,7 @@
 #include <string.h>
 #include "../include/AccRQA_utilities_error.hpp"
 #include "../include/AccRQA_utilities_mem.hpp"
+#include "../include/AccRQA_printf.hpp"
 
 #ifdef CUDA_FOUND
 #include <cuda_runtime_api.h>
@@ -45,7 +46,7 @@ static void mem_alloc(Mem *mem, Accrqa_Error *status) {
 		mem->data = calloc(bytes, 1);
 		if (!mem->data) {
 			*status = ERR_MEM_ALLOC_FAILURE;
-			printf("Host memory allocation failure "
+			ACCRQA_PRINT("Host memory allocation failure "
 				   "(requested %zu bytes)", bytes);
 			return;
 		}
@@ -54,7 +55,7 @@ static void mem_alloc(Mem *mem, Accrqa_Error *status) {
 		const cudaError_t cuda_error = cudaMalloc(&mem->data, bytes);
 		if (!mem->data || cuda_error) {
 			*status = ERR_MEM_ALLOC_FAILURE;
-			printf("GPU memory allocation failure: %s "
+			ACCRQA_PRINT("GPU memory allocation failure: %s "
 				   "(requested %zu bytes)",
 				   cudaGetErrorString(cuda_error), bytes);
 			if (mem->data) {
@@ -65,13 +66,13 @@ static void mem_alloc(Mem *mem, Accrqa_Error *status) {
 		}
 		#else
 		*status = ERR_MEM_LOCATION;
-		printf("Cannot allocate GPU memory: "
+		ACCRQA_PRINT("Cannot allocate GPU memory: "
 			   "The processing function library was compiled without "
 			   "CUDA support");
 		#endif
 	} else {
 		*status = ERR_MEM_LOCATION;
-		printf("Unsupported memory location");
+		ACCRQA_PRINT("Unsupported memory location");
 	}
 }
 
@@ -100,7 +101,7 @@ Mem *mem_create_wrapper(
 	Mem *mem = (Mem *)calloc(1, sizeof(Mem));
 	if (mem==NULL) {
 		*status = ERR_MEM_ALLOC_FAILURE;
-		printf("Failed to allocate mem.");
+		ACCRQA_PRINT("Failed to allocate mem.");
 		return mem;
 	}
 
@@ -112,7 +113,7 @@ Mem *mem_create_wrapper(
 	const int64_t element_size = mem_type_size(type);
 	if (element_size <= 0) {
 		*status = ERR_DATA_TYPE;
-		printf("Unsupported data type");
+		ACCRQA_PRINT("Unsupported data type");
 		return mem;
 	}
 
@@ -125,12 +126,12 @@ Mem *mem_create_wrapper(
 	mem->stride = (int64_t *)calloc(mem->num_dims, sizeof(int64_t));
 	if (mem->shape == NULL) {
 		*status = ERR_MEM_ALLOC_FAILURE;
-		printf("Failed to allocate mem->shape.");
+		ACCRQA_PRINT("Failed to allocate mem->shape.");
 		return mem;
 	}
 	if (mem->stride == NULL) {
 		*status = ERR_MEM_ALLOC_FAILURE;
-		printf("Failed to allocate mem->stride.");
+		ACCRQA_PRINT("Failed to allocate mem->stride.");
 		return mem;
 	}
 	for (int32_t i = num_dims - 1; i >= 0; --i) {
@@ -172,12 +173,12 @@ void mem_clear_contents(Mem *mem, Accrqa_Error *status) {
 		cudaMemset(mem->data, 0, size);
 		#else
 		*status = ERR_MEM_LOCATION;
-		printf("The processing function library was compiled "
+		ACCRQA_PRINT("The processing function library was compiled "
 			   "without CUDA support");
 		#endif
 	} else {
 		*status = ERR_MEM_LOCATION;
-		printf("Unsupported memory location");
+		ACCRQA_PRINT("Unsupported memory location");
 	}
 }
 
@@ -216,12 +217,12 @@ void mem_copy_contents(
 	#endif
 	else {
 		*status = ERR_MEM_LOCATION;
-		printf("Unsupported memory location");
+		ACCRQA_PRINT("Unsupported memory location");
 	}
 	#ifdef CUDA_FOUND
 	if (cuda_error != cudaSuccess) {
 		*status = ERR_MEM_COPY_FAILURE;
-		printf("cudaMemcpy error: %s",
+		ACCRQA_PRINT("cudaMemcpy error: %s",
 			   cudaGetErrorString(cuda_error));
 	}
 	#endif
@@ -239,7 +240,7 @@ void *mem_gpu_buffer(Mem *mem, Accrqa_Error *status) {
 	if (*status || !mem) return 0;
 	if (mem->location != MEM_GPU) {
 		*status = ERR_MEM_LOCATION;
-		printf("Requested buffer is not in GPU memory");
+		ACCRQA_PRINT("Requested buffer is not in GPU memory");
 		return 0;
 	}
 	return &mem->data;
@@ -249,7 +250,7 @@ const void *mem_gpu_buffer_const(const Mem *mem, Accrqa_Error *status) {
 	if (*status || !mem) return 0;
 	if (mem->location != MEM_GPU) {
 		*status = ERR_MEM_LOCATION;
-		printf("Requested buffer is not in GPU memory");
+		ACCRQA_PRINT("Requested buffer is not in GPU memory");
 		return 0;
 	}
 	return &mem->data;
@@ -301,7 +302,7 @@ void mem_random_fill(Mem *mem, Accrqa_Error *status) {
 	if (*status) return;
 	if (mem->location != MEM_CPU) {
 		*status = ERR_MEM_LOCATION;
-		printf("Unsupported memory location");
+		ACCRQA_PRINT("Unsupported memory location");
 		return;
 	}
 	int64_t num_elements = mem->num_elements;

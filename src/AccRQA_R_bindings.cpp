@@ -2,6 +2,7 @@
 
 #include <R.h>
 #include "../include/AccRQA_library.hpp"
+#include "../include/AccRQA_printf.hpp"
 #include <R_ext/Rdynload.h>
 
 
@@ -14,7 +15,7 @@ Accrqa_CompPlatform check_comp_platform2(int int_comp_platform, Accrqa_Error *er
 		comp_platform = PLT_NV_GPU;
 	}
 	else {
-		printf("Error: Invalid computing platform.\n");
+		ACCRQA_PRINT("Error: Invalid computing platform.\n");
 		comp_platform = PLT_ERROR;
 		*error = ERR_INVALID_ARGUMENT;
 	}
@@ -31,7 +32,7 @@ Accrqa_Distance check_distance_type2(int int_distance_type, Accrqa_Error *error)
 	}
 	else {
 		distance_type = DST_ERROR;
-		printf("Error: Invalid distance type.\n");
+		ACCRQA_PRINT("Error: Invalid distance type.\n");
 		*error = ERR_INVALID_ARGUMENT;
 	}
 	return(distance_type);

@@ -13,9 +13,11 @@
 #include "../include/AccRQA_definitions.hpp"
 #include "../include/AccRQA_utilities_distance.hpp"
 #include "../include/AccRQA_utilities_error.hpp"
+#include "../include/AccRQA_printf.hpp"
 #include "GPU_scan.cuh"
 #include "GPU_reduction.cuh"
 #include "AccRQA_metrics.cuh"
+
 
 #define DET_FAST_MUL 1
 
@@ -208,7 +210,7 @@ template<class const_params>
 __inline__ __device__ void GPU_RQA_HST_reset_data(int *s_start, int *s_end, int *start_count, int *end_count, int bl){
 	// Setting default values
 	__syncthreads();
-	//if(threadIdx.x==0) printf("bl=%d; start_count=%d; end_count=%d;\n", bl, (*start_count), (*end_count));
+	//if(threadIdx.x==0) ACCRQA_PRINT("bl=%d; start_count=%d; end_count=%d;\n", bl, (*start_count), (*end_count));
 	if( (*start_count) == (*end_count) ) GPU_RQA_HST_clean<const_params>(s_start, s_end, start_count, end_count);
 	else {
 		if( threadIdx.x < (*end_count) ){
@@ -344,7 +346,7 @@ __global__ void GPU_RQA_HST_length_histogram_direct(unsigned long long int *d_hi
 		
 		// Now we need to process the histogram
 //		if(threadIdx.x<start_count){
-//			printf("th:%d; bl=%d; s_start=%d; s_end=%d; s_end[]=%d; s_start[]=%d; length=%d;\n", threadIdx.x, bl, start_count, end_count, s_end[threadIdx.x], s_start[threadIdx.x], s_end[threadIdx.x] - s_start[threadIdx.x]);
+//			ACCRQA_PRINT("th:%d; bl=%d; s_start=%d; s_end=%d; s_end[]=%d; s_start[]=%d; length=%d;\n", threadIdx.x, bl, start_count, end_count, s_end[threadIdx.x], s_start[threadIdx.x], s_end[threadIdx.x] - s_start[threadIdx.x]);
 //		}
 		GPU_RQA_HST_create_histogram(d_histogram, s_start, s_end, end_count);
 		__syncthreads();
@@ -1304,9 +1306,9 @@ int GPU_scan_exclusive(unsigned int *d_output, unsigned int *d_input, unsigned i
 	dim3 gridSize(nBlocks_x, nTimeseries, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG_GPU_HST) printf("\n");
-	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("\n");
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	unsigned int *d_partial_sums;
 	if(nBlocks_x==1) {
@@ -1345,9 +1347,9 @@ int GPU_scan_inclusive(unsigned long long int *d_output, unsigned long long int 
 	dim3 gridSize(nBlocks_x, nTimeseries, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG_GPU_HST) printf("\n");
-	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("\n");
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	unsigned long long int *d_partial_sums;
 	if(nBlocks_x==1) {
@@ -1382,9 +1384,9 @@ void RQA_length_histogram_from_timeseries_direct(unsigned long long int *h_lengt
 	dim3 gridSize(1, 1, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG_GPU_HST) printf("Data dimensions: %d;\n", nSamples);
-	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Data dimensions: %d;\n", nSamples);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	//---------------> GPU Allocations
 	unsigned long long int *d_histogram;
@@ -2231,15 +2233,15 @@ void RQA_diagonal_boxcar_wrapper(
 		*error = ERR_CUDA;
 	}
 	
-	//printf("\n");
-	//printf("Before correction: h_S_lmin=%llu; h_S_all=%llu; h_N_lmin=%llu\n", h_S_lmin, h_S_all, h_N_lmin);
+	//ACCRQA_PRINT("\n");
+	//ACCRQA_PRINT("Before correction: h_S_lmin=%llu; h_S_all=%llu; h_N_lmin=%llu\n", h_S_lmin, h_S_all, h_N_lmin);
 	// This is because at the end of the array we have added one element
 	corrected_size = corrected_size - 1;
 	// Correction because we excluding central diagonal line and lower triangle
 	h_S_all  = 2*h_S_all + corrected_size;
 	h_S_lmin = 2*h_S_lmin + corrected_size;
 	h_N_lmin = 2*h_N_lmin + 1;
-	//printf("After correction: h_S_lmin=%llu; h_S_all=%llu; h_N_lmin=%llu\n", h_S_lmin, h_S_all, h_N_lmin);
+	//ACCRQA_PRINT("After correction: h_S_lmin=%llu; h_S_all=%llu; h_N_lmin=%llu\n", h_S_lmin, h_S_all, h_N_lmin);
 	
 	*h_DET  = ((double) h_S_lmin)/((double) h_S_all);
 	*h_L    = ((double) h_S_lmin)/((double) h_N_lmin);
@@ -2667,7 +2669,7 @@ void test_array_reversal(){
 	cudaDeviceSynchronize();
 	
 	for(size_t f=0; f<input_size; f++){
-		printf("[%d; %d]", input[f], output[f]);
+		ACCRQA_PRINT("[%d; %d]", input[f], output[f]);
 	}
 	
 	cudaFree(input);
@@ -2722,9 +2724,9 @@ void GPU_RQA_generate_diagonal_R_matrix_wrapper(
 	dim3 gridSize(2*corrected_size - 1, 1, 1);
 	dim3 blockSize(nThreads, 1, 1);
 	
-	if(DEBUG_GPU_HST) printf("Input size: %ld; Time step: %d; Embedding: %d; Corrected size: %ld;\n", input_size, tau, emb, corrected_size);
-	if(DEBUG_GPU_HST) printf("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
-	if(DEBUG_GPU_HST) printf("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Input size: %ld; Time step: %d; Embedding: %d; Corrected size: %ld;\n", input_size, tau, emb, corrected_size);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Grid  settings: x:%d; y:%d; z:%d;\n", gridSize.x, gridSize.y, gridSize.z);
+	if(DEBUG_GPU_HST) ACCRQA_PRINT("Block settings: x:%d; y:%d; z:%d;\n", blockSize.x, blockSize.y, blockSize.z);
 	
 	//------------> GPU kernel
 	switch(distance_type) {
@@ -2756,7 +2758,7 @@ int GPU_RQA_length_start_end_test(unsigned long long int *h_length_histogram, in
 	int devCount = 0;
 	cudaGetDeviceCount(&devCount);
 	if(device<devCount) cudaSetDevice(device);
-	else { printf("Wrong device!\n"); return(1); }
+	else { ACCRQA_PRINT("Wrong device!\n"); return(1); }
 	
 	//---------> Measurements
 	*execution_time = 0;
