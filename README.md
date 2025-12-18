@@ -78,6 +78,13 @@ To install from the local repository in command line:
 
      py -m pip install .
 
+Installing on MacOS
+---
+
+To get openMP support on MacOS you will need to install llvm and libomp:
+     brew update
+     brew install llvm libomp
+
 
 
 
