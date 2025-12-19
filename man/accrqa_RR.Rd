@@ -57,7 +57,7 @@ are integers.
 }
 \examples{
 # Example usage of accrqa_RR
-input <- runif(100)
+input <- runif(20)
 tau_values <- c(1, 2)
 emb_values <- c(2, 3)
 threshold_values <- c(0.1, 0.2)

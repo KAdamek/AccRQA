@@ -118,7 +118,7 @@ automated package checks.
 set.seed(1)
 
 # Input data for CRQA
-input_data <- matrix(runif(100), nrow = 10)
+input_data <- matrix(runif(20), nrow = 10)
 
 # Parameter values
 tau_values <- c(1, 2)

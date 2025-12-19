@@ -57,7 +57,7 @@ calculating LAM with options for normalization and entropy computation.
 }
 \examples{
 # Example usage of accrqa_LAM
-input <- runif(100)
+input <- runif(20)
 tau_values <- c(1, 2)
 emb_values <- c(2, 3)
 vmin_values <- c(2, 3)

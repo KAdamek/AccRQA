@@ -1,15 +1,15 @@
 Type: Package
 Package: AccRQA
 Title: Accelerated Recurrence Quantification Analysis
-Version: 0.9.9
+Version: 1.0.0
 Authors@R: c(
 	person("Karel", "Adamek", 
 		email="karel.adamek@gmail.com", 
-		role = c("aut", "cre"), 
+		role = c("aut"), 
 		comment = c(ORCID = "0000-0003-2797-0595")), 
 	person("Jan", "Novotny", 
 		email="jan.novotny@physics.slu.cz", 
-		role = c("aut"), 
+		role = c("aut", "cre"), 
 		comment = c(ORCID = "0000-0002-9667-635X")))
 Description: Performs recurrence quantification analysis (RQA) for time series. Provides fast CPU and GPU-accelerated implementations for computing recurrence plots and standard RQA measures, including recurrence rate (RR), determinism (DET), laminarity (LAM), trapping time (TT), and entropy of diagonal line lengths (ENTR).
 License: MIT + file LICENSE
@@ -31,6 +31,8 @@ Suggests:
     testthat (>= 3.0.0),
     dplyr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    spelling
+Language: en-US
 Config/testthat/edition: 3
 VignetteBuilder: knitr

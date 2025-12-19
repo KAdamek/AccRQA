@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Remove generated Makevars files created by configure scripts
+rm -f src/Makevars
+rm -f src/Makevars.win
+
+exit 0

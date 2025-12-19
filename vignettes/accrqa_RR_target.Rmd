@@ -120,7 +120,7 @@ A `data.frame` containing (typically one row per `target_RR`):
 ```{r}
 set.seed(1)
 
-x <- runif(1000)
+x <- runif(50)
 
 res1 <- accrqa_RR_target(
   input_data = x,

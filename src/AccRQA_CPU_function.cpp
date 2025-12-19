@@ -345,7 +345,7 @@ void rqa_CPU_RR_metric_ref_parallel(
 	{
 		//int th_idx = omp_get_thread_num();
 		//int nThreads = omp_get_num_threads();
-		//if(th_idx==0) printf("Using %d omp threads.\n", nThreads);
+		//if(th_idx==0) ACCRQA_PRINTF("Using %d omp threads.\n", nThreads);
 		#ifdef _OPENMP
 		#pragma omp for reduction(+:sum)
 		#endif

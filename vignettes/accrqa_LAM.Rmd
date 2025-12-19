@@ -117,7 +117,7 @@ package checks.
 set.seed(1)
 
 # Input time series
-input <- runif(100)
+input <- runif(20)
 
 # Parameter values
 tau_values <- c(1, 2)

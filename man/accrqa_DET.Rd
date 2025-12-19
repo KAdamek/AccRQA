@@ -58,7 +58,7 @@ line lengths is also computed.
 }
 \examples{
 # Example usage
-input_data <- matrix(runif(100), nrow = 10)
+input_data <- matrix(runif(20), nrow = 10)
 tau <- c(1, 2)
 emb <- c(2, 3)
 lmin <- 1

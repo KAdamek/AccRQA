@@ -243,7 +243,7 @@ test_that("plot.accrqa_rp basic raster plot works and returns ggplot", {
   skip_if_not_installed("ggplot2")
 
   set.seed(1)
-  x  <- seq(0, 2 * pi, length.out = 50)
+  x  <- seq(0, 2 * pi, length.out = 20)
   ts <- sin(x)
 
   # small RP object

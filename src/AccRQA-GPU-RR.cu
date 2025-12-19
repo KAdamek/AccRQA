@@ -15,6 +15,7 @@
 #include "../include/AccRQA_utilities_error.hpp"
 #include "GPU_reduction.cuh"
 #include "AccRQA_metrics.cuh"
+#include "../include/AccRQA_printf.hpp"
 
 #define DEBUG_GPU_RR false
 
@@ -134,8 +135,8 @@ int check_memory(size_t total_size, float multiple){
 	cudaMemGetInfo(&free_mem,&total_mem);
 	double free_memory     = ((double) free_mem);
 	double required_memory = multiple*((double) total_size);
-	if(DEBUG_GPU_RR) printf("\n");
-	if(DEBUG_GPU_RR) printf("Device has %0.3f MB of total memory, which %0.3f MB is available. Memory required %0.3f MB\n", ((float) total_mem)/(1024.0*1024.0), free_memory/(1024.0*1024.0), required_memory/(1024.0*1024.0));
+	if(DEBUG_GPU_RR) ACCRQA_PRINT("\n");
+	if(DEBUG_GPU_RR) ACCRQA_PRINT("Device has %0.3f MB of total memory, which %0.3f MB is available. Memory required %0.3f MB\n", ((float) total_mem)/(1024.0*1024.0), free_memory/(1024.0*1024.0), required_memory/(1024.0*1024.0));
 	if(required_memory>free_memory) return(3);
 	return(0);
 }

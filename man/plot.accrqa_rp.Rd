@@ -45,7 +45,7 @@
 Plot method for AccRQA recurrence plot objects
 }
 \examples{
-x <- seq(0, 10*pi, length.out = 200)
+x <- seq(0, 10*pi, length.out = 36)
 ts <- sin(x)
 rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.1, distance_type = "maximal")
 # raster plot

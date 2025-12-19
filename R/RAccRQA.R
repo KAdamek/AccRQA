@@ -50,7 +50,7 @@ switch_platform <- function(platform){
 #'  }
 #'
 #' @examples
-#' x <- runif(1000)
+#' x <- runif(100)
 #' accrqa_RR_target(x, tau = 1, emb = 2, target_RR = 0.5, epsilon = 0.001)
 #'
 #' # multiple targets
@@ -359,7 +359,7 @@ accrqa_RP <- function(input_data, tau, emb, threshold,
 #' @importFrom patchwork wrap_plots plot_layout
 #'
 #' @examples
-#' x <- seq(0, 10*pi, length.out = 200)
+#' x <- seq(0, 10*pi, length.out = 36)
 #' ts <- sin(x)
 #' rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.1, distance_type = "maximal")
 #' # raster plot
@@ -572,7 +572,7 @@ plot.accrqa_rp <- function(x,
 #'
 #' @examples
 #' # Example usage
-#' input_data <- matrix(runif(100), nrow = 10)
+#' input_data <- matrix(runif(20), nrow = 10)
 #' tau <- c(1, 2)
 #' emb <- c(2, 3)
 #' lmin <- 1
@@ -699,7 +699,7 @@ accrqa_DET <- function(input_data, tau_values, emb_values, lmin_values, threshol
 #'
 #' @examples
 #' # Example usage of accrqa_LAM
-#' input <- runif(100)
+#' input <- runif(20)
 #' tau_values <- c(1, 2)
 #' emb_values <- c(2, 3)
 #' vmin_values <- c(2, 3)
@@ -832,7 +832,7 @@ accrqa_LAM <- function(input_data, tau_values, emb_values, vmin_values, threshol
 #'
 #' @examples
 #' # Example usage of accrqa_RR
-#' input <- runif(100)
+#' input <- runif(20)
 #' tau_values <- c(1, 2)
 #' emb_values <- c(2, 3)
 #' threshold_values <- c(0.1, 0.2)

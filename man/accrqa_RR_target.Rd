@@ -59,7 +59,7 @@ Data frame with columns:
 Find threshold that yields target RR (recurrence rate)
 }
 \examples{
-x <- runif(1000)
+x <- runif(100)
 accrqa_RR_target(x, tau = 1, emb = 2, target_RR = 0.5, epsilon = 0.001)
 
 # multiple targets
