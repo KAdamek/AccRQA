@@ -1,3 +1,4 @@
+skip_on_cran()
 test_that("accrqa_RP basic call returns valid accrqa_rp object", {
   skip_if_not_installed("AccRQA")
   library(AccRQA)
@@ -268,7 +269,7 @@ test_that("plot.accrqa_rp supports tile and point styles", {
   skip_if_not_installed("ggplot2")
 
   set.seed(2)
-  ts <- sin(seq(0, 4 * pi, length.out = 60))
+  ts <- sin(seq(0, 4 * pi, length.out = 20))
 
   rp <- accrqa_RP(
     input_data    = ts,

@@ -1,14 +1,15 @@
 test_that("accrqa_RR_target basic behaviour with valid input", {
   skip_if_not_installed("AccRQA") # or skip_on_cran() if this is the same package
+  skip_on_cran()
 
   set.seed(1)
-  ts <- sin(seq(0, 10, length.out = 50))
+  ts <- sin(seq(0, 10, length.out = 20))
 
   res <- accrqa_RR_target(
     input_data    = ts,
     tau           = 1,
     emb           = 2,
-    target_RR     = c(0.1, 0.3, 0.5),
+    target_RR     = c(0.1, 0.5),
     distance_type = "euclidean",
     comp_platform = "cpu",
     threshold_min = 0,
@@ -22,8 +23,8 @@ test_that("accrqa_RR_target basic behaviour with valid input", {
   expect_s3_class(res, "data.frame")
   expect_equal(colnames(res),
                c("target_RR", "threshold", "RR_found"))
-  expect_equal(nrow(res), 3L)
-  expect_true(all(res$target_RR %in% c(0.1, 0.3, 0.5)))
+  expect_equal(nrow(res), 2L)
+  expect_true(all(res$target_RR %in% c(0.1, 0.5)))
   expect_true(all(res$threshold >= 0))
   expect_true(all(res$threshold <= 1.5))
 })

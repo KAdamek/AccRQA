@@ -3,5 +3,6 @@
 # Remove generated Makevars files created by configure scripts
 rm -f src/Makevars
 rm -f src/Makevars.win
+rm -f src/*.o
 
 exit 0

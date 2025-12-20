@@ -50,11 +50,11 @@ switch_platform <- function(platform){
 #'  }
 #'
 #' @examples
-#' x <- runif(100)
-#' accrqa_RR_target(x, tau = 1, emb = 2, target_RR = 0.5, epsilon = 0.001)
-#'
+#' x <- runif(20)
 #' # multiple targets
-#' accrqa_RR_target(x, tau = 1, emb = 2, target_RR = c(0.1,0.5,0.8), epsilon = 0.001)
+#' \donttest{
+#' 	accrqa_RR_target(x, tau = 1, emb = 2, target_RR = c(0.5,0.8), epsilon = 0.05)
+#' }
 #' @export
 accrqa_RR_target <- function(
     input_data,
@@ -248,10 +248,12 @@ accrqa_RR_target <- function(
 #' \code{\link[graphics]{plot}()} or your own plotting routines.
 #'
 #' @examples
-#' ts <- sin(2 * pi * (1:100) / 20)
+#' \donttest{
+#' ts <- sin(2 * pi * (1:60) / 20)
 #' rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.5, distance_type = "euclidean")
 #' plot(rp)
 #' plot(rp, summary = TRUE)
+#' }
 #'
 #' @export
 accrqa_RP <- function(input_data, tau, emb, threshold, 
@@ -366,13 +368,19 @@ accrqa_RP <- function(input_data, tau, emb, threshold,
 #' plot(rp)
 #' 
 #' # tile style
-#' plot(rp, style = "tile")
+#' \donttest{
+#'	plot(rp, style = "tile")
+#' }
 #'
 #' # With dates:
 #' time_index <- as.Date("2020-01-01") + 0:(sqrt(length(rp$output)) - 1)
+#' \donttest{
 #' plot(rp, x_dates = time_index, y_dates = time_index)
+#' }
 #'
+#' \donttest{
 #' plot(rp, x_dates = time_index, y_dates = time_index, summary = TRUE)
+#' }
 #' @export
 plot.accrqa_rp <- function(x,
                            title   = "",

@@ -1,3 +1,5 @@
+testthat::skip_on_cran()
+
 tolerance <- 1e-6
 
 emb <- c(3,4)

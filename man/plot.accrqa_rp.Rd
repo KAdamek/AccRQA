@@ -52,11 +52,17 @@ rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.1, distance_type = "maximal"
 plot(rp)
 
 # tile style
+\donttest{
 plot(rp, style = "tile")
+}
 
 # With dates:
 time_index <- as.Date("2020-01-01") + 0:(sqrt(length(rp$output)) - 1)
+\donttest{
 plot(rp, x_dates = time_index, y_dates = time_index)
+}
 
+\donttest{
 plot(rp, x_dates = time_index, y_dates = time_index, summary = TRUE)
+}
 }
