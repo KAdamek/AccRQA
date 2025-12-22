@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
 
 ```{r setup, include=FALSE}
 library(AccRQA)
+# force single thread (CRAN policy)
+accrqa_set_num_threads(1)
 ```
 
 ## Recurrence rate computation

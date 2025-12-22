@@ -1,4 +1,4 @@
-skip_on_cran()
+#skip_on_cran()
 test_that("accrqa_RP basic call returns valid accrqa_rp object", {
   skip_if_not_installed("AccRQA")
   library(AccRQA)

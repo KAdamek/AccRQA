@@ -3,6 +3,7 @@
 #include <R.h>
 #include "../include/AccRQA_library.hpp"
 #include "../include/AccRQA_printf.hpp"
+#include "../include/AccRQA_threads.hpp"
 #include <R_ext/Rdynload.h>
 
 
@@ -224,11 +225,36 @@ extern "C" {
 
 	}
 
+	void R_accrqa_set_num_threads(int *n) {
+		if (!n) {
+			return;
+		}
+		accrqa_set_num_threads(n[0]);
+	}
+
+	void R_accrqa_get_max_threads(int *out) {
+		if (!out) {
+			return;
+		}
+		out[0] = accrqa_get_max_threads();
+	}
+
+	void R_accrqa_get_num_threads(int *out) {
+		if (!out) {
+			return;
+		}
+		out[0] = accrqa_get_num_threads();
+	}
+
+
   R_CMethodDef cMethods[] = {
     {"R_double_accrqa_DET", (DL_FUNC) &R_double_accrqa_DET, 14},
     {"R_double_accrqa_LAM", (DL_FUNC) &R_double_accrqa_LAM, 14},
     {"R_double_accrqa_RR", (DL_FUNC) &R_double_accrqa_RR, 11},
     {"R_double_accrqa_RP", (DL_FUNC) &R_double_accrqa_RP, 7},
+    {"R_accrqa_set_num_threads", (DL_FUNC) &R_accrqa_set_num_threads, 1},
+    {"R_accrqa_get_max_threads", (DL_FUNC) &R_accrqa_get_max_threads, 1},
+    {"R_accrqa_get_num_threads", (DL_FUNC) &R_accrqa_get_num_threads, 1},
     {NULL, NULL, 0}
   };
   

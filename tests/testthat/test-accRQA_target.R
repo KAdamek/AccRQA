@@ -1,6 +1,6 @@
 test_that("accrqa_RR_target basic behaviour with valid input", {
   skip_if_not_installed("AccRQA") # or skip_on_cran() if this is the same package
-  skip_on_cran()
+#  skip_on_cran()
 
   set.seed(1)
   ts <- sin(seq(0, 10, length.out = 20))
