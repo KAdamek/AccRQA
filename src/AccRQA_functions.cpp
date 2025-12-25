@@ -527,6 +527,8 @@ void accrqa_LAM(float *output, float *input_data, size_t data_size, int *tau_val
 		#ifdef CUDA_FOUND
 			accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
+			// We need better logging system for this kind of warnings
+			// ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
@@ -541,7 +543,8 @@ void accrqa_LAM(double *output, double *input_data, size_t data_size, int *tau_v
 		#ifdef CUDA_FOUND
 			accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			// We need better logging system for this kind of warnings
+			// ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
@@ -779,7 +782,8 @@ void accrqa_DET(float *output, float *input_data, size_t data_size, int *tau_val
 		#ifdef CUDA_FOUND
 			accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			// We need better logging system for this kind of warnings
+			// ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
@@ -794,7 +798,8 @@ void accrqa_DET(double *output, double *input_data, size_t data_size, int *tau_v
 		#ifdef CUDA_FOUND
 			accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			// We need better logging system for this kind of warnings
+			// ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
@@ -942,7 +947,8 @@ void accrqa_RR(float *output, float *input_data, size_t data_size, int *tau_valu
 		#ifdef CUDA_FOUND
 			accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#else
-			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			// We need better logging system for this kind of warnings
+			// ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#endif
 	}
@@ -957,7 +963,8 @@ void accrqa_RR(double *output, double *input_data, size_t data_size, int *tau_va
 		#ifdef CUDA_FOUND
 			accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#else
-			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			// We need better logging system for this kind of warnings
+			// ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#endif
 	}
