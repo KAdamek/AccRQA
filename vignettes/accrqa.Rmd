@@ -1,0 +1,135 @@
+---
+title: "AccRQA: Accelerated Recurrence Quantification Analysis"
+output: rmarkdown::html_vignette
+author: "Karel Adámek, Jan Novotný"
+vignette: >
+  %\VignetteIndexEntry{AccRQA: Accelerated Recurrence Quantification Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(AccRQA)
+```
+
+## Introduction
+
+**AccRQA** is a multi-platform, high-performance library for computing
+*Recurrence Quantification Analysis* (RQA) measures.
+The library supports execution on standard CPUs as well as on
+NVIDIA GPUs, with GPU acceleration being entirely optional.
+An NVIDIA GPU is therefore **not required** to use AccRQA.
+
+AccRQA provides optimized implementations of core RQA measures and
+exposes them through consistent interfaces in **R, Python, and C/C++**.
+The design goal of the library is to enable efficient large-scale RQA
+workflows while preserving numerical consistency across platforms.
+
+A key feature of AccRQA is its **platform-agnostic interface**.
+The choice of computational backend (CPU or GPU) is controlled by a
+single parameter in the function invocation.
+If the requested backend is unavailable on the current system,
+AccRQA automatically falls back to CPU execution.
+This design allows users to seamlessly transition from local
+workflows (e.g., laptops or workstations) to high-performance
+computing (HPC) environments equipped with GPUs, without modifying
+analysis code.
+
+Currently supported computational platforms include:
+
+- CPUs (with optional multi-threading)
+- NVIDIA GPUs (Linux and macOS)
+
+
+All AccRQA interfaces assume that input data initially reside in
+main memory (CPU RAM).
+When GPU execution is selected, the data are transferred internally
+to the appropriate device.
+
+---
+
+## Scope of the library
+
+The AccRQA library exposes a compact and focused API that covers the
+most commonly used RQA measures.
+Specifically, the following quantities can be computed:
+
+- **Recurrence Rate (RR)**
+- **Laminarity (LAM)**, including trapping time (TT) and maximum trapping time (TT_max)
+- **Determinism (DET)**, including average diagonal line length (L),
+  maximum diagonal line length (L_max), and entropy (ENTR)
+
+Distance computations currently support the **Euclidean norm** and the
+**maximum norm**, with additional metrics planned for future
+versions.
+
+---
+
+### Notes on performance and validation
+
+The functions performs internal validation of input lengths and parameter
+values to ensure consistency of the reconstructed phase space.
+All computations are delegated to a compiled backend, making the
+function suitable for large parameter sweeps and high-throughput
+workflows.
+
+GPU execution can significantly reduce computation time for large
+inputs, but is not required for correct usage of the function.
+
+---
+
+# Contributing to AccRQA
+
+People can contribute in different ways — code, documentation, bug reports, suggesting features or by creating examples and tutorials.
+
+---
+
+## Reporting Bugs
+
+If you find a bug, please:
+
+1. Check if it’s already reported.
+2. If not, [open a new issue](https://github.com/KAdamek/AccRQA/issues).
+3. Include:
+   - Clear title and description
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Environment info (Python version, OS, etc.)
+
+---
+
+## Suggesting Enhancements
+
+If you miss a feature or you have an idea how to improve AccRQA package you can tell us about it using github issues.
+
+1. Check for similar feature requests.
+2. [Open a new issue](https://github.com/KAdamek/AccRQA/issues)
+3. Describe:
+   - What the feature does
+   - Why it’s useful
+   - Any alternatives you’ve considered
+
+---
+
+## Repository contributions
+
+If you are happy to contribute to the code, you can do so via git branches and pull requests. Contributions can be made in Python or R interfaces and functions as well as in C/C++ library. The C/C++ library contains CPU functions parallelised using OpenMP and CUDA GPU kernels. Further work could be done to optimise the calculation of RQA for specific use cases and improve existing performance.
+
+
+## License
+By contributing, you agree that your contributions will be licensed under the same license as the project. See LICENSE for more info.
+
+
+## Conclusion
+
+AccRQA provides a unified and efficient framework for recurrence quantification analysis across a range of computational platforms. Its platform-agnostic interface and compiled backends make it suitable for both exploratory analysis on local machines and large-scale studies on HPC systems.
+
+
+

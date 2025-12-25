@@ -2,6 +2,8 @@
 
 #include <R.h>
 #include "../include/AccRQA_library.hpp"
+#include "../include/AccRQA_printf.hpp"
+#include "../include/AccRQA_threads.hpp"
 #include <R_ext/Rdynload.h>
 
 
@@ -14,7 +16,7 @@ Accrqa_CompPlatform check_comp_platform2(int int_comp_platform, Accrqa_Error *er
 		comp_platform = PLT_NV_GPU;
 	}
 	else {
-		printf("Error: Invalid computing platform.\n");
+		ACCRQA_PRINT("Error: Invalid computing platform.\n");
 		comp_platform = PLT_ERROR;
 		*error = ERR_INVALID_ARGUMENT;
 	}
@@ -31,7 +33,7 @@ Accrqa_Distance check_distance_type2(int int_distance_type, Accrqa_Error *error)
 	}
 	else {
 		distance_type = DST_ERROR;
-		printf("Error: Invalid distance type.\n");
+		ACCRQA_PRINT("Error: Invalid distance type.\n");
 		*error = ERR_INVALID_ARGUMENT;
 	}
 	return(distance_type);
@@ -210,11 +212,6 @@ extern "C" {
 		Accrqa_Distance distance_type = check_distance_type2(local_int_distance_type, &error);
 		if(error != SUCCESS)  return;
 
-		size_t corrected_size = local_input_size - ((local_emb - 1)*local_tau);
-		size_t local_output_size = corrected_size*corrected_size;
-
-//		char *tmp = new char[local_output_size];
-
 		accrqa_RP(
 			output,
 			input,
@@ -226,18 +223,38 @@ extern "C" {
 			&error
 		);
 
-//		for (size_t i = 0; i < local_output_size; i++){
-//			output[i] = (int) tmp[i];
-//		}
-
-//		delete[] tmp;
 	}
+
+	void R_accrqa_set_num_threads(int *n) {
+		if (!n) {
+			return;
+		}
+		accrqa_set_num_threads(n[0]);
+	}
+
+	void R_accrqa_get_max_threads(int *out) {
+		if (!out) {
+			return;
+		}
+		out[0] = accrqa_get_max_threads();
+	}
+
+	void R_accrqa_get_num_threads(int *out) {
+		if (!out) {
+			return;
+		}
+		out[0] = accrqa_get_num_threads();
+	}
+
 
   R_CMethodDef cMethods[] = {
     {"R_double_accrqa_DET", (DL_FUNC) &R_double_accrqa_DET, 14},
     {"R_double_accrqa_LAM", (DL_FUNC) &R_double_accrqa_LAM, 14},
     {"R_double_accrqa_RR", (DL_FUNC) &R_double_accrqa_RR, 11},
     {"R_double_accrqa_RP", (DL_FUNC) &R_double_accrqa_RP, 7},
+    {"R_accrqa_set_num_threads", (DL_FUNC) &R_accrqa_set_num_threads, 1},
+    {"R_accrqa_get_max_threads", (DL_FUNC) &R_accrqa_get_max_threads, 1},
+    {"R_accrqa_get_num_threads", (DL_FUNC) &R_accrqa_get_num_threads, 1},
     {NULL, NULL, 0}
   };
   

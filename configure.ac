@@ -1,76 +1,117 @@
 AC_PREREQ([2.69])
-AC_INIT([accrqa],[0.0.0])
-AC_CONFIG_SRCDIR([src/])
+AC_INIT([AccRQA],[0.9.9])
+AC_CONFIG_SRCDIR([src])
+AC_LANG([C++])
 
-dnl ------------------------------------------------------------
-dnl  Version: read from version.txt and split into parts
-dnl ------------------------------------------------------------
+dnl ============================================================
+dnl  Version handling
+dnl ============================================================
 
 VERSION_FILE="version.txt"
 
 if test -f "$VERSION_FILE"; then
-	ACCRQA_VERSION_STRING=$(cat $VERSION_FILE)
+  ACCRQA_VERSION_STRING=`cat "$VERSION_FILE" | tr -d '[:space:]'`
 else
-	AC_MSG_ERROR([version.txt not found])
+  AC_MSG_ERROR([version.txt not found])
 fi
-dnl Strip whitespace
-ACCRQA_VERSION_STRING=`echo "$ACCRQA_VERSION_STRING" | tr -d '[:space:]'`
 
-dnl Basic sanity check
 case "$ACCRQA_VERSION_STRING" in
-	*[!0-9A-Za-z.\-]*)
-	AC_MSG_ERROR([Invalid characters in version string: $ACCRQA_VERSION_STRING])
-	;;
+  *[!0-9A-Za-z.\-]*)
+    AC_MSG_ERROR([Invalid characters in version string: $ACCRQA_VERSION_STRING])
+    ;;
 esac
 
-AC_MSG_RESULT([Using AccRQA version: $ACCRQA_VERSION_STRING])
+AC_MSG_NOTICE([Using AccRQA version: $ACCRQA_VERSION_STRING])
 
-dnl Split version into major.minor.patch (simple cut)
-ACCRQA_VERSION_MAJOR=$(echo "$ACCRQA_VERSION_STRING" | cut -d. -f1)
-ACCRQA_VERSION_MINOR=$(echo "$ACCRQA_VERSION_STRING" | cut -d. -f2)
-ACCRQA_VERSION_PATCH=$(echo "$ACCRQA_VERSION_STRING" | cut -d. -f3)
-
-AC_DEFINE_UNQUOTED([ACCRQA_VER_MAJOR], [$ACCRQA_VERSION_MAJOR], [Major version])
-AC_DEFINE_UNQUOTED([ACCRQA_VER_MINOR], [$ACCRQA_VERSION_MINOR], [Minor version])
-AC_DEFINE_UNQUOTED([ACCRQA_VER_PATCH], [$ACCRQA_VERSION_PATCH], [Patch version])
+ACCRQA_VERSION_MAJOR=`echo "$ACCRQA_VERSION_STRING" | cut -d. -f1`
+ACCRQA_VERSION_MINOR=`echo "$ACCRQA_VERSION_STRING" | cut -d. -f2`
+ACCRQA_VERSION_PATCH=`echo "$ACCRQA_VERSION_STRING" | cut -d. -f3`
 
 AC_SUBST([ACCRQA_VERSION_MAJOR])
 AC_SUBST([ACCRQA_VERSION_MINOR])
 AC_SUBST([ACCRQA_VERSION_PATCH])
 AC_SUBST([ACCRQA_VERSION_STRING])
 
-dnl ------------------------------------------------------------
-dnl  Common extra C++ flags (we will APPEND here)
-dnl ------------------------------------------------------------
+dnl ============================================================
+dnl  Find R
+dnl ============================================================
 
-ACCRQA_CXXFLAGS=""
-dnl -> later: + -DR_FOUND, + -DCUDA_FOUND, etc.
-
-dnl ------------------------------------------------------------
-dnl  Find R and its flags
-dnl ------------------------------------------------------------
-
-# Use system R for reliable config output (avoids R_check_bin wrapper issues)
-SYS_R=`which R`
-
+SYS_R=`which R 2>/dev/null`
 if test -x "$SYS_R"; then
-#  R_HOME=`R RHOME`
-  R_INCL="" #`R CMD config --cppflags`
-  R_LIB="" #`R CMD config --ldflags`
   AC_MSG_NOTICE([System R found: $SYS_R])
-  AC_MSG_NOTICE([R_INCL flags: $R_INCL])
-  ACCRQA_CXXFLAGS="-DACCRQA_R_FOUND"
 else
-  AC_MSG_ERROR([System R not found.])
+  AC_MSG_ERROR([System R not found])
 fi
 
-#AC_SUBST(R_HOME)
-AC_SUBST(R_INCL)
-AC_SUBST(R_LIB)
+R_INCL=""
+R_LIB=""
+AC_SUBST([R_INCL])
+AC_SUBST([R_LIB])
 
-dnl ------------------------------------------------------------
-dnl  CUDA / nvcc detection (optional)
-dnl ------------------------------------------------------------
+dnl ============================================================
+dnl  Ensure C++ compiler is detected early (clean output)
+dnl ============================================================
+
+AC_PROG_CXX
+
+dnl ============================================================
+dnl  OpenMP detection (portable compile+link test)
+dnl ============================================================
+
+OPENMP_CXXFLAGS=""
+OPENMP_LIBS=""
+ACCRQA_USE_OPENMP=no
+
+AC_LANG_PUSH([C++])
+AC_MSG_CHECKING([for OpenMP support])
+
+save_CXXFLAGS="$CXXFLAGS"
+save_LIBS="$LIBS"
+
+dnl 1) GCC / Clang / mingw-w64
+CXXFLAGS="$save_CXXFLAGS -fopenmp"
+LIBS="$save_LIBS"
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([[#include <omp.h>]],
+                   [[int n = omp_get_max_threads(); return (n>0)?0:1;]])],
+  [ACCRQA_USE_OPENMP=yes; OPENMP_CXXFLAGS="-fopenmp"]
+)
+
+dnl 2) Apple Clang + libomp
+if test "x$ACCRQA_USE_OPENMP" = "xno"; then
+  CXXFLAGS="$save_CXXFLAGS -Xpreprocessor -fopenmp"
+  LIBS="$save_LIBS -lomp"
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <omp.h>]],
+                     [[int n = omp_get_max_threads(); return (n>0)?0:1;]])],
+    [ACCRQA_USE_OPENMP=yes;
+     OPENMP_CXXFLAGS="-Xpreprocessor -fopenmp";
+     OPENMP_LIBS="-lomp"]
+  )
+fi
+
+CXXFLAGS="$save_CXXFLAGS"
+LIBS="$save_LIBS"
+
+if test "x$ACCRQA_USE_OPENMP" = "xyes"; then
+  AC_MSG_RESULT([yes])
+  AC_MSG_NOTICE([OpenMP CXX flags: $OPENMP_CXXFLAGS])
+  AC_MSG_NOTICE([OpenMP libs: ${OPENMP_LIBS:-none}])
+else
+  AC_MSG_RESULT([no])
+  OPENMP_CXXFLAGS=""
+  OPENMP_LIBS=""
+  AC_MSG_NOTICE([OpenMP disabled])
+fi
+
+AC_SUBST([OPENMP_CXXFLAGS])
+AC_SUBST([OPENMP_LIBS])
+AC_SUBST([ACCRQA_USE_OPENMP])
+AC_LANG_POP([C++])
+
+dnl ============================================================
+dnl  CUDA detection (optional)
+dnl ============================================================
 
 AC_ARG_WITH([cuda],
   [AS_HELP_STRING([--with-cuda],
@@ -150,20 +191,62 @@ else
 	fi
 fi
 
-AC_MSG_RESULT([CUDA home: $CUDA_HOME])
-AC_MSG_RESULT([Use CUDA: $ACCRQA_USE_CUDA])
-AC_MSG_RESULT([NVCC flags: $NVCC_FLAGS])
-AC_MSG_RESULT([CXX flags (extra): $ACCRQA_CXXFLAGS])
+AC_MSG_NOTICE([Use CUDA: $ACCRQA_USE_CUDA])
+AC_MSG_NOTICE([NVCC flags: ${NVCC_FLAGS:-none}])
 
 AC_SUBST([CUDA_HOME])
 AC_SUBST([NVCC])
 AC_SUBST([NVCC_FLAGS])
 AC_SUBST([ACCRQA_USE_CUDA])
-AC_SUBST([ACCRQA_CXXFLAGS])
 
-dnl ------------------------------------------------------------
-dnl  Generate src/Makevars from src/Makevars.in
-dnl ------------------------------------------------------------
+dnl ============================================================
+dnl  CUDA flags
+dnl ============================================================
+
+CUDA_CXXFLAGS=""
+CUDA_LIBS=""
+
+if test "x$ACCRQA_USE_CUDA" = "xyes"; then
+  CUDA_CXXFLAGS="-I$CUDA_HOME/include -DCUDA_FOUND"
+  CUDA_LIBS="-L$CUDA_HOME/lib64 -lcudart -lcuda -lcublas -lcurand"
+fi
+
+AC_MSG_NOTICE([CUDA CXXFLAGS: ${CUDA_CXXFLAGS:-none}])
+AC_MSG_NOTICE([CUDA LIBS: ${CUDA_LIBS:-none}])
+
+AC_SUBST([CUDA_CXXFLAGS])
+AC_SUBST([CUDA_LIBS])
+
+dnl ============================================================
+dnl  Object list (portable, no sed)
+dnl ============================================================
+
+OBJECTS=""
+
+add_obj () {
+  if test -z "$OBJECTS"; then
+    OBJECTS="$1"
+  else
+    OBJECTS="$OBJECTS $1"
+  fi
+}
+
+for f in "$srcdir"/src/*.cpp; do
+  test -f "$f" && add_obj "`basename "$f" .cpp`.o"
+done
+
+if test "x$ACCRQA_USE_CUDA" = "xyes"; then
+  for f in "$srcdir"/src/*.cu; do
+    test -f "$f" && add_obj "`basename "$f" .cu`.o"
+  done
+fi
+
+AC_SUBST([OBJECTS])
+
+dnl ============================================================
+dnl  Output
+dnl ============================================================
 
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
+

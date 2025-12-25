@@ -5,7 +5,9 @@
 #include <vector>
 #include <string.h>
 #include <math.h>
-#include <omp.h>
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
 #include <cstdint>
 
 //---------------------- Utilities ------------------------->
@@ -355,12 +357,16 @@ void rqa_CPU_RR_metric_ref_parallel(
 	int64_t corrected_size = input_size - (emb - 1)*tau;
 	
 	int64_t sum = 0;
+	#ifdef _OPENMP
 	#pragma omp parallel shared(sum) 
+	#endif
 	{
 		//int th_idx = omp_get_thread_num();
 		//int nThreads = omp_get_num_threads();
-		//if(th_idx==0) printf("Using %d omp threads.\n", nThreads);
+		//if(th_idx==0) ACCRQA_PRINTF("Using %d omp threads.\n", nThreads);
+		#ifdef _OPENMP
 		#pragma omp for reduction(+:sum)
+		#endif
 		for(int64_t i=0; i<corrected_size; i++) {
 			for(int64_t j=0; j<corrected_size; j++) {
 				sum = sum + R_matrix_element(time_series, i, j, threshold, tau, emb, distance_type);
@@ -450,13 +456,17 @@ void rqa_CPU_LAM_metric_parallel(
 	int64_t corrected_size = input_size - (emb - 1)*tau;
 	size_t histogram_size = corrected_size + 1;
 
+	#ifdef _OPENMP
 	#pragma omp parallel
+	#endif
 	{
 		unsigned long long int *local_hst;
 		local_hst = new unsigned long long int[histogram_size];
 		for(size_t f=0; f<histogram_size; f++) local_hst[f]=0;
 
+		#ifdef _OPENMP
 		#pragma omp for nowait
+		#endif
 		for (int64_t i = 0; i<corrected_size; i++) {
 			get_length_histogram_LAM_inplace(
 				local_hst, 
@@ -465,7 +475,9 @@ void rqa_CPU_LAM_metric_parallel(
 			);
 		}
 
+		#ifdef _OPENMP
 		#pragma omp critical
+		#endif
 		{
 			for(size_t f=0; f<histogram_size; f++){
 				//#pragma omp atomic
@@ -587,13 +599,17 @@ void rqa_CPU_DET_metric_parallel_mk1(
 
 	// upper triangle
 	// r = distance_from_diagonal
+	#ifdef _OPENMP
 	#pragma omp parallel
+	#endif
 	{
 		unsigned long long int *local_hst;
 		local_hst = new unsigned long long int[histogram_size];
 		for(size_t f=0; f<histogram_size; f++) local_hst[f]=0;
 
+		#ifdef _OPENMP
 		#pragma omp for nowait
+		#endif
 		for (int64_t r = corrected_size-1; r>0; r--) {
 			get_length_histogram_DET_inplace(
 				local_hst, 
@@ -604,7 +620,9 @@ void rqa_CPU_DET_metric_parallel_mk1(
 			);
 		}
 
+		#ifdef _OPENMP
 		#pragma omp critical
+		#endif
 		{
 			for(size_t f=0; f<histogram_size; f++){
 				//#pragma omp atomic
@@ -613,7 +631,9 @@ void rqa_CPU_DET_metric_parallel_mk1(
 		}
 
 		delete[] local_hst;
+		#ifdef _OPENMP
 		#pragma omp barrier
+		#endif
 	}
 	
 	// Since we have processed only half of the diagonal and omitted central
@@ -639,18 +659,30 @@ void rqa_CPU_DET_metric_parallel_mk2(
 	// upper triangle
 	// r = distance_from_diagonal
 	unsigned long long int *shared_hst;
+	#ifdef _OPENMP
 	#pragma omp parallel shared(shared_hst)
+	#endif
 	{
-		const int nThreads = omp_get_num_threads();
-		const int th_id = omp_get_thread_num();
+		int nThreads = 1;
+		int th_id = 1;
+		#ifdef _OPENMP
+			nThreads = omp_get_num_threads();
+			th_id = omp_get_thread_num();
+		#endif
+		#ifdef _OPENMP
 		#pragma omp single
+		#endif
 		shared_hst = (unsigned long long int *) malloc(histogram_size*nThreads*sizeof(unsigned long long int));
 
 		//set shared histogram to zero
+		#ifdef _OPENMP
 		#pragma omp barrier
+		#endif
 		for(size_t f=0; f<histogram_size; f++) shared_hst[th_id*histogram_size + f] = 0;
 
+		#ifdef _OPENMP
 		#pragma omp for
+		#endif
 		for (size_t r = corrected_size-1; r>0; r--) {
 			get_length_histogram_DET_inplace(
 				&shared_hst[th_id*histogram_size], 
@@ -661,7 +693,9 @@ void rqa_CPU_DET_metric_parallel_mk2(
 			);
 		}
 
+		#ifdef _OPENMP
 		#pragma omp for
+		#endif
 		for(size_t f=0; f<histogram_size; f++){
 			for(int th=0; th<nThreads; th++){
 				length_histogram[f] += shared_hst[th*histogram_size + f];

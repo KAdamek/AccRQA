@@ -9,4 +9,6 @@
 library(testthat)
 library(AccRQA)
 
+accrqa_set_num_threads(1L)
 test_check("AccRQA")
+

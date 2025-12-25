@@ -1,0 +1,203 @@
+---
+title: "AccRQA: Recurrence plots (RP) and visualization"
+output: rmarkdown::html_vignette
+author: "Karel Adámek, Jan Novotný"
+vignette: >
+  %\VignetteIndexEntry{AccRQA: Recurrence plots (RP) and visualization}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+library(AccRQA)
+# force single thread (CRAN policy)
+accrqa_set_num_threads(1)
+```
+
+## Recurrence plots
+
+### Recurrence plot (RP)
+
+A **recurrence plot (RP)** is a binary matrix representation of recurrences in a
+reconstructed phase space. It is a primary building block in recurrence quantification
+analysis (RQA): once an RP is obtained, measures such as **RR**, **DET**, **LAM**, and
+**ENTR** can be computed from its structures.
+
+A crucial parameter in RP construction is the **threshold**. The threshold strongly
+controls the resulting **recurrence rate (RR)**:
+
+- smaller thresholds yield **sparser** recurrence plots (low RR),
+- larger thresholds yield **denser** recurrence plots (high RR).
+
+A common practical approach is to select the threshold so that RR falls within a
+reasonable range (for example, 1–5–10%), and then compute structural measures such as
+DET, LAM, and ENTR on the resulting RP.
+
+In **AccRQA**, the recurrence plot is computed with `accrqa_RP()`, which returns an
+object of class `accrqa_rp`. The RP can be visualized using the corresponding S3
+`plot()` method or user-defined plotting routines.
+
+---
+
+### Function interface
+
+```r
+accrqa_RP(input_data, tau, emb, threshold, distance_type = "euclidean")
+```
+
+---
+
+### Arguments
+
+- **`input_data`**  
+  Numeric vector representing the input time series.
+
+- **`tau`**  
+  Delay (integer scalar).
+
+- **`emb`**  
+  Embedding dimension (integer scalar).
+
+- **`threshold`**  
+  Threshold for recurrence detection (numeric scalar).
+
+- **`distance_type`**  
+  Distance norm used for recurrence detection. Supported values:
+  - `"euclidean"`
+  - `"maximal"` (Chebyshev distance)
+
+---
+
+### Returned value
+
+`accrqa_RP()` returns an object of class **`accrqa_rp`** containing:
+
+- **`output`**: integer vector of length `rp_size^2` with RP entries (0/1)
+- **`input`**: original input time series (numeric vector)
+- **`input_size`**: length of the input time series
+- **`tau`**: delay used (integer)
+- **`emb`**: embedding dimension used (integer)
+- **`threshold`**: threshold used
+- **`distance_type`**: distance type as character
+- **`rp_size`**: effective RP side length after embedding
+
+Internally, the recurrence plot corresponds to an `N × N` matrix, where `N` equals
+the effective length after embedding. For convenience and compact storage, the RP is
+stored as a flattened vector in `output`.
+
+---
+
+### Example
+
+```{r}
+set.seed(1)
+
+ts <- sin(2 * pi * (1:20) / 20)
+
+rp <- accrqa_RP(
+  input_data = ts,
+  tau = 1,
+  emb = 2,
+  threshold = 0.5,
+  distance_type = "euclidean"
+)
+
+plot(rp)
+```
+
+---
+
+## Visualization: S3 plot method
+
+AccRQA provides an S3 `plot()` method for objects of class `accrqa_rp`.
+This method supports multiple rendering styles and optional annotation of metadata.
+
+### Plot method interface
+
+```r
+## S3 method for class 'accrqa_rp'
+plot(
+  x,
+  title = "",
+  xlabel = "Time",
+  ylabel = "Time",
+  style = c("raster", "tile", "point"),
+  color_min = "#eff3ff",
+  color_max = "#08519c",
+  x_dates = NULL,
+  y_dates = x_dates,
+  summary = FALSE,
+  ...
+)
+```
+
+### Plot arguments
+
+- **`x`**  
+  An object of class `"accrqa_rp"`.
+
+- **`title`**  
+  Plot title.
+
+- **`xlabel`**, **`ylabel`**  
+  Axis labels.
+
+- **`style`**  
+  One of `"raster"`, `"tile"`, or `"point"`.
+
+- **`color_min`**, **`color_max`**  
+  Colors for 0 and 1 entries in the recurrence plot.
+
+- **`x_dates`**, **`y_dates`**  
+  Optional vectors of dates/times for axes (length equal to RP size).
+
+- **`summary`**  
+  If `TRUE`, metadata are shown to the right of the plot.
+
+- **`...`**  
+  Further arguments (currently ignored but kept for S3 compatibility).
+
+---
+
+### Plot examples
+
+```{r}
+x <- seq(0, 10*pi, length.out = 20)
+ts <- sin(x)
+
+rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.1, distance_type = "maximal")
+
+# raster style (default)
+plot(rp)
+
+# tile style; for point style just change the style = "point"
+plot(rp, style = "tile")
+```
+
+### Plotting with dates
+
+```{r}
+time_index <- as.Date("2020-01-01") + 0:(sqrt(length(rp$output)) - 1)
+
+plot(rp, x_dates = time_index, y_dates = time_index)
+plot(rp, x_dates = time_index, y_dates = time_index, summary = TRUE)
+```
+
+---
+
+## Notes
+
+- For large time series, recurrence plots can become memory-intensive because their
+  size scales as `O(N^2)`. In such cases, it is often preferable to compute summary
+  RQA measures directly (e.g., RR/DET/LAM) without materializing the full RP.
+- Threshold selection is problem-dependent. When comparing conditions or datasets,
+  fixing **RR** (rather than fixing the threshold) is commonly used to improve
+  comparability across analyses.
+

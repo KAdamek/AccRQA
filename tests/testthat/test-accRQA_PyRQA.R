@@ -1,3 +1,5 @@
+#testthat::skip_on_cran()
+
 tolerance <- 1e-3
 emb <- c(3,4)
 tau <- c(6,10)

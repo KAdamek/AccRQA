@@ -1,14 +1,15 @@
 test_that("accrqa_RR_target basic behaviour with valid input", {
   skip_if_not_installed("AccRQA") # or skip_on_cran() if this is the same package
+#  skip_on_cran()
 
   set.seed(1)
-  ts <- sin(seq(0, 10, length.out = 500))
+  ts <- sin(seq(0, 10, length.out = 20))
 
   res <- accrqa_RR_target(
     input_data    = ts,
     tau           = 1,
     emb           = 2,
-    target_RR     = c(0.1, 0.3, 0.5),
+    target_RR     = c(0.1, 0.5),
     distance_type = "euclidean",
     comp_platform = "cpu",
     threshold_min = 0,
@@ -22,8 +23,8 @@ test_that("accrqa_RR_target basic behaviour with valid input", {
   expect_s3_class(res, "data.frame")
   expect_equal(colnames(res),
                c("target_RR", "threshold", "RR_found"))
-  expect_equal(nrow(res), 3L)
-  expect_true(all(res$target_RR %in% c(0.1, 0.3, 0.5)))
+  expect_equal(nrow(res), 2L)
+  expect_true(all(res$target_RR %in% c(0.1, 0.5)))
   expect_true(all(res$threshold >= 0))
   expect_true(all(res$threshold <= 1.5))
 })
@@ -45,7 +46,7 @@ test_that("accrqa_RR_target errors on non-numeric input_data", {
 test_that("accrqa_RR_target errors when epsilon is negative", {
   expect_error(
     accrqa_RR_target(
-      input_data    = runif(100),
+      input_data    = runif(20),
       tau           = 1,
       emb           = 2,
       target_RR     = 0.1,
@@ -60,7 +61,7 @@ test_that("accrqa_RR_target errors when epsilon is negative", {
 test_that("accrqa_RR_target errors when n_threshold is below 2", {
   expect_error(
     accrqa_RR_target(
-      input_data    = runif(100),
+      input_data    = runif(20),
       tau           = 1,
       emb           = 2,
       target_RR     = 0.1,
@@ -103,7 +104,7 @@ test_that("accrqa_RR_target errors for target_RR outside [0,1]", {
 
 test_that("accrqa_RR_target errors when threshold_min > threshold_max", {
   set.seed(1)
-  ts <- rnorm(100)
+  ts <- rnorm(20)
 
   expect_error(
     accrqa_RR_target(
@@ -120,7 +121,7 @@ test_that("accrqa_RR_target errors when threshold_min > threshold_max", {
 
 test_that("accrqa_RR_target warns and returns edge when target_RR is unreachable above range", {
   set.seed(1)
-  ts <- sin(seq(0, 2 * pi, length.out = 200))
+  ts <- sin(seq(0, 2 * pi, length.out = 50))
 
   # tiny threshold_max, so RR can’t reach 0.9
   expect_warning(
@@ -143,7 +144,7 @@ test_that("accrqa_RR_target warns and returns edge when target_RR is unreachable
 
 test_that("accrqa_RR_target warns and returns edge when target_RR is unreachable below range", {
   set.seed(1)
-  ts <- sin(seq(0, 2 * pi, length.out = 200))
+  ts <- sin(seq(0, 2 * pi, length.out = 50))
 
   # threshold_min very large → RR maybe always ~1, can't reach 0.01
   expect_warning(

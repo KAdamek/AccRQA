@@ -50,11 +50,11 @@ switch_platform <- function(platform){
 #'  }
 #'
 #' @examples
-#' x <- runif(1000)
-#' accrqa_RR_target(x, tau = 1, emb = 2, target_RR = 0.5, epsilon = 0.001)
-#'
+#' x <- runif(20)
 #' # multiple targets
-#' accrqa_RR_target(x, tau = 1, emb = 2, target_RR = c(0.1,0.5,0.8), epsilon = 0.001)
+#' \donttest{
+#' 	accrqa_RR_target(x, tau = 1, emb = 2, target_RR = c(0.5,0.8), epsilon = 0.05)
+#' }
 #' @export
 accrqa_RR_target <- function(
     input_data,
@@ -248,9 +248,12 @@ accrqa_RR_target <- function(
 #' \code{\link[graphics]{plot}()} or your own plotting routines.
 #'
 #' @examples
-#' ts <- sin(2 * pi * (1:100) / 20)
+#' \donttest{
+#' ts <- sin(2 * pi * (1:60) / 20)
 #' rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.5, distance_type = "euclidean")
 #' plot(rp)
+#' plot(rp, summary = TRUE)
+#' }
 #'
 #' @export
 accrqa_RP <- function(input_data, tau, emb, threshold, 
@@ -358,20 +361,26 @@ accrqa_RP <- function(input_data, tau, emb, threshold,
 #' @importFrom patchwork wrap_plots plot_layout
 #'
 #' @examples
-#' x <- seq(0, 10*pi, length.out = 200)
+#' x <- seq(0, 10*pi, length.out = 36)
 #' ts <- sin(x)
 #' rp <- accrqa_RP(ts, tau = 1, emb = 2, threshold = 0.1, distance_type = "maximal")
 #' # raster plot
 #' plot(rp)
 #' 
 #' # tile style
-#' plot(rp, style = "tile")
+#' \donttest{
+#'	plot(rp, style = "tile")
+#' }
 #'
 #' # With dates:
 #' time_index <- as.Date("2020-01-01") + 0:(sqrt(length(rp$output)) - 1)
+#' \donttest{
 #' plot(rp, x_dates = time_index, y_dates = time_index)
+#' }
 #'
+#' \donttest{
 #' plot(rp, x_dates = time_index, y_dates = time_index, summary = TRUE)
+#' }
 #' @export
 plot.accrqa_rp <- function(x,
                            title   = "",
@@ -459,7 +468,7 @@ plot.accrqa_rp <- function(x,
                      threshold_values   = x$threshold,
                      distance_type      = x$distance_type,
 		     lmin_values        = 2,
-                     comp_platform      = "nv_gpu"
+                     comp_platform      = "cpu"
   )
   lam_df <- accrqa_LAM(
                      input_data         = x$input,
@@ -468,7 +477,7 @@ plot.accrqa_rp <- function(x,
                      threshold_values   = x$threshold,
                      distance_type      = x$distance_type,
 		     vmin_values        = 2,
-                     comp_platform      = "nv_gpu"
+                     comp_platform      = "cpu"
   )
   info_df <- data.frame(
 		label = c(
@@ -571,7 +580,7 @@ plot.accrqa_rp <- function(x,
 #'
 #' @examples
 #' # Example usage
-#' input_data <- matrix(runif(100), nrow = 10)
+#' input_data <- matrix(runif(20), nrow = 10)
 #' tau <- c(1, 2)
 #' emb <- c(2, 3)
 #' lmin <- 1
@@ -698,7 +707,7 @@ accrqa_DET <- function(input_data, tau_values, emb_values, lmin_values, threshol
 #'
 #' @examples
 #' # Example usage of accrqa_LAM
-#' input <- runif(100)
+#' input <- runif(20)
 #' tau_values <- c(1, 2)
 #' emb_values <- c(2, 3)
 #' vmin_values <- c(2, 3)
@@ -831,7 +840,7 @@ accrqa_LAM <- function(input_data, tau_values, emb_values, vmin_values, threshol
 #'
 #' @examples
 #' # Example usage of accrqa_RR
-#' input <- runif(100)
+#' input <- runif(20)
 #' tau_values <- c(1, 2)
 #' emb_values <- c(2, 3)
 #' threshold_values <- c(0.1, 0.2)

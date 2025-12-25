@@ -1,0 +1,156 @@
+---
+title: "AccRQA: Laminarity (LAM) and vertical-line measures"
+output: rmarkdown::html_vignette
+author: "Karel Adámek, Jan Novotný"
+vignette: >
+  %\VignetteIndexEntry{AccRQA: Laminarity (LAM) and vertical-line measures}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+library(AccRQA)
+# force single thread (CRAN policy)
+accrqa_set_num_threads(1)
+```
+
+## Laminarity computation
+
+### Laminarity (LAM)
+
+**Laminarity (LAM)** is a standard measure in recurrence quantification analysis (RQA)
+that describes the tendency of recurrence points to form **vertical lines** in the
+recurrence plot. Vertical line structures are commonly interpreted as signatures of
+**intermittency** or **laminar phases**, where the system remains in a similar state
+for a while before transitioning.
+
+In **AccRQA**, LAM and the associated vertical-line statistics are computed using a
+compiled backend for efficiency, optionally accelerated on supported computational
+platforms. The function is designed for parameter sweeps over delays, embedding
+dimensions, and thresholds, which are typical when exploring sensitivity of RQA
+measures to reconstruction settings.
+
+LAM and related quantities are exposed to the user through `accrqa_LAM()`.
+
+---
+
+### Function interface
+
+```r
+accrqa_LAM(
+  input_data,
+  tau_values,
+  emb_values,
+  vmin_values,
+  threshold_values,
+  distance_type = "euclidean",
+  calculate_ENTR = TRUE,
+  comp_platform
+)
+```
+
+The interface is platform-agnostic: the same function call can be used for CPU and GPU
+execution. The computational backend is selected via a single argument.
+
+---
+
+### Arguments
+
+- **`input_data`**  
+  A numeric vector representing the input time series.
+
+- **`tau_values`**  
+  A numeric vector of time delay values (τ).  
+  Values are internally validated and converted to integers.
+
+- **`emb_values`**  
+  A numeric vector of embedding dimensions (m).
+
+- **`vmin_values`**  
+  A numeric vector of minimum vertical line lengths. This controls the shortest
+  vertical line that is included in the LAM-related statistics.
+
+- **`threshold_values`**  
+  A numeric vector of threshold values used for recurrence detection.
+
+- **`distance_type`** *(character, optional)*  
+  Distance norm used for phase-space reconstruction. Supported values are:
+  - `"euclidean"`: Euclidean distance (default)
+  - `"maximal"`: Maximum (Chebyshev) norm
+  - `"none"`: No normalization (if supported by the backend)
+
+- **`calculate_ENTR`** *(logical, optional)*  
+  Whether to compute entropy (ENTR) of the vertical line-length distribution.
+  Default is `TRUE`.
+
+- **`comp_platform`** *(character)*  
+  Computational platform to be used (e.g., `"cpu"` or `"nv_gpu"`).
+
+If the requested computational platform is not available, AccRQA automatically
+falls back to CPU execution.
+
+---
+
+### Returned value
+
+A `data.frame` containing the vertical-line based RQA measures. Typical columns are:
+
+- **`LAM`** — laminarity (often reported as a percentage)
+- **`V`** — mean vertical line length
+- **`Vmax`** — maximum vertical line length
+- **`ENTR`** — entropy of the vertical line-length distribution (if `calculate_ENTR = TRUE`)
+
+---
+
+### Example
+
+The following example demonstrates LAM computation on a synthetic time series using
+CPU execution. The example is deliberately small to remain suitable for automated
+package checks.
+
+```{r}
+set.seed(1)
+
+# Input time series
+input <- runif(20)
+
+# Parameter values
+tau_values <- c(1, 2)
+emb_values <- c(2, 3)
+vmin_values <- c(2, 3)
+threshold_values <- c(0.1, 0.2)
+
+# Compute laminarity and related vertical-line measures
+result <- accrqa_LAM(
+  input_data       = input,
+  tau_values       = tau_values,
+  emb_values       = emb_values,
+  vmin_values      = vmin_values,
+  threshold_values = threshold_values,
+  distance_type    = "euclidean",
+  calculate_ENTR   = TRUE,
+  comp_platform    = "cpu"
+)
+
+print(result)
+```
+
+---
+
+### Notes on performance and validation
+
+The function performs internal validation of inputs and reconstruction parameters to
+ensure consistency of the reconstructed phase space. Computation is delegated to a
+compiled backend, making the function suitable for repeated evaluations over many
+parameter combinations.
+
+GPU execution can significantly reduce computation time for large inputs, but is not
+required for correct usage of the function.
+

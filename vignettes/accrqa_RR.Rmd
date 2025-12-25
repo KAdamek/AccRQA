@@ -1,0 +1,133 @@
+---
+title: "AccRQA function: RR"
+output: rmarkdown::html_vignette
+author: "Karel Adámek, Jan Novotný"
+vignette: >
+  %\VignetteIndexEntry{AccRQA function: RR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+library(AccRQA)
+# force single thread (CRAN policy)
+accrqa_set_num_threads(1)
+```
+
+## Recurrence rate computation
+
+### Recurrence rate (RR)
+
+The **recurrence rate (RR)** is one of the fundamental measures in
+recurrence quantification analysis. It quantifies the density of
+recurrence points in a recurrence plot and therefore reflects how often
+states of a dynamical system recur in phase space.
+
+In **AccRQA**, RR is computed using a compiled C backend, optionally
+accelerated on supported hardware platforms. The implementation is
+optimized for repeated evaluation over multiple combinations of
+embedding parameters and thresholds, which is common in
+parameter-sweep and sensitivity studies.
+
+The RR computation is exposed to the user through the function
+`accrqa_RR()`.
+
+---
+
+### Function interface
+
+```r
+accrqa_RR(
+  input_data,
+  tau_values,
+  emb_values,
+  threshold_values,
+  distance_type = "euclidean",
+  comp_platform
+)
+```
+
+The interface is platform-agnostic: the same function call can be used
+for CPU and GPU execution. The computational backend is selected via a
+single argument.
+
+---
+
+### Arguments
+
+- **`input_data`**  
+  A numeric vector representing the input time series.
+
+- **`tau_values`**  
+  A numeric vector of time delay values (τ).  
+  Values are internally validated and converted to integers.
+
+- **`emb_values`**  
+  A numeric vector of embedding dimensions (m).
+
+- **`threshold_values`**  
+  A numeric vector of threshold values used for recurrence detection.
+
+- **`distance_type`** *(character, optional)*  
+  Distance metric used for phase-space reconstruction.
+  Supported values are:
+  - `"euclidean"`: Euclidean distance (default)
+  - `"maximal"`: Maximum (Chebyshev) norm
+
+- **`comp_platform`** *(character)*  
+  Computational platform to be used:
+  - `"cpu"`: CPU execution
+  - `"nv_gpu"`: NVIDIA GPU execution (if available)
+
+If the requested computational platform is not available, AccRQA
+automatically falls back to CPU execution.
+
+---
+
+### Returned value
+
+A `data.frame` with one row per parameter combination, containing:
+
+- **`Delay`** — delay value (τ)
+- **`Embedding`** — embedding dimension (m)
+- **`Threshold`** — threshold value
+- **`RR`** — computed recurrence rate
+
+---
+
+### Example
+
+The following example demonstrates a typical RR computation on a
+synthetic time series using CPU execution.
+
+```{r}
+set.seed(1)
+
+# Input time series
+input <- runif(50)
+
+# Parameter values
+tau_values <- c(1, 2)
+emb_values <- c(2, 3)
+threshold_values <- c(0.1, 0.2)
+
+# Compute recurrence rate
+result <- accrqa_RR(
+  input_data = input,
+  tau_values = tau_values,
+  emb_values = emb_values,
+  threshold_values = threshold_values,
+  distance_type = "euclidean",
+  comp_platform = "cpu"
+)
+
+print(result)
+```
+

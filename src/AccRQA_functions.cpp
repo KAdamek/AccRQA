@@ -15,6 +15,8 @@
 #include <iomanip>
 #include <vector>
 
+#include "../include/AccRQA_printf.hpp"
+
 
 //---> Internal classes?
 //-------------------------------------------->
@@ -49,7 +51,7 @@ protected:
 		if(metric[0]>0) primary_metric_value = ((double) metric[minimum_length])/((double) metric[0]);
 		else primary_metric_value = NAN;
 		
-		if(ACCRQA_DEBUG_MODE) printf("primary metric: %e = %e/%e;\n", primary_metric_value, (double) metric[minimum_length], (double) metric[0]);
+		if(ACCRQA_DEBUG_MODE) ACCRQA_PRINT("primary metric: %e = %e/%e;\n", primary_metric_value, (double) metric[minimum_length], (double) metric[0]);
 		
 		return(primary_metric_value);
 	}
@@ -82,7 +84,7 @@ protected:
 			else midm1_value = 0;
 			if(mid_value == last_element && midm1_value > mid_value) {
 				mid = mid - 1;
-				found = true;
+					found = true;
 			}
 			else if(length==0) {
 				found = true;
@@ -125,17 +127,17 @@ protected:
 		double entr = 0;
 		double RR = ((double) metric[0])/((double) (corrected_size*corrected_size));
 		
-		if(ACCRQA_DEBUG_MODE) printf("RR: %e = %e/%e;\n", RR, (double) metric[0], (double) (corrected_size*corrected_size));
+		if(ACCRQA_DEBUG_MODE) ACCRQA_PRINT("RR: %e = %e/%e;\n", RR, (double) metric[0], (double) (corrected_size*corrected_size));
 		
 		return( RR );
 	}
 
 	void print_histogram(std::vector<unsigned long long int> &hst){
-		printf("Histogram:\n");
+		ACCRQA_PRINT("Histogram:\n");
 		for(size_t f=0; f<hst.size(); f++){
-			printf("%d ", (int) hst[f]);
+			ACCRQA_PRINT("%d ", (int) hst[f]);
 		}
-		printf("\n");
+		ACCRQA_PRINT("\n");
 	}
 	
 	void calculate_rqa_histogram_horizontal_CPU(input_type *time_series, size_t input_size, input_type threshold, Accrqa_Distance distance_type) { // Laminarity
@@ -341,43 +343,43 @@ class accrqaLaminarityResult : public accrqaLengthHistogramResult<input_type> {
 void accrqa_print_error(Accrqa_Error *error){
 	switch(*error) {
 		case SUCCESS:
-			printf("success");
+			ACCRQA_PRINT("success");
 			break;
 		case ERR_RUNTIME:
-			printf("generic runtime error");
+			ACCRQA_PRINT("generic runtime error");
 			break;
 		case ERR_INVALID_ARGUMENT:
-			printf("wrong arguments");
+			ACCRQA_PRINT("wrong arguments");
 			break;
 		case ERR_DATA_TYPE:
-			printf("unsupported data type");
+			ACCRQA_PRINT("unsupported data type");
 			break;
 		case ERR_MEM_ALLOC_FAILURE:
-			printf("array not allocated");
+			ACCRQA_PRINT("array not allocated");
 			break;
 		case ERR_MEM_COPY_FAILURE:
-			printf("memory copy failure host<->device");
+			ACCRQA_PRINT("memory copy failure host<->device");
 			break;
 		case ERR_MEM_LOCATION:
-			printf("wrong memory location");
+			ACCRQA_PRINT("wrong memory location");
 			break;
 		case ERR_CUDA_NOT_FOUND:
-			printf("CUDA not found");
+			ACCRQA_PRINT("CUDA not found");
 			break;
 		case ERR_CUDA_DEVICE_NOT_FOUND:
-			printf("could not locate CUDA device (GPU)");
+			ACCRQA_PRINT("could not locate CUDA device (GPU)");
 			break;
 		case ERR_CUDA_NOT_ENOUGH_MEMORY:
-			printf("not enough memory on the device (GPU)");
+			ACCRQA_PRINT("not enough memory on the device (GPU)");
 			break;
 		case ERR_CUDA:
-			printf("other CUDA error");
+			ACCRQA_PRINT("other CUDA error");
 			break;
 		case ERR_INVALID_METRIC_TYPE:
-			printf("invalid metric selected");
+			ACCRQA_PRINT("invalid metric selected");
 			break;
 		default:
-			printf("unrecognised AccRQA error");
+			ACCRQA_PRINT("unrecognised AccRQA error");
 	}
 }
 
@@ -529,7 +531,7 @@ void accrqa_LAM(float *output, float *input_data, size_t data_size, int *tau_val
 		#endif
 	}
 	else {
-		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
+		if(comp_platform!=PLT_CPU) ACCRQA_PRINT("WARNING: Unknown compute platform. Defaulting to CPU.\n");
 		accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -539,12 +541,12 @@ void accrqa_LAM(double *output, double *input_data, size_t data_size, int *tau_v
 		#ifdef CUDA_FOUND
 			accrqa_LAM_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
-		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
+		if(comp_platform!=PLT_CPU) ACCRQA_PRINT("WARNING: Unknown compute platform. Defaulting to CPU.\n");
 		accrqa_LAM_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, vmin_values, nVmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -618,10 +620,10 @@ void calculate_DET_GPU_sum(input_type *output, input_type *input_data, size_t da
 					output[5*pos + 4] = h_RR;
 					
 					#ifdef MONITOR_PERFORMANCE
-					printf("DET-sum execution time: %fms;\n", execution_time);
+					ACCRQA_PRINT("DET-sum execution time: %fms;\n", execution_time);
 					char metric_name[200]; 
-					if(distance_type == DST_EUCLIDEAN) sprintf(metric, "euclidean");
-					else if(distance_type == DST_MAXIMAL) sprintf(metric, "maximal");
+					if(distance_type == DST_EUCLIDEAN) snprintf(metric, sizeof(metric), "euclidean");
+					else if(distance_type == DST_MAXIMAL) snprintf(metric, sizeof(metric), "maximal");
 					std::ofstream FILEOUT;
 					FILEOUT.open ("RQA_results.txt", std::ofstream::out | std::ofstream::app);
 					FILEOUT << std::fixed << std::setprecision(8) << data_size << " " << threshold << " " << "1" << " " << tau << " " << emb << " " << "1" << " " << metric << " " << "DETsum" << " " << execution_time << std::endl;
@@ -777,12 +779,12 @@ void accrqa_DET(float *output, float *input_data, size_t data_size, int *tau_val
 		#ifdef CUDA_FOUND
 			accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
-		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
+		if(comp_platform!=PLT_CPU) ACCRQA_PRINT("WARNING: Unknown compute platform. Defaulting to CPU.\n");
 		accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -792,12 +794,12 @@ void accrqa_DET(double *output, double *input_data, size_t data_size, int *tau_v
 		#ifdef CUDA_FOUND
 			accrqa_DET_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#else
-			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 		#endif
 	}
 	else {
-		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
+		if(comp_platform!=PLT_CPU) ACCRQA_PRINT("WARNING: Unknown compute platform. Defaulting to CPU.\n");
 		accrqa_DET_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, lmin_values, nLmins, threshold_values, nThresholds, distance_type, calc_ENTR, error);
 	}
 }
@@ -940,12 +942,12 @@ void accrqa_RR(float *output, float *input_data, size_t data_size, int *tau_valu
 		#ifdef CUDA_FOUND
 			accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#else
-			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#endif
 	}
 	else {
-		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
+		if(comp_platform!=PLT_CPU) ACCRQA_PRINT("WARNING: Unknown compute platform. Defaulting to CPU.\n");
 		accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 	}
 }
@@ -955,12 +957,12 @@ void accrqa_RR(double *output, double *input_data, size_t data_size, int *tau_va
 		#ifdef CUDA_FOUND
 			accrqa_RR_GPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#else
-			printf("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
+			ACCRQA_PRINT("WARNING: CUDA capable device not found. Defaulting to CPU.\n");
 			accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 		#endif
 	}
 	else {
-		if(comp_platform!=PLT_CPU) printf("WARNING: Unknown compute platform. Defaulting to CPU.\n");
+		if(comp_platform!=PLT_CPU) ACCRQA_PRINT("WARNING: Unknown compute platform. Defaulting to CPU.\n");
 		accrqa_RR_CPU_t(output, input_data, data_size, tau_values, nTaus, emb_values, nEmbs, threshold_values, nThresholds, distance_type, error);
 	}
 }
