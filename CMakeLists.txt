@@ -97,7 +97,7 @@ if(APPLE)
     endif()
 else()
     # ----- Linux: standard OpenMP -----
-    find_package(OpenMP REQUIRED)
+    find_package(OpenMP REQUIRED COMPONENTS C CXX)
 endif()
 
 # Set install directory paths.
