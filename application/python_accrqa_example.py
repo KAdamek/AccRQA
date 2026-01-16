@@ -81,7 +81,7 @@ target_threshold = (subtable.iloc[0])["Threshold"]
 print("True values are: threshold="+str(target_threshold)+"; RR="+str(target_RR))
 threshold_for_RR, current_RR = rqa.RR_target(input_data, 1, 2, target_RR, epsilon=0.00001, distance_type=rqa.accrqaDistance("maximal"))
 
-print("Found threshold =" + str(threshold_for_RR) + "for RR=" + str(current_RR))
+print("Found threshold =" + str(threshold_for_RR) + " for RR=" + str(current_RR))
 print("----------------------------")
 
 

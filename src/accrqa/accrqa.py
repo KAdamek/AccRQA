@@ -113,6 +113,12 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
     
     if not type(tidy_data) == bool:
         raise TypeError("tidy_data must be bool (False or True)")
+    if type(tau_values) != np.ndarray:
+        raise TypeError("tau_values must be NumPy ndarray")
+    if type(emb_values) != np.ndarray:
+        raise TypeError("emb_values must be NumPy ndarray")
+    if type(threshold_values) != np.ndarray:
+        raise TypeError("threshold_values must be NumPy ndarray")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -229,6 +235,14 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
     
     if not type(calculate_ENTR) == bool:
         raise TypeError("calculate_ENTR must be bool (False or True)")
+    if type(tau_values) != np.ndarray:
+        raise TypeError("tau_values must be NumPy ndarray")
+    if type(emb_values) != np.ndarray:
+        raise TypeError("emb_values must be NumPy ndarray")
+    if type(lmin_values) != np.ndarray:
+        raise TypeError("lmin_values must be NumPy ndarray")
+    if type(threshold_values) != np.ndarray:
+        raise TypeError("threshold_values must be NumPy ndarray")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -369,6 +383,14 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
     
     if not type(calculate_ENTR) == bool:
         raise TypeError("calculate_ENTR must be bool (False or True)")
+    if type(tau_values) != np.ndarray:
+        raise TypeError("tau_values must be NumPy ndarray")
+    if type(emb_values) != np.ndarray:
+        raise TypeError("emb_values must be NumPy ndarray")
+    if type(vmin_values) != np.ndarray:
+        raise TypeError("vmin_values must be NumPy ndarray")
+    if type(threshold_values) != np.ndarray:
+        raise TypeError("threshold_values must be NumPy ndarray")
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -467,7 +489,7 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         return(tidy_format_result);
 
 
-def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distance_type: accrqaDistance, epsilon: Optional[float]=0.01, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), max_iter: Optional[int] = 20, threshold_min: Optional[float] = 0, threshold_max: Optional[float] = 10) -> Union[float, float]:
+def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distance_type: accrqaDistance, epsilon: Optional[float]=0.01, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), max_iter: Optional[int] = 20, threshold_min: Optional[float] = 0, threshold_max: Optional[float] = 10) -> Union[NDArray, NDArray]:
     """
     Finds the recurrence rate threshold associated with a target recurrence rate (RR) value
     using a bisection search algorithm within specified precision.
@@ -552,7 +574,7 @@ def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distanc
     threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
     emb_values = np.array([emb], dtype=np.intc)
     tau_values = np.array([tau], dtype=np.intc)
-    threshold_values = np.array([threshold_min, threshold_mid, threshold_max], dtype=np.float32)
+    threshold_values = np.array([threshold_min, threshold_mid, threshold_max], dtype=input_data.dtype)
     
     RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
     RR_values = RR_values.flatten()
@@ -567,22 +589,25 @@ def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distanc
     if low_RR == hgh_RR:
         TypeError("threshold_min and threshold_max yields the same RR value. Increase range between those two threshold values.")
     
-    max_iter
     iteration = 0
     for iteration in range(1, max_iter + 1):
         threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
-        threshold_values = np.array([threshold_mid], dtype=np.float32)
+        threshold_values = np.array([threshold_mid], dtype=input_data.dtype)
         RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
         RR_values = RR_values.flatten()
         current_RR = RR_values[0]
         
         # Check if we've found the solution within epsilon precision
         if abs(current_RR - target_RR) < epsilon:
-            return threshold_mid, current_RR
+            threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
+            RR_end = np.array([current_RR], dtype=input_data.dtype)
+            return(threshold_end, RR_end)
             
         # Check if interval is smaller than epsilon
         if (hgh_RR - low_RR) < epsilon:
-            return threshold_mid, current_RR
+            threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
+            RR_end = np.array([current_RR], dtype=input_data.dtype)
+            return(threshold_end, RR_end)
             
         # Update the search interval
         if current_RR < target_RR:
@@ -591,7 +616,10 @@ def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distanc
             threshold_max = threshold_mid
     print(f"Warning: Bisection search stopped after {max_iter} iterations")
     threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
-    return threshold_mid, current_RR
+    
+    threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
+    RR_end = np.array([current_RR], dtype=input_data.dtype)
+    return(threshold_end, RR_end)
 
 
 
