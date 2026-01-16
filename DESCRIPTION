@@ -1,7 +1,7 @@
 Type: Package
 Package: AccRQA
 Title: Accelerated Recurrence Quantification Analysis
-Version: 1.0.0
+Version: 1.0.2
 Authors@R: c(
 	person("Karel", "Adamek", 
 		email="karel.adamek@gmail.com", 
