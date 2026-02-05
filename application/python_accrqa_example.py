@@ -35,6 +35,10 @@ print("Output as data cube if we set tidy_data to False:")
 output_RR = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=rqa.accrqaDistance("maximal"), comp_platform = rqa.accrqaCompPlatform("nv_gpu"), tidy_data = False)
 print(output_RR)
 print(" ")
+print("Arguments can be single integers or floats:")
+output_RR = rqa.RR(input_data, 1, 2, 0.54, distance_type=rqa.accrqaDistance("maximal"), comp_platform = rqa.accrqaCompPlatform("nv_gpu"), tidy_data = False)
+print(output_RR)
+print(" ")
 print("Output in tidy-data format using Pandas:")
 distance_type_to_use = rqa.accrqaDistance("maximal")
 output_RR_pd = rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=distance_type_to_use, comp_platform = rqa.accrqaCompPlatform("nv_gpu"), tidy_data = True)
@@ -45,6 +49,10 @@ print(" ")
 
 print("----------- DET ------------")
 computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+print("Arguments can be single integers or floats:")
+output_DET_pd = rqa.DET(input_data, 1, 2, 2, 0.25, distance_type=rqa.accrqaDistance("maximal"), calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = True)
+print(output_DET_pd);
+print(" ")
 output_DET_pd = rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=rqa.accrqaDistance("maximal"), calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = True)
 print("DET tidy-data output:")
 print(output_DET_pd);
@@ -53,6 +61,10 @@ print("----------------------------")
 print(" ")
 
 print("----------- LAM ------------")
+print("Arguments can be single integers or floats:")
+output_LAM_pd = rqa.LAM(input_data, 1, 2, 2, 0.36, distance_type=rqa.accrqaDistance("maximal"), calculate_ENTR = True, comp_platform = rqa.accrqaCompPlatform("nv_gpu"), tidy_data = True)
+print(output_LAM_pd);
+print(" ")
 output_LAM_pd = rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=rqa.accrqaDistance("maximal"), calculate_ENTR = True, comp_platform = rqa.accrqaCompPlatform("nv_gpu"), tidy_data = True)
 print("LAM tidy-data output:")
 print(output_LAM_pd);

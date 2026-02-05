@@ -82,7 +82,7 @@ def RP(input_data: NDArray, tau: int, emb: int, threshold: float, distance_type:
     
     return(rp_output)
 
-def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
+def RR(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union[int, ArrayLike], threshold_values: Union[float, ArrayLike], distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates RR measure from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
@@ -111,14 +111,27 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
     if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
     
+    
     if not type(tidy_data) == bool:
         raise TypeError("tidy_data must be bool (False or True)")
-    if type(tau_values) != np.ndarray:
-        raise TypeError("tau_values must be NumPy ndarray")
-    if type(emb_values) != np.ndarray:
-        raise TypeError("emb_values must be NumPy ndarray")
-    if type(threshold_values) != np.ndarray:
-        raise TypeError("threshold_values must be NumPy ndarray")
+    
+    if(type(tau_values) != int and type(tau_values) != np.ndarray):
+        raise TypeError("tau_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(tau_values) == int:
+            tau_values = np.array([tau_values], dtype=np.intc)
+    
+    if(type(emb_values) != int and type(emb_values) != np.ndarray):
+        raise TypeError("emb_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(emb_values) == int:
+            emb_values = np.array([emb_values], dtype=np.intc)
+    
+    if(type(threshold_values) != float and type(threshold_values) != np.ndarray):
+        raise TypeError("threshold_values must be NumPy ndarray of floats or a float ")
+    else:
+        if type(threshold_values) == float:
+            threshold_values = np.array([threshold_values], dtype=input_data.dtype)
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -192,7 +205,7 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
+def DET(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union[int, ArrayLike], lmin_values: Union[int, ArrayLike], threshold_values: Union[float, ArrayLike], distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates DET, L, Lmax, ENTR and RR measures from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
@@ -235,14 +248,30 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
     
     if not type(calculate_ENTR) == bool:
         raise TypeError("calculate_ENTR must be bool (False or True)")
-    if type(tau_values) != np.ndarray:
-        raise TypeError("tau_values must be NumPy ndarray")
-    if type(emb_values) != np.ndarray:
-        raise TypeError("emb_values must be NumPy ndarray")
-    if type(lmin_values) != np.ndarray:
-        raise TypeError("lmin_values must be NumPy ndarray")
-    if type(threshold_values) != np.ndarray:
-        raise TypeError("threshold_values must be NumPy ndarray")
+    
+    if(type(tau_values) != int and type(tau_values) != np.ndarray):
+        raise TypeError("tau_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(tau_values) == int:
+            tau_values = np.array([tau_values], dtype=np.intc)
+    
+    if(type(emb_values) != int and type(emb_values) != np.ndarray):
+        raise TypeError("emb_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(emb_values) == int:
+            emb_values = np.array([emb_values], dtype=np.intc)
+    
+    if(type(lmin_values) != int and type(lmin_values) != np.ndarray):
+        raise TypeError("lmin_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(lmin_values) == int:
+            lmin_values = np.array([lmin_values], dtype=np.intc)
+    
+    if(type(threshold_values) != float and type(threshold_values) != np.ndarray):
+        raise TypeError("threshold_values must be NumPy ndarray of floats or a float ")
+    else:
+        if type(threshold_values) == float:
+            threshold_values = np.array([threshold_values], dtype=input_data.dtype)
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -340,7 +369,7 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
+def LAM(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union[int, ArrayLike], vmin_values: Union[int, ArrayLike], threshold_values: Union[float, ArrayLike], distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates DET, L, Lmax, ENTR and RR measures from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
@@ -383,14 +412,30 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
     
     if not type(calculate_ENTR) == bool:
         raise TypeError("calculate_ENTR must be bool (False or True)")
-    if type(tau_values) != np.ndarray:
-        raise TypeError("tau_values must be NumPy ndarray")
-    if type(emb_values) != np.ndarray:
-        raise TypeError("emb_values must be NumPy ndarray")
-    if type(vmin_values) != np.ndarray:
-        raise TypeError("vmin_values must be NumPy ndarray")
-    if type(threshold_values) != np.ndarray:
-        raise TypeError("threshold_values must be NumPy ndarray")
+    
+    if(type(tau_values) != int and type(tau_values) != np.ndarray):
+        raise TypeError("tau_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(tau_values) == int:
+            tau_values = np.array([tau_values], dtype=np.intc)
+    
+    if(type(emb_values) != int and type(emb_values) != np.ndarray):
+        raise TypeError("emb_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(emb_values) == int:
+            emb_values = np.array([emb_values], dtype=np.intc)
+    
+    if(type(vmin_values) != int and type(vmin_values) != np.ndarray):
+        raise TypeError("vmin_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(vmin_values) == int:
+            vmin_values = np.array([vmin_values], dtype=np.intc)
+    
+    if(type(threshold_values) != float and type(threshold_values) != np.ndarray):
+        raise TypeError("threshold_values must be NumPy ndarray of floats or a float ")
+    else:
+        if type(threshold_values) == float:
+            threshold_values = np.array([threshold_values], dtype=input_data.dtype)
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
