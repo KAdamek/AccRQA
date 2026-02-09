@@ -89,9 +89,9 @@ def RR(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union
     
     Args:
         input_data: The input time-series.
-        tau_values: Array of delays.
-        emb_values: Array of embedding values.
-        threshold_values: Array of threshold values.
+        tau_values: Array of delays or single integer.
+        emb_values: Array of embedding values or single integer.
+        threshold_values: Array of threshold values or single float.
         distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
@@ -212,10 +212,10 @@ def DET(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Unio
     
     Args:
         input_data: The input time-series.
-        tau_values: Array of delays.
-        emb_values: Array of embedding values.
-        lmin_values: Array of minimal lengths.
-        threshold_values: Array of threshold values.
+        tau_values: Array of delays or single integer.
+        emb_values: Array of embedding values or single integer.
+        lmin_values: Array of minimal lengths or single integer.
+        threshold_values: Array of threshold values or single float.
         distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         calculate_ENTR: [Optional] Enable calculation of Lmax and ENTR. Default True.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
@@ -376,10 +376,10 @@ def LAM(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Unio
     
     Args:
         input_data: The input time-series.
-        tau_values: Array of delays.
-        emb_values: Array of embedding values.
-        vmin_values: Array of minimal lengths.
-        threshold_values: Array of threshold values.
+        tau_values: Array of delays or single integer.
+        emb_values: Array of embedding values or single integer.
+        vmin_values: Array of minimal lengths or single integer.
+        threshold_values: Array of threshold values or single float.
         distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         calculate_ENTR: [Optional] Enable calculation of Vmax and ENTR. Default True.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
