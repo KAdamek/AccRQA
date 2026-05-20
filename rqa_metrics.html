@@ -617,9 +617,9 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_data</strong> – The input time-series.</p></li>
-<li><p><strong>tau_values</strong> – Array of delays.</p></li>
-<li><p><strong>emb_values</strong> – Array of embedding values.</p></li>
-<li><p><strong>threshold_values</strong> – Array of threshold values.</p></li>
+<li><p><strong>tau_values</strong> – Array of delays or single integer.</p></li>
+<li><p><strong>emb_values</strong> – Array of embedding values or single integer.</p></li>
+<li><p><strong>threshold_values</strong> – Array of threshold values or single float.</p></li>
 <li><p><strong>distance_type</strong> – Norm used to calculate distance. Must be instance of <a class="reference internal" href="#accrqa.accrqaDistance" title="accrqa.accrqaDistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">accrqaDistance()</span></code></a>.</p></li>
 <li><p><strong>comp_platform</strong> – [Optional] Computational platform to be used. Default is cpu. Must be instance of <a class="reference internal" href="#accrqa.accrqaCompPlatform" title="accrqa.accrqaCompPlatform"><code class="xref py py-func docutils literal notranslate"><span class="pre">accrqaCompPlatform()</span></code></a>.</p></li>
 <li><p><strong>tidy_data</strong> – [Optional] Output data in tidy data format. Requires pandas.</p></li>
@@ -650,10 +650,10 @@ number of embeddings, number of thresholds].</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_data</strong> – The input time-series.</p></li>
-<li><p><strong>tau_values</strong> – Array of delays.</p></li>
-<li><p><strong>emb_values</strong> – Array of embedding values.</p></li>
-<li><p><strong>vmin_values</strong> – Array of minimal lengths.</p></li>
-<li><p><strong>threshold_values</strong> – Array of threshold values.</p></li>
+<li><p><strong>tau_values</strong> – Array of delays or single integer.</p></li>
+<li><p><strong>emb_values</strong> – Array of embedding values or single integer.</p></li>
+<li><p><strong>vmin_values</strong> – Array of minimal lengths or single integer.</p></li>
+<li><p><strong>threshold_values</strong> – Array of threshold values or single float.</p></li>
 <li><p><strong>distance_type</strong> – Norm used to calculate distance. Must be instance of <a class="reference internal" href="#accrqa.accrqaDistance" title="accrqa.accrqaDistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">accrqaDistance()</span></code></a>.</p></li>
 <li><p><strong>calculate_ENTR</strong> – [Optional] Enable calculation of Vmax and ENTR. Default True.</p></li>
 <li><p><strong>comp_platform</strong> – [Optional] Computational platform to be used. Default is cpu. Must be instance of <a class="reference internal" href="#accrqa.accrqaCompPlatform" title="accrqa.accrqaCompPlatform"><code class="xref py py-func docutils literal notranslate"><span class="pre">accrqaCompPlatform()</span></code></a>.</p></li>
@@ -691,10 +691,10 @@ RQA ID  RQA measure:
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_data</strong> – The input time-series.</p></li>
-<li><p><strong>tau_values</strong> – Array of delays.</p></li>
-<li><p><strong>emb_values</strong> – Array of embedding values.</p></li>
-<li><p><strong>lmin_values</strong> – Array of minimal lengths.</p></li>
-<li><p><strong>threshold_values</strong> – Array of threshold values.</p></li>
+<li><p><strong>tau_values</strong> – Array of delays or single integer.</p></li>
+<li><p><strong>emb_values</strong> – Array of embedding values or single integer.</p></li>
+<li><p><strong>lmin_values</strong> – Array of minimal lengths or single integer.</p></li>
+<li><p><strong>threshold_values</strong> – Array of threshold values or single float.</p></li>
 <li><p><strong>distance_type</strong> – Norm used to calculate distance. Must be instance of <a class="reference internal" href="#accrqa.accrqaDistance" title="accrqa.accrqaDistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">accrqaDistance()</span></code></a>.</p></li>
 <li><p><strong>calculate_ENTR</strong> – [Optional] Enable calculation of Lmax and ENTR. Default True.</p></li>
 <li><p><strong>comp_platform</strong> – [Optional] Computational platform to be used. Default is cpu. Must be instance of <a class="reference internal" href="#accrqa.accrqaCompPlatform" title="accrqa.accrqaCompPlatform"><code class="xref py py-func docutils literal notranslate"><span class="pre">accrqaCompPlatform()</span></code></a>.</p></li>
