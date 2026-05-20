@@ -21,6 +21,14 @@ def test_unhappy_RR_tau():
     with pytest.raises(TypeError):
         rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=distance_type_to_use, comp_platform = computational_platform_to_use, tidy_data = False)
 
+def test_unhappy_RR_tau_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    tau_values = 1.0
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=distance_type_to_use, comp_platform = computational_platform_to_use, tidy_data = False)
+
 def test_unhappy_RR_emb():
     tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
     emb_values = np.array([], dtype=np.intc)
@@ -29,9 +37,25 @@ def test_unhappy_RR_emb():
     with pytest.raises(TypeError):
         rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=distance_type_to_use, comp_platform = computational_platform_to_use, tidy_data = False)
 
+def test_unhappy_RR_emb_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    emb_values = 1.0
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=distance_type_to_use, comp_platform = computational_platform_to_use, tidy_data = False)
+
 def test_unhappy_RR_threshold():
     tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
     threshold_values = np.array([], dtype=np.intc)
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.RR(input_data, tau_values, emb_values, threshold_values, distance_type=distance_type_to_use, comp_platform = computational_platform_to_use, tidy_data = False)
+
+def test_unhappy_RR_threshold_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    threshold_values = 2
     distance_type_to_use = rqa.accrqaDistance("maximal")
     computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
     with pytest.raises(TypeError):
@@ -77,9 +101,25 @@ def test_unhappy_DET_tau():
     with pytest.raises(TypeError):
         rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
 
+def test_unhappy_DET_tau_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    tau_values = 1.0
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
 def test_unhappy_DET_emb():
     tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
     emb_values = np.array([], dtype=np.intc)
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
+def test_unhappy_DET_emb():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    emb_values = 2.0
     distance_type_to_use = rqa.accrqaDistance("maximal")
     computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
     with pytest.raises(TypeError):
@@ -93,9 +133,25 @@ def test_unhappy_DET_threshold():
     with pytest.raises(TypeError):
         rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
 
+def test_unhappy_DET_threshold_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    threshold_values = 2
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
 def test_unhappy_DET_lmin():
     tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
     lmin_values = np.array([], dtype=np.intc)
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.DET(input_data, tau_values, emb_values, lmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
+def test_unhappy_DET_lmin_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    lmin_values = 1.0
     distance_type_to_use = rqa.accrqaDistance("maximal")
     computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
     with pytest.raises(TypeError):
@@ -147,9 +203,25 @@ def test_unhappy_LAM_tau():
     with pytest.raises(TypeError):
         rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
 
+def test_unhappy_LAM_tau_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    tau_values = 1.0
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
 def test_unhappy_LAM_emb():
     tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
     emb_values = np.array([], dtype=np.intc)
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
+def test_unhappy_LAM_emb_signle():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    emb_values = 2.0
     distance_type_to_use = rqa.accrqaDistance("maximal")
     computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
     with pytest.raises(TypeError):
@@ -163,9 +235,25 @@ def test_unhappy_LAM_threshold():
     with pytest.raises(TypeError):
         rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
 
+def test_unhappy_LAM_threshold_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    threshold_values = 1
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
 def test_unhappy_LAM_vmin():
     tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
     vmin_values = np.array([], dtype=np.intc)
+    distance_type_to_use = rqa.accrqaDistance("maximal")
+    computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
+    with pytest.raises(TypeError):
+        rqa.LAM(input_data, tau_values, emb_values, vmin_values, threshold_values, distance_type=distance_type_to_use, calculate_ENTR = True, comp_platform = computational_platform_to_use, tidy_data = False)
+
+def test_unhappy_LAM_vmin_single():
+    tau_values, emb_values, lmin_values, vmin_values, threshold_values, input_data = create_data()
+    vmin_values = 1.0
     distance_type_to_use = rqa.accrqaDistance("maximal")
     computational_platform_to_use = rqa.accrqaCompPlatform("nv_gpu")
     with pytest.raises(TypeError):

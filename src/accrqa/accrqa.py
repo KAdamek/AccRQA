@@ -82,16 +82,16 @@ def RP(input_data: NDArray, tau: int, emb: int, threshold: float, distance_type:
     
     return(rp_output)
 
-def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
+def RR(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union[int, ArrayLike], threshold_values: Union[float, ArrayLike], distance_type: accrqaDistance, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates RR measure from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
     
     Args:
         input_data: The input time-series.
-        tau_values: Array of delays.
-        emb_values: Array of embedding values.
-        threshold_values: Array of threshold values.
+        tau_values: Array of delays or single integer.
+        emb_values: Array of embedding values or single integer.
+        threshold_values: Array of threshold values or single float.
         distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
         tidy_data: [Optional] Output data in tidy data format. Requires pandas.
@@ -111,14 +111,27 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
     if tidy_data == True and pandas_detected == False:
         raise Exception("Error: Pandas required for tidy data format!")
     
+    
     if not type(tidy_data) == bool:
         raise TypeError("tidy_data must be bool (False or True)")
-    if type(tau_values) != np.ndarray:
-        raise TypeError("tau_values must be NumPy ndarray")
-    if type(emb_values) != np.ndarray:
-        raise TypeError("emb_values must be NumPy ndarray")
-    if type(threshold_values) != np.ndarray:
-        raise TypeError("threshold_values must be NumPy ndarray")
+    
+    if(type(tau_values) != int and type(tau_values) != np.ndarray):
+        raise TypeError("tau_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(tau_values) == int:
+            tau_values = np.array([tau_values], dtype=np.intc)
+    
+    if(type(emb_values) != int and type(emb_values) != np.ndarray):
+        raise TypeError("emb_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(emb_values) == int:
+            emb_values = np.array([emb_values], dtype=np.intc)
+    
+    if(type(threshold_values) != float and type(threshold_values) != np.ndarray):
+        raise TypeError("threshold_values must be NumPy ndarray of floats or a float ")
+    else:
+        if type(threshold_values) == float:
+            threshold_values = np.array([threshold_values], dtype=input_data.dtype)
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -192,17 +205,17 @@ def RR(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, thresh
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
+def DET(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union[int, ArrayLike], lmin_values: Union[int, ArrayLike], threshold_values: Union[float, ArrayLike], distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates DET, L, Lmax, ENTR and RR measures from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
     
     Args:
         input_data: The input time-series.
-        tau_values: Array of delays.
-        emb_values: Array of embedding values.
-        lmin_values: Array of minimal lengths.
-        threshold_values: Array of threshold values.
+        tau_values: Array of delays or single integer.
+        emb_values: Array of embedding values or single integer.
+        lmin_values: Array of minimal lengths or single integer.
+        threshold_values: Array of threshold values or single float.
         distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         calculate_ENTR: [Optional] Enable calculation of Lmax and ENTR. Default True.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
@@ -235,14 +248,30 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
     
     if not type(calculate_ENTR) == bool:
         raise TypeError("calculate_ENTR must be bool (False or True)")
-    if type(tau_values) != np.ndarray:
-        raise TypeError("tau_values must be NumPy ndarray")
-    if type(emb_values) != np.ndarray:
-        raise TypeError("emb_values must be NumPy ndarray")
-    if type(lmin_values) != np.ndarray:
-        raise TypeError("lmin_values must be NumPy ndarray")
-    if type(threshold_values) != np.ndarray:
-        raise TypeError("threshold_values must be NumPy ndarray")
+    
+    if(type(tau_values) != int and type(tau_values) != np.ndarray):
+        raise TypeError("tau_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(tau_values) == int:
+            tau_values = np.array([tau_values], dtype=np.intc)
+    
+    if(type(emb_values) != int and type(emb_values) != np.ndarray):
+        raise TypeError("emb_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(emb_values) == int:
+            emb_values = np.array([emb_values], dtype=np.intc)
+    
+    if(type(lmin_values) != int and type(lmin_values) != np.ndarray):
+        raise TypeError("lmin_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(lmin_values) == int:
+            lmin_values = np.array([lmin_values], dtype=np.intc)
+    
+    if(type(threshold_values) != float and type(threshold_values) != np.ndarray):
+        raise TypeError("threshold_values must be NumPy ndarray of floats or a float ")
+    else:
+        if type(threshold_values) == float:
+            threshold_values = np.array([threshold_values], dtype=input_data.dtype)
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -340,17 +369,17 @@ def DET(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, lmin_
         tidy_format_result = pd.DataFrame(tmplist)
         return(tidy_format_result);
 
-def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_values: ArrayLike, threshold_values: ArrayLike, distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
+def LAM(input_data: NDArray, tau_values: Union[int, ArrayLike], emb_values: Union[int, ArrayLike], vmin_values: Union[int, ArrayLike], threshold_values: Union[float, ArrayLike], distance_type: accrqaDistance, calculate_ENTR: Optional[bool] = True, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), tidy_data: Optional[bool] = True) -> Union[NDArray, pd.DataFrame]:
     """
     Calculates DET, L, Lmax, ENTR and RR measures from supplied time-series.
     https://en.wikipedia.org/wiki/Recurrence_quantification_analysis
     
     Args:
         input_data: The input time-series.
-        tau_values: Array of delays.
-        emb_values: Array of embedding values.
-        vmin_values: Array of minimal lengths.
-        threshold_values: Array of threshold values.
+        tau_values: Array of delays or single integer.
+        emb_values: Array of embedding values or single integer.
+        vmin_values: Array of minimal lengths or single integer.
+        threshold_values: Array of threshold values or single float.
         distance_type: Norm used to calculate distance. Must be instance of :func:`~accrqa.accrqaDistance`.
         calculate_ENTR: [Optional] Enable calculation of Vmax and ENTR. Default True.
         comp_platform: [Optional] Computational platform to be used. Default is cpu. Must be instance of :func:`~accrqa.accrqaCompPlatform`.
@@ -383,14 +412,30 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
     
     if not type(calculate_ENTR) == bool:
         raise TypeError("calculate_ENTR must be bool (False or True)")
-    if type(tau_values) != np.ndarray:
-        raise TypeError("tau_values must be NumPy ndarray")
-    if type(emb_values) != np.ndarray:
-        raise TypeError("emb_values must be NumPy ndarray")
-    if type(vmin_values) != np.ndarray:
-        raise TypeError("vmin_values must be NumPy ndarray")
-    if type(threshold_values) != np.ndarray:
-        raise TypeError("threshold_values must be NumPy ndarray")
+    
+    if(type(tau_values) != int and type(tau_values) != np.ndarray):
+        raise TypeError("tau_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(tau_values) == int:
+            tau_values = np.array([tau_values], dtype=np.intc)
+    
+    if(type(emb_values) != int and type(emb_values) != np.ndarray):
+        raise TypeError("emb_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(emb_values) == int:
+            emb_values = np.array([emb_values], dtype=np.intc)
+    
+    if(type(vmin_values) != int and type(vmin_values) != np.ndarray):
+        raise TypeError("vmin_values must be NumPy ndarray of integers or an integer")
+    else:
+        if type(vmin_values) == int:
+            vmin_values = np.array([vmin_values], dtype=np.intc)
+    
+    if(type(threshold_values) != float and type(threshold_values) != np.ndarray):
+        raise TypeError("threshold_values must be NumPy ndarray of floats or a float ")
+    else:
+        if type(threshold_values) == float:
+            threshold_values = np.array([threshold_values], dtype=input_data.dtype)
     
     nTaus = tau_values.shape[0]
     nEmbs = emb_values.shape[0]
@@ -489,7 +534,7 @@ def LAM(input_data: NDArray, tau_values: ArrayLike, emb_values: ArrayLike, vmin_
         return(tidy_format_result);
 
 
-def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distance_type: accrqaDistance, epsilon: Optional[float]=0.01, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), max_iter: Optional[int] = 20, threshold_min: Optional[float] = 0, threshold_max: Optional[float] = 10) -> Union[NDArray, NDArray]:
+def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: Union[float, ArrayLike], distance_type: accrqaDistance, epsilon: Optional[float]=0.01, comp_platform: Optional[accrqaCompPlatform] = accrqaCompPlatform("nv_gpu"), max_iter: Optional[int] = 20, threshold_min: Optional[float] = 0, threshold_max: Optional[float] = 10) -> Union[NDArray, NDArray]:
     """
     Finds the recurrence rate threshold associated with a target recurrence rate (RR) value
     using a bisection search algorithm within specified precision.
@@ -559,10 +604,14 @@ def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distanc
     if type(input_data) != np.ndarray:
         raise TypeError("Unknown array type")
     
+    if(type(target_RR) != float and type(target_RR) != np.float64 and type(target_RR) != np.float32 and type(target_RR) != np.ndarray):
+        raise TypeError("target_RR must be NumPy ndarray of floats or a float ")
+    else:
+        if type(target_RR) == float or type(target_RR) != np.float64 or type(target_RR) != np.float32:
+            target_RR = np.array([target_RR], dtype=input_data.dtype)
+    
     if tau <= 0 or emb <= 0:
         raise TypeError("Delay and embedding must be greater than zero.")
-    if target_RR<0.0 or target_RR>1.0:
-        raise TypeError("target_RR must be between 0 and 1.")
     if epsilon<=0.0:
         raise TypeError("epsilon must be positive and non-zero.")
     if max_iter<=0:
@@ -570,56 +619,69 @@ def RR_target(input_data: NDArray, tau: int, emb: int, target_RR: float, distanc
     if threshold_min >= threshold_max:
         raise TypeError("threshold_min must be smaller then threshold_max.")
     
-    # Preparations
-    threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
-    emb_values = np.array([emb], dtype=np.intc)
-    tau_values = np.array([tau], dtype=np.intc)
-    threshold_values = np.array([threshold_min, threshold_mid, threshold_max], dtype=input_data.dtype)
-    
-    RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
-    RR_values = RR_values.flatten()
-    low_RR = RR_values[0]
-    mid_RR = RR_values[1]
-    hgh_RR = RR_values[2]
-    
-    if low_RR > target_RR:
-        TypeError("threshold_min is too high, decrease it to get to desired target_RR")
-    if hgh_RR < target_RR:
-        TypeError("threshold_max is too low, increase it to get to desired target_RR")
-    if low_RR == hgh_RR:
-        TypeError("threshold_min and threshold_max yields the same RR value. Increase range between those two threshold values.")
-    
-    iteration = 0
-    for iteration in range(1, max_iter + 1):
+    resulting_thresholds = []
+    resulting_RR = []
+    target_RR = target_RR.flatten()
+    for current_RR_target in target_RR:
+        # Preparations
+        if current_RR_target<0.0 or current_RR_target>1.0:
+            raise TypeError("target_RR values must be between 0 and 1.")
         threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
-        threshold_values = np.array([threshold_mid], dtype=input_data.dtype)
+        
+        emb_values = np.array([emb], dtype=np.intc)
+        tau_values = np.array([tau], dtype=np.intc)
+        threshold_values = np.array([threshold_min, threshold_mid, threshold_max], dtype=input_data.dtype)
+        
         RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
         RR_values = RR_values.flatten()
-        current_RR = RR_values[0]
+        low_RR = RR_values[0]
+        mid_RR = RR_values[1]
+        hgh_RR = RR_values[2]
         
-        # Check if we've found the solution within epsilon precision
-        if abs(current_RR - target_RR) < epsilon:
-            threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
-            RR_end = np.array([current_RR], dtype=input_data.dtype)
-            return(threshold_end, RR_end)
+        if low_RR > current_RR_target:
+            TypeError("threshold_min is too high, decrease it to get to desired target_RR")
+        if hgh_RR < current_RR_target:
+            TypeError("threshold_max is too low, increase it to get to desired target_RR")
+        if low_RR == hgh_RR:
+            TypeError("threshold_min and threshold_max yields the same RR value. Increase range between those two threshold values.")
+        
+        bisection_th_max = threshold_max
+        bisection_th_min = threshold_min
+        iteration = 0
+        for iteration in range(1, max_iter + 1):
+            threshold_mid = (bisection_th_max - bisection_th_min)/2.0 + bisection_th_min
+            threshold_values = np.array([threshold_mid], dtype=input_data.dtype)
+            RR_values = RR(input_data, tau_values, emb_values, threshold_values, distance_type, comp_platform, tidy_data=False)
+            RR_values = RR_values.flatten()
+            current_RR = RR_values[0]
             
-        # Check if interval is smaller than epsilon
-        if (hgh_RR - low_RR) < epsilon:
-            threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
-            RR_end = np.array([current_RR], dtype=input_data.dtype)
-            return(threshold_end, RR_end)
-            
-        # Update the search interval
-        if current_RR < target_RR:
-            threshold_min = threshold_mid
-        else:
-            threshold_max = threshold_mid
-    print(f"Warning: Bisection search stopped after {max_iter} iterations")
-    threshold_mid = (threshold_max - threshold_min)/2.0 + threshold_min
-    
-    threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
-    RR_end = np.array([current_RR], dtype=input_data.dtype)
-    return(threshold_end, RR_end)
+            # Check if we've found the solution within epsilon precision
+            if abs(current_RR - current_RR_target) < epsilon:
+                threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
+                RR_end = np.array([current_RR], dtype=input_data.dtype)
+                break
+                
+            # Check if interval is smaller than epsilon
+            if (hgh_RR - low_RR) < epsilon:
+                threshold_end = np.array([threshold_mid], dtype=input_data.dtype)
+                RR_end = np.array([current_RR], dtype=input_data.dtype)
+                break
+                
+            # Update the search interval
+            if current_RR < current_RR_target:
+                bisection_th_min = threshold_mid
+            else:
+                bisection_th_max = threshold_mid
+            threshold_mid = (bisection_th_max - bisection_th_min)/2.0 + bisection_th_min
+            if iteration==max_iter:
+                print(f"Warning: Bisection search stopped after {max_iter} iterations")
+        # End of bisection loop
+        resulting_thresholds = np.append(resulting_thresholds, threshold_end)
+        resulting_RR = np.append(resulting_RR, RR_end)
+    # End of current_RR_target loop
+    resulting_thresholds = resulting_thresholds.flatten()
+    resulting_RR = resulting_RR.flatten()
+    return(resulting_thresholds, resulting_RR)
 
 
 
