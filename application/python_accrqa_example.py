@@ -89,11 +89,31 @@ print("----------------------------")
 print("----------- target RR ------------")
 subtable = output_RR_pd[(output_RR_pd["Delay"]==1) & (output_RR_pd["Embedding"]==2) & (output_RR_pd["Threshold"]==0.8)]
 target_RR = (subtable.iloc[0])["RR"]
+print(target_RR)
+print(type(target_RR))
 target_threshold = (subtable.iloc[0])["Threshold"]
 print("True values are: threshold="+str(target_threshold)+"; RR="+str(target_RR))
 threshold_for_RR, current_RR = rqa.RR_target(input_data, 1, 2, target_RR, epsilon=0.00001, distance_type=rqa.accrqaDistance("maximal"))
-
 print("Found threshold =" + str(threshold_for_RR) + " for RR=" + str(current_RR))
+print(" ")
+print("Desired RR as numpy array:")
+subtable = output_RR_pd[(output_RR_pd["Delay"]==1) & (output_RR_pd["Embedding"]==2)]
+target_RR_many = np.asarray(subtable["RR"])
+print("Target RRs:")
+print(target_RR_many)
+target_threshold = np.asarray(subtable["Threshold"])
+threshold_for_RR_many, current_RR_many = rqa.RR_target(input_data, 1, 2, target_RR_many, epsilon=0.00001, distance_type=rqa.accrqaDistance("maximal"))
+print("Calculated values:")
+print("Thresholds found:")
+print(threshold_for_RR_many)
+print("Difference between found and target threshold:")
+print(threshold_for_RR_many-target_threshold)
+print("Thresholds resulting in RR = 1 are not unique and any higher threshold leads to same RR. Therefore RR_target cannot found them correctly.")
+print("Found RRs:")
+print(current_RR_many)
+
+
+
 print("----------------------------")
 
 
