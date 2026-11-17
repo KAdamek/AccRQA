@@ -1,0 +1,87 @@
+name: CUDA on simulated H100
+
+# The existing workflows only build the CUDA wheels (on manual dispatch), and
+# BUILD_TESTS is off, so tests/test_RQA.cpp (CPU vs GPU comparison of RR, DET
+# and LAM) never runs in CI. This job builds the library with CUDA and runs it
+# on a simulated NVIDIA H100 (https://github.com/pantheongpu/pantheonsim).
+# A simulator cannot reproduce hardware-specific behavior or timing, so it
+# complements real-GPU testing and does not replace it.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - "src/**"
+      - "include/**"
+      - "tests/test_RQA.cpp"
+      - "tests/CMakeLists.txt"
+      - "cmake/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/gpu-sim.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cuda-sim:
+    name: CUDA 13.0 on simulated H100
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up the simulated H100 and CUDA toolkit
+        uses: pantheongpu/setup-pantheonsim@a1b9d4237411f9b2b0e0bb895b4d83377f336a7b # v0.1.9
+        with:
+          gpu: nvidia/h100
+          cuda-toolkit: "13.0"
+
+      # The simulator needs the shared CUDA runtime and PTX, so the runner's
+      # checkout is switched from cudart_static to cudart and from 90-real to
+      # 90-virtual (CUDA_ARCH=9.0 is the project's own option for sm_90).
+      # The size sweeps in test_RQA.cpp go up to 32768 (65538 for DET) points,
+      # which takes hours on the simulator, so the runner's copy stops them at
+      # 4056 points. Everything else in the test is unchanged.
+      - name: Configure
+        run: |
+          sed -i 's/CUDA::cudart_static/CUDA::cudart/' CMakeLists.txt
+          sed -i 's/90-real/90-virtual/' cmake/compiler_options.cmake
+          sed -i -E 's/s < (32768|65538); s = s\*2/s < 4100; s = s*2/' tests/test_RQA.cpp
+          git diff --stat
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=ON \
+            -DCUDA_ARCH=9.0 \
+            -DCMAKE_CUDA_COMPILER=/usr/local/cuda-13.0/bin/nvcc \
+            -DCUDAToolkit_ROOT=/usr/local/cuda-13.0 \
+            -DCMAKE_CUDA_RUNTIME_LIBRARY=Shared
+
+      - name: Build
+        run: cmake --build build --parallel 3
+
+      # test_RQA always exits with 0 and reports problems only as FAILED lines,
+      # so the step checks the output itself. It also requires the GPU
+      # comparisons to be present.
+      - name: Test on the simulated H100
+        run: |
+          set -o pipefail
+          vgpu run --gpu nvidia/h100 ./build/tests/test_RQA | tee test.log
+          sed -i 's/\x1b\[[0-9;]*m//g' test.log
+          if grep -q 'FAILED' test.log; then
+            echo "::error::test_RQA reported FAILED"
+            exit 1
+          fi
+          passed=$(grep -c 'PASSED' test.log)
+          echo "PASSED lines: $passed"
+          if [ "$passed" -lt 20 ]; then
+            echo "::error::test_RQA did not run to completion"
+            exit 1
+          fi
